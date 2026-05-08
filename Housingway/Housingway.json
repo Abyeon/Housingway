@@ -1,12 +1,12 @@
 {
-  "Author": "your name here",
-  "Name": "Sample Plugin",
-  "Punchline": "A short one-liner that shows up in /xlplugins.",
-  "Description": "A description that shows up in /xlplugins. List any major slash-command(s).",
+  "Author": "Abyeon",
+  "Name": "Housingway",
+  "Punchline": "Experience better housing!",
+  "Description": "A small collection of tweaks pertaining to housing.",
   "ApplicableVersion": "any",
   "Tags": [
-    "sample",
-    "plugin",
-    "goats"
+    "util",
+    "housing",
+    "tweak"
   ]
 }
