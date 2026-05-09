@@ -5,8 +5,8 @@ List of goal tweaks to include with Housingway
 
 1. [ ] Skybox Editor
 2. [ ] Toggle for Void Lighting
-3. [ ] Interior Lighting slider
-4. [ ] SSAO+ toggle
+3. [x] Interior Lighting slider
+4. [x] SSAO+ toggle
 5. [ ] Cast shadows toggle
 6. [ ] Remove void sun (maybe?)
 7. [ ] Phasing bounding sphere display

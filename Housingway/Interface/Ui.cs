@@ -18,6 +18,28 @@ public static class Ui
 {
     private static string Buf = "";
 
+    public static bool SliderWithDefault(string label, ref float input, float min, float max, float defaultValue)
+    {
+        bool ret = ImGui.SliderFloat($"###{label}", ref input, min, max);
+        
+        var rectMin = ImGui.GetItemRectMin();
+        var rectMax = ImGui.GetItemRectMax();
+        var sliderWidth = rectMax.X - rectMin.X;
+        var defaultValuePos = rectMin.X + (sliderWidth * ((defaultValue - min) / (max - min)));
+
+        var draw = ImGui.GetWindowDrawList();
+        draw.AddLine(
+            rectMin with { X = defaultValuePos },
+            rectMax with { X = defaultValuePos },
+            ImGui.GetColorU32(ImGuiCol.SliderGrabActive),
+            2.0f);
+
+        ImGui.SameLine();
+        ImGui.Text(label);
+
+        return ret;
+    }
+
     /// <summary>
     /// Adds a popup that can be opened with ImGui.OpenPopup(id)
     /// Only returns true if the confirmation button was clicked.

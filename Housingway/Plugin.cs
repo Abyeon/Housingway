@@ -54,12 +54,13 @@ public sealed class Plugin : IDalamudPlugin
         HousingFunctions = new HousingFunctions();
 
         Tweaks = [
-            new OverrideInteriorLighting(this)
+            new OverrideInteriorLighting(this),
+            new ToggleAmbientOcclusion()
         ];
-
+        
         foreach (var tweak in Tweaks)
         {
-            if (Configuration.EnabledTweaks.Contains(nameof(tweak)))
+            if (Configuration.EnabledTweaks.Contains(tweak.GetType().Name))
             {
                 EnableTweak(tweak);
             }
@@ -74,7 +75,8 @@ public sealed class Plugin : IDalamudPlugin
         {
             tweak.Enable();
             tweak.Enabled = true;
-            Configuration.EnabledTweaks.Add(nameof(tweak));
+            Configuration.EnabledTweaks.Add(tweak.GetType().Name);
+            Configuration.Save();
             Log.Verbose($"Enabled Tweak {tweak.Name}");
         }
         catch (Exception e)
@@ -90,9 +92,10 @@ public sealed class Plugin : IDalamudPlugin
         
         try
         {
-            tweak.Dispose();
+            tweak.Disable();
             tweak.Enabled = false;
-            Configuration.EnabledTweaks.Remove(nameof(tweak));
+            Configuration.EnabledTweaks.Remove(tweak.GetType().Name);
+            Configuration.Save();
             Log.Verbose($"Disabled Tweak {tweak.Name}");
         }
         catch (Exception e)
@@ -117,6 +120,8 @@ public sealed class Plugin : IDalamudPlugin
         {
             tweak.Dispose();
         }
+        
+        HousingFunctions.Dispose();
     }
 
     private void OnCommand(string command, string args)

@@ -9,5 +9,6 @@ public abstract class BaseTweak : ITweak, IDisposable
     public abstract bool Enabled { get; set; }
 
     public abstract void Enable();
+    public abstract void Disable();
     public abstract void Dispose();
 }

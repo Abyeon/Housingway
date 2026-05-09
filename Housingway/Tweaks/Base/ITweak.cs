@@ -7,5 +7,6 @@ public interface ITweak
     bool Enabled { get; set; }
 
     void Enable();
+    void Disable();
     void Dispose();
 }

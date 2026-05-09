@@ -1,19 +1,13 @@
-﻿using System;
-using Dalamud.Game.ClientState;
-using Dalamud.Hooking;
-using Dalamud.Utility.Signatures;
+﻿using Dalamud.Game.ClientState;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
-using Housingway.Config;
-using Housingway.Utils;
-using InteropGenerator.Runtime;
 
 namespace Housingway.Tweaks;
 
+// Heavily inspired by https://github.com/ktisis-tools/Ktisis/blob/v0.3/main/Ktisis/Services/Data/HousingDataService.cs
 public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteriorLightingConfig>
 {
     public override string Name { get; init; } = "Override Interior Lighting";
-    public override string Description { get; init; } = "Overrides the interior lighting of other player's houses to your desired lighting";
+    public override string Description { get; init; } = "Overrides the interior lighting of other player's houses to your desired setting.";
     public override bool Enabled { get; set; }
 
     private readonly Plugin plugin;
@@ -23,65 +17,64 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
         this.plugin = plugin;
         PluginConfig = plugin.Configuration;
         Config = PluginConfig.Tweaks.OverrideInteriorLighting;
-    }
-
-    public override void Enable()
-    {
-        SetInitialValue();
-        Plugin.ClientState.ZoneInit += OnZoneInit;
-        UpdateLight();
-    }
-    
-    private void OnZoneInit(ZoneInitEventArgs obj) 
-    {
-        Plugin.Framework.Run(SetInitialValue);
-        UpdateLight();
-    }
-    
-    private float initialValue;
-
-    private void SetInitialValue()
-    {
-        var man = HousingManager.Instance();
-        if (man == null || !man->IsInside()) return;
-
-        var indoor = man->IndoorTerritory;
-        if (indoor == null) return;
         
-        initialValue = indoor->BrightnessCurrent;
+        Plugin.ClientState.ZoneInit += OnZoneInit;
     }
     
-    private void UpdateLight()
+    private static float InitialValue
     {
-        var man = HousingManager.Instance();
-        if (man->IsInside())
+        get
         {
-            Plugin.Log.Debug($"Updating interior light to {Config.Light}");
-            Plugin.Framework.Run(() => SetInteriorLight(Config.Light + 0.00001f));
-            Plugin.Framework.Run(() => SetInteriorLight(Config.Light));
+            var man = HousingManager.Instance();
+            if (man == null || !man->IsInside()) return float.NaN;
+            return 1.0f - (man->IndoorTerritory->SavedInvertedBrightness * 0.2f);
         }
     }
-    
-    private void SetInteriorLight(float target)
+
+    private static float IndoorLight
     {
-        var man = HousingManager.Instance();
-        if (man == null) return;
-
-        if (!man->IsInside()) return;
-
-        var indoor = man->IndoorTerritory;
-        if (indoor == null) return;
-
-        var speed = target - indoor->BrightnessCurrent;
+        get
+        {
+            var man = HousingManager.Instance();
+            if (man == null || !man->IsInside()) return float.NaN;
             
-        indoor->BrightnessTarget = target;
-        indoor->BrightnessTransitionSpeed = speed;
-        indoor->IsBrightnessTransitioning = true;
+            return man->IndoorTerritory->BrightnessCurrent;
+        }
+        set
+        {
+            var man = HousingManager.Instance();
+            if (man == null || !man->IsInside()) return;
+
+            var indoor = man->IndoorTerritory;
+            
+            indoor->BrightnessCurrent = value + 0.001f; // literally just to make sure the light updates on zone init
+            var speed = value - indoor->BrightnessCurrent;
+        
+            indoor->BrightnessTarget = value;
+            indoor->BrightnessTransitionSpeed = speed;
+            indoor->IsBrightnessTransitioning = true;
+        }
+    }
+
+    public override void Enable() => UpdateLight();
+    public override void Disable() => IndoorLight = InitialValue;
+
+    private void OnZoneInit(ZoneInitEventArgs obj) 
+    {
+        if (Enabled)
+        {
+            Plugin.Framework.Run(UpdateLight);
+        }
+    }
+
+    private void UpdateLight()
+    {
+        IndoorLight = Config.Light;
     }
 
     public override void Dispose()
     {
-        SetInteriorLight(initialValue);
+        Disable();
         Plugin.ClientState.ZoneInit -= OnZoneInit;
     }
 }

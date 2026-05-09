@@ -1,5 +1,5 @@
 ﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Configuration;
+using Housingway.Interface;
 
 namespace Housingway.Tweaks;
 
@@ -13,7 +13,9 @@ public partial class OverrideInteriorLighting
     public override void DrawConfig()
     {
         var light = Config.Light;
-        if (ImGui.SliderFloat("Light", ref light, 0, 1))
+        var color = ImGui.GetColorU32(ImGuiCol.TitleBgActive);
+        //using var _ = ImRaii.PushColor(ImGuiCol.Separator, color);
+        if (Ui.SliderWithDefault("Light", ref light, 0, 1, InitialValue))
         {
             Config.Light = light;
             UpdateLight();
@@ -21,6 +23,14 @@ public partial class OverrideInteriorLighting
 
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
+            PluginConfig.Save();
+        }
+
+        ImGui.Spacing();
+        if (ImGui.Button("Restore"))
+        {
+            IndoorLight = InitialValue;
+            Config.Light = IndoorLight;
             PluginConfig.Save();
         }
     }
