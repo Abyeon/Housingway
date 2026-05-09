@@ -29,7 +29,7 @@ public abstract class CustomWindow : Window
         TitleBarButtons.Add(PinButton);
     }
     
-    private bool isPinned = false;
+    private bool isPinned;
 
     private TitleBarButton PinButton
     {
@@ -58,7 +58,7 @@ public abstract class CustomWindow : Window
         else Flags &= ~(ImGuiWindowFlags.NoMove | ImGuiWindowFlags.NoResize);
         
         // Add new pin button with new icon
-        TitleBarButtons.Add(PinButton);
+        TitleBarButtons.Insert(0, PinButton);
     }
 
     private Vector2 padding;

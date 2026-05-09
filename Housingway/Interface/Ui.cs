@@ -296,7 +296,7 @@ public static class Ui
         {
             StartPos = ImGui.GetCursorScreenPos();
             
-            draw = ImGui.GetWindowDrawList();
+            draw = ImGui.GetForegroundDrawList();
 
             ImGui.ChannelsSplit(draw, 2);
             draw.ChannelsSetCurrent(1);
@@ -311,7 +311,7 @@ public static class Ui
             ImGui.Unindent();
             ImGui.EndGroup();
             
-            EndPos = ImGui.GetCursorScreenPos();
+            EndPos = ImGui.GetCursorScreenPos() with { X = StartPos.X };
             ImGui.SetCursorScreenPos(StartPos);
             
             draw.ChannelsSetCurrent(0); // Set the channel to the background
