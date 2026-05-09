@@ -22,4 +22,5 @@ public class Configuration : IPluginConfiguration
 public class TweakConfigs
 {
     public OverrideInteriorLightingConfig OverrideInteriorLighting = new();
+    public ModelAdjustmentsConfig ModelAdjustments = new();
 }

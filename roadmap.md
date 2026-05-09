@@ -12,4 +12,5 @@ List of goal tweaks to include with Housingway
 7. [ ] Phasing bounding sphere display
 8. [ ] Phasing toggle
 9. [ ] Include cull fix (and check if HousingCullFix exists in plugins before applying fix)
-10. [ ] Disable housing shell "lightgard.mdl"
+10. [x] Disable housing shell "lightgard.mdl"
+11. [x] Disable shame cube "env_cube.mdl"

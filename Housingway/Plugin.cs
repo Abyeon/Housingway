@@ -56,7 +56,8 @@ public sealed class Plugin : IDalamudPlugin
         Tweaks = [
             new OverrideInteriorLighting(this),
             new ToggleAmbientOcclusion(),
-            new ToggleCastShadows()
+            new ToggleCastShadows(),
+            new ModelAdjustments(this)
         ];
         
         foreach (var tweak in Tweaks)
