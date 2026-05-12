@@ -27,16 +27,16 @@ public unsafe class HousingService : IDisposable
             return null;
         }
     }
+
+    internal static bool IsInside;
+    internal static bool IsOutside;
+    internal static bool InHousingArea => IsInside || IsOutside;
     
-    public static bool IsInside  => Manager != null && Manager->IsInside();
-    public static bool IsOutside => Manager != null && Manager->IsOutside();
-    public static bool InHousingArea => IsInside || IsOutside;
+    internal delegate void FurnitureAdded(Furniture furniture);
+    internal delegate void FurnitureUpdate(Furniture furniture);
     
-    public delegate void FurnitureAdded(Furniture furniture);
-    public delegate void FurnitureUpdate(Furniture furniture);
-    
-    public static event FurnitureAdded? OnFurnitureAdded;
-    public static event FurnitureUpdate? OnFurnitureUpdate;
+    internal static event FurnitureAdded? OnFurnitureAdded;
+    internal static event FurnitureUpdate? OnFurnitureUpdate;
 
     internal static HashSet<Furniture> CurrentFurniture = [];
 
@@ -45,7 +45,9 @@ public unsafe class HousingService : IDisposable
         Plugin.ClientState.ZoneInit += OnZoneInit;
         
         CheckForHousing();
-        UpdateFurniture();
+        
+        if (InHousingArea)
+            UpdateFurniture();
     }
 
     private void OnZoneInit(ZoneInitEventArgs obj)
@@ -56,6 +58,17 @@ public unsafe class HousingService : IDisposable
 
     private void CheckForHousing()
     {
+        if (Manager != null)
+        {
+            IsInside = Manager->IsInside();
+            IsOutside = Manager->IsOutside();
+        }
+        else
+        {
+            IsInside = false;
+            IsOutside = false;
+        }
+        
         if (InHousingArea)
         {
             Plugin.Framework.Update += OnUpdate;
@@ -68,18 +81,11 @@ public unsafe class HousingService : IDisposable
 
     private void OnUpdate(IFramework framework) => UpdateFurniture();
 
+    private static readonly HashSet<Furniture> Touched = [];
+
     private void UpdateFurniture()
     {
-        if (Manager == null)
-        {
-            CurrentFurniture.Clear();
-            return;
-        }
-
-        if (!InHousingArea) return;
-        if (FurnitureManager == null) return;
-        
-        HashSet<Furniture> touched = [];
+        Touched.Clear();
 
         foreach (var furn in FurnitureManager->FurnitureVector)
         {
@@ -87,18 +93,24 @@ public unsafe class HousingService : IDisposable
             if (ptr == null) continue;
 
             var furniture = new Furniture(ptr);
-            if (furniture.Id == 0 || !furniture.IsValid) continue;
+            if (furniture.Id == 0) continue;
+
+            var exists = CurrentFurniture.Contains(furniture);
             
-            OnFurnitureUpdate?.Invoke(furniture);
+            if (!exists && !furniture.IsValid) continue;
+
+            Touched.Add(furniture);
             
-            touched.Add(furniture);
-            if (CurrentFurniture.Add(furniture))
+            if (!exists)
             {
+                CurrentFurniture.Add(furniture);
                 OnFurnitureAdded?.Invoke(furniture);
             }
+            
+            OnFurnitureUpdate?.Invoke(furniture);
         }
 
-        CurrentFurniture.IntersectWith(touched);
+        CurrentFurniture.RemoveWhere(x => !Touched.Contains(x));
     }
 
     public void Dispose()
@@ -110,7 +122,7 @@ public unsafe class HousingService : IDisposable
     }
 }
 
-public unsafe class Furniture : IEquatable<Furniture>
+public readonly unsafe struct Furniture : IEquatable<Furniture>
 {
     public readonly HousingFurniture HousingFurniture;
     public readonly ulong Id;
@@ -118,14 +130,31 @@ public unsafe class Furniture : IEquatable<Furniture>
     public Furniture(HousingFurniture* ptr)
     {
         HousingFurniture = *ptr;
-        Id = Object == null ? 0 : Object->GetGameObjectId().Id;
+
+        if (!HousingService.InHousingArea)
+        {
+            Id = 0;
+            return;
+        }
+        
+        var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
+        var index = HousingFurniture.Index;
+        if (index >= 0 && index < arr.Objects.Length && index < arr.ObjectCount)
+        {
+            var obj = (HousingObject*)arr.Objects[index].Value;
+            Id = obj == null ? 0 : Object->GetGameObjectId().Id;
+        }
+        else
+        {
+            Id = 0;
+        }
     }
 
     public HousingObject* Object
     {
         get
         {
-            if (HousingService.FurnitureManager == null) return null;
+            if (!HousingService.InHousingArea) return null;
             var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
             var index = HousingFurniture.Index;
             if (index < 0) return null;
@@ -182,22 +211,17 @@ public unsafe class Furniture : IEquatable<Furniture>
 
     public bool IsValid => Graphics != null && Collider != null;
 
-    public bool Equals(Furniture? other)
+    public bool Equals(Furniture other) => Id == other.Id;
+    public override bool Equals(object? obj) => obj is Furniture other && Equals(other);
+    public override int GetHashCode() => Id.GetHashCode();
+
+    public static bool operator ==(Furniture left, Furniture right)
     {
-        if (other is null) return false;
-        if (other.Object == null) return false;
-        return Id == other.Id;
+        return left.Equals(right);
     }
 
-    public override bool Equals(object? obj)
+    public static bool operator !=(Furniture left, Furniture right)
     {
-        if (obj is null) return false;
-        if (ReferenceEquals(this, obj)) return true;
-        return obj.GetType() == GetType() && Equals((Furniture)obj);
-    }
-
-    public override int GetHashCode()
-    {
-        return Id.GetHashCode();
+        return !(left == right);
     }
 }

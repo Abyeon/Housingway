@@ -92,21 +92,23 @@ public unsafe partial class FurnitureInfo
             return;
         }
 
-        var name = selectedFurniture.Object->NameString;
+        var furn = selectedFurniture.Value;
+        
+        var name = furn.Object->NameString;
         ImGui.InputText("Name", ref name, flags: ImGuiInputTextFlags.ReadOnly);
         
-        var path = selectedFurniture.Group->ResourceHandle->FileName.ToString();
+        var path = furn.Group->ResourceHandle->FileName.ToString();
         ImGui.InputText("Path", ref path, flags: ImGuiInputTextFlags.ReadOnly);
             
-        Vector3 pos = selectedFurniture.Object->Position;
+        Vector3 pos = furn.Object->Position;
         ImGui.InputFloat3($"Position", ref pos);
         
         Vector4 boundSphere = new Vector4();
-        selectedFurniture.Group->GetBoundingSphereImpl(&boundSphere);
+        furn.Group->GetBoundingSphereImpl(&boundSphere);
 
         ImGui.InputFloat4($"Bounding Sphere", ref boundSphere);
 
-        var stain = selectedFurniture.Group->StainInfo;
+        var stain = furn.Group->StainInfo;
         var chosenIndex = stain->ChosenStainIndex;
         var defaultIndex = stain->DefaultStainIndex;
 
@@ -127,7 +129,7 @@ public unsafe partial class FurnitureInfo
         {
             if (!header.Success) return;
             
-            foreach (var child in selectedFurniture.Group->Instances.Instances)
+            foreach (var child in furn.Group->Instances.Instances)
             {
                 var ptr = child.Value;
                 if (ptr == null) continue;
@@ -152,7 +154,7 @@ public unsafe partial class FurnitureInfo
         if (drawList is null) return;
 
         Vector4 fillColor = new(1f, 0.4f, 0.2f, 0.35f);
-        drawList?.AddCircleFilled(pos, boundSphere.W, ImGui.ColorConvertFloat4ToU32(fillColor));
+        drawList.AddCircleFilled(pos, boundSphere.W, ImGui.ColorConvertFloat4ToU32(fillColor));
     }
     
     private static Vector4 UintToVector4(uint color)
