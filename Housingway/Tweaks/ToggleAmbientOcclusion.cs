@@ -66,5 +66,5 @@ public unsafe class ToggleAmbientOcclusion : BaseTweak
         SSAOEnabled = SavedSSAOEnabled;
     }
 
-    public override void Dispose() => Disable();
+    public override void Dispose() { }
 }

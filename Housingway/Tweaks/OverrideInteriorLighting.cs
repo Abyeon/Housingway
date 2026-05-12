@@ -72,9 +72,5 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
         IndoorLight = Config.Light;
     }
 
-    public override void Dispose()
-    {
-        Disable();
-        Plugin.ClientState.ZoneInit -= OnZoneInit;
-    }
+    public override void Dispose() => Plugin.ClientState.ZoneInit -= OnZoneInit;
 }

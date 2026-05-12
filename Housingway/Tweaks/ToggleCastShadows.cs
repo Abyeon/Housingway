@@ -59,5 +59,5 @@ public unsafe class ToggleCastShadows : BaseTweak
         }
     }
 
-    public override void Dispose() => Disable();
+    public override void Dispose() { }
 }

@@ -40,7 +40,6 @@ public class ConfigWindow : CustomWindow, IDisposable
             using var list = ImRaii.Child($"TweakList", new Vector2(220, ImGui.GetWindowHeight()), false, ImGuiWindowFlags.AlwaysUseWindowPadding);
             TweakList();
         }
-        
 
         ImGui.SameLine();
         using (var config = ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding))

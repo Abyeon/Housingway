@@ -85,21 +85,29 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         var man = HousingManager.Instance();
         if (man == null || !man->IsInside()) return;
 
-        if (lightguard != null)
+        try
         {
-            lightguard->IsVisible = !Config.DisableLightguard || enable;
-            // fun way to remove light bleed
-            // var radians = float.Pi / 180;
-            // lightguard->Rotation = (!Config.DisableLightguard || enable) ? Quaternion.Identity : Quaternion.CreateFromYawPitchRoll(0, 0, radians * 180);
-            // lightguard->Scale = (!Config.DisableLightguard || enable) ? Vector3.One : -Vector3.One * 100;
-            lightguard->UpdateRender();
-        }
+            if (lightguard != null)
+            {
+                lightguard->IsVisible = !Config.DisableLightguard || enable;
+                // fun way to remove light bleed
+                // var radians = float.Pi / 180;
+                // lightguard->Rotation = (!Config.DisableLightguard || enable) ? Quaternion.Identity : Quaternion.CreateFromYawPitchRoll(0, 0, radians * 180);
+                // lightguard->Scale = (!Config.DisableLightguard || enable) ? Vector3.One : -Vector3.One * 100;
+                lightguard->UpdateRender();
+            }
 
-        if (shameCube != null)
-        {
-            shameCube->IsVisible = !Config.DisableShameCube || enable;
-            shameCube->UpdateRender();
+            if (shameCube != null)
+            {
+                shameCube->IsVisible = !Config.DisableShameCube || enable;
+                shameCube->UpdateRender();
+            }
         }
+        catch (Exception e)
+        {
+            Plugin.Log.Error(e.ToString());
+        }
+        
     }
 
     public override void Disable()
@@ -112,7 +120,6 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
 
     public override void Dispose()
     {
-        Disable();
         lightguard = null;
         shameCube = null;
     }

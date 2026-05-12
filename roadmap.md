@@ -14,3 +14,4 @@ List of goal tweaks to include with Housingway
 9. [ ] Include cull fix (and check if HousingCullFix exists in plugins before applying fix)
 10. [x] Disable housing shell "lightgard.mdl"
 11. [x] Disable shame cube "env_cube.mdl"
+12. [x] Disable camera collision with furnishings

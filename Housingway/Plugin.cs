@@ -18,13 +18,15 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; private set; } = null!;
     [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
     [PluginService] internal static IClientState ClientState { get; private set; } = null!;
+    [PluginService] internal static IObjectTable ObjectTable { get; private set; } = null!;
     [PluginService] internal static IPluginLog Log { get; private set; } = null!;
     [PluginService] internal static IGameConfig GameConfig { get; private set; } = null!;
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
+    [PluginService] internal static ISigScanner SigScanner { get; private set; } = null!;
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
-
-    public HousingFunctions HousingFunctions { get; init; } = null!;
+    
+    internal HousingService HousingService { get; init; }
 
     private const string CommandName = "/housingway";
 
@@ -50,14 +52,14 @@ public sealed class Plugin : IDalamudPlugin
         
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
-
-        HousingFunctions = new HousingFunctions();
-
+        
         Tweaks = [
             new OverrideInteriorLighting(this),
             new ToggleAmbientOcclusion(),
             new ToggleCastShadows(),
-            new ModelAdjustments(this)
+            new ModelAdjustments(this),
+            new CameraCollision(this),
+            new HighlightPhasedObjects(this)
         ];
         
         foreach (var tweak in Tweaks)
@@ -67,6 +69,8 @@ public sealed class Plugin : IDalamudPlugin
                 EnableTweak(tweak);
             }
         }
+        
+        HousingService = new HousingService();
     }
 
     public void EnableTweak(ITweak tweak)
@@ -120,10 +124,11 @@ public sealed class Plugin : IDalamudPlugin
 
         foreach (var tweak in Tweaks)
         {
+            if (tweak.Enabled) tweak.Disable();
             tweak.Dispose();
         }
         
-        HousingFunctions.Dispose();
+        HousingService.Dispose();
     }
 
     private void OnCommand(string command, string args)

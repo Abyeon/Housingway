@@ -21,6 +21,8 @@ public class Configuration : IPluginConfiguration
 
 public class TweakConfigs
 {
-    public OverrideInteriorLightingConfig OverrideInteriorLighting = new();
-    public ModelAdjustmentsConfig ModelAdjustments = new();
+    public readonly OverrideInteriorLightingConfig OverrideInteriorLighting = new();
+    public readonly ModelAdjustmentsConfig ModelAdjustments = new();
+    public readonly CameraCollisionConfig CameraCollision = new();
+    public readonly HighlightPhasedObjectsConfig HighlightPhasedObjects = new();
 }
