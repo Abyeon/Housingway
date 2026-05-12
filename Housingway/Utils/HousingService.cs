@@ -30,6 +30,7 @@ public unsafe class HousingService : IDisposable
     
     public static bool IsInside  => Manager != null && Manager->IsInside();
     public static bool IsOutside => Manager != null && Manager->IsOutside();
+    public static bool InHousingArea => IsInside || IsOutside;
     
     public delegate void FurnitureAdded(Furniture furniture);
     public delegate void FurnitureUpdate(Furniture furniture);
@@ -55,7 +56,7 @@ public unsafe class HousingService : IDisposable
 
     private void CheckForHousing()
     {
-        if (Manager != null)
+        if (InHousingArea)
         {
             Plugin.Framework.Update += OnUpdate;
         }
@@ -75,7 +76,7 @@ public unsafe class HousingService : IDisposable
             return;
         }
 
-        if (!IsInside && !IsOutside) return;
+        if (!InHousingArea) return;
         if (FurnitureManager == null) return;
         
         HashSet<Furniture> touched = [];
@@ -86,8 +87,8 @@ public unsafe class HousingService : IDisposable
             if (ptr == null) continue;
 
             var furniture = new Furniture(ptr);
-            if (furniture.Id == 0) continue;
-
+            if (furniture.Id == 0 || !furniture.IsValid) continue;
+            
             OnFurnitureUpdate?.Invoke(furniture);
             
             touched.Add(furniture);
@@ -96,7 +97,7 @@ public unsafe class HousingService : IDisposable
                 OnFurnitureAdded?.Invoke(furniture);
             }
         }
-        
+
         CurrentFurniture.IntersectWith(touched);
     }
 
