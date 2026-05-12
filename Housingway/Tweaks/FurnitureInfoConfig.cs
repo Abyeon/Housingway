@@ -123,6 +123,31 @@ public unsafe partial class FurnitureInfo
             ImGui.ColorEdit4($"Default Stain [{defaultStain.Name.ToString()}]", ref defaultColor, ImGuiColorEditFlags.NoInputs);
         }
 
+        using (var header = ImRaii.Header("Instances", ImGuiTreeNodeFlags.Framed))
+        {
+            if (!header.Success) return;
+            
+            foreach (var child in selectedFurniture.Group->Instances.Instances)
+            {
+                var ptr = child.Value;
+                if (ptr == null) continue;
+
+                var instance = ptr->Instance;
+                if (instance == null) continue;
+
+                var type = instance->Id.Type;
+                ImGui.Text(type.ToString());
+
+                if (ImGui.IsItemHovered())
+                {
+                    Vector3 childPos = new Vector3();
+                    instance->GetTranslation(&childPos);
+                    
+                    DrawLineToGamePos(childPos, ImGuiColors.DalamudYellow.ToByteColor().RGBA);
+                }
+            }
+        }
+
         using var drawList = PctService.Draw();
         if (drawList is null) return;
 
