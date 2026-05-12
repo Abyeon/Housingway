@@ -10,6 +10,7 @@ using Housingway.Config;
 using Housingway.Interface.Windows;
 using Housingway.Tweaks;
 using Housingway.Utils;
+using Pictomancy;
 
 namespace Housingway;
 
@@ -25,6 +26,8 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IGameInteropProvider GameInteropProvider { get; private set; } = null!;
     [PluginService] internal static ISigScanner SigScanner { get; private set; } = null!;
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
+    [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
+    [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     
     internal HousingService HousingService { get; init; }
 
@@ -34,6 +37,8 @@ public sealed class Plugin : IDalamudPlugin
     
     public readonly WindowSystem WindowSystem = new("Housingway");
     private ConfigWindow ConfigWindow { get; init; }
+
+    public readonly PctContext PctContext;
     
     public ITweak[] Tweaks { get; init; }
     
@@ -52,6 +57,14 @@ public sealed class Plugin : IDalamudPlugin
         
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
+
+        PctContext = PctService.Initialize(PluginInterface, new PctOptions()
+        {
+            EnableDxRenderer = true,
+            EnableKtkOutput = false,
+            EnableVfxRenderer = false,
+            MaxTriangleVertices = 10000
+        });
         
         Tweaks = [
             new OverrideInteriorLighting(this),
@@ -59,7 +72,8 @@ public sealed class Plugin : IDalamudPlugin
             new ToggleCastShadows(),
             new ModelAdjustments(this),
             new CameraCollision(this),
-            new HighlightPhasedObjects(this)
+            new HighlightPhasedObjects(this),
+            new FurnitureInfo(this)
         ];
         
         foreach (var tweak in Tweaks)
@@ -129,6 +143,8 @@ public sealed class Plugin : IDalamudPlugin
         }
         
         HousingService.Dispose();
+        
+        PctContext.Dispose();
     }
 
     private void OnCommand(string command, string args)

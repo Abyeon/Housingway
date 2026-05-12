@@ -5,6 +5,7 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using Housingway.Structs;
@@ -132,15 +133,14 @@ public unsafe class Furniture : IEquatable<Furniture>
         }
     }
 
+    public SharedGroupLayoutInstance* Group => Object == null ? null : Object->SharedGroupLayoutInstance;
+
     public Collider* Collider
     {
         get
         {
-            if (Object == null) return null;
-            var group = Object->SharedGroupLayoutInstance;
-        
-            if (group == null) return null;
-            foreach (var instance in group->Instances.Instances)
+            if (Group == null) return null;
+            foreach (var instance in Group->Instances.Instances)
             {
                 var ptr = instance.Value;
                 if (ptr == null) continue;
@@ -158,13 +158,10 @@ public unsafe class Furniture : IEquatable<Furniture>
     {
         get
         {
-            if (Object == null) return null;
-            var group = Object->SharedGroupLayoutInstance;
+            if (Group == null) return null;
+            if (Group->Instances.Instances.Count == 0) return null;
             
-            if (group == null) return null;
-            if (group->Instances.Instances.Count == 0) return null;
-            
-            var parts = (BgPartsLayoutInstance*)group->Instances.Instances[0].Value->Instance;
+            var parts = (BgPartsLayoutInstance*)Group->Instances.Instances[0].Value->Instance;
             return parts == null ? null : parts->GraphicsObject;
         }
     }
@@ -181,6 +178,8 @@ public unsafe class Furniture : IEquatable<Furniture>
             return &man->CullObjects[HousingFurniture.Index];
         }
     }
+
+    public bool IsValid => Graphics != null && Collider != null;
 
     public bool Equals(Furniture? other)
     {
