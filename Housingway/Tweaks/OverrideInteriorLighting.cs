@@ -47,7 +47,7 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
 
             var indoor = man->IndoorTerritory;
             
-            indoor->BrightnessCurrent = value + 0.001f; // literally just to make sure the light updates on zone init
+            indoor->BrightnessCurrent = value + 0.000001f; // literally just to make sure the light updates on zone init
             var speed = value - indoor->BrightnessCurrent;
         
             indoor->BrightnessTarget = value;

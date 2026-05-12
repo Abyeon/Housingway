@@ -26,37 +26,23 @@ public unsafe partial class CameraCollision : ConfigurableTweak<CameraCollisionC
     public override string Name { get; init; } = "Camera Collision";
     public override string Description { get; init; } = "Allows the camera to clip through furnishings, and fades out the furnishing it is clipped through!";
     public override bool Enabled { get; set; }
-    
-    private readonly Plugin plugin;
-    private readonly HousingService house;
 
     public CameraCollision(Plugin plugin)
     {
-        this.plugin = plugin;
-        house = plugin.HousingService;
-        
         PluginConfig = plugin.Configuration;
         Config = PluginConfig.Tweaks.CameraCollision;
     }
     
     public override void Enable()
     {
-        // HousingService.OnFurnitureUpdate += OnFurnitureUpdate;
         HousingService.OnFurnitureAdded += OnFurnitureAdded;
         UpdateFurniture();
     }
 
     private void OnFurnitureAdded(Furniture furniture)
     {
-        //if (furniture.Object == null) return;
-        Plugin.Log.Debug($"{furniture.Id} was added to the list.");
         DisableCameraCollision(furniture);
     }
-
-    // private void OnFurnitureUpdate(Furniture furniture)
-    // {
-    //     DisableCameraCollision(furniture);
-    // }
 
     private List<int> faded = [];
 
@@ -140,13 +126,9 @@ public unsafe partial class CameraCollision : ConfigurableTweak<CameraCollisionC
 
     public override void Disable()
     {
-        // HousingService.OnFurnitureUpdate -= OnFurnitureUpdate;
         HousingService.OnFurnitureAdded -= OnFurnitureAdded;
         UpdateFurniture(true);
     }
 
-    public override void Dispose()
-    {
-        //throw new System.NotImplementedException();
-    }
+    public override void Dispose() { }
 }

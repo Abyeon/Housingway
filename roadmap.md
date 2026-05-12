@@ -15,3 +15,4 @@ List of goal tweaks to include with Housingway
 10. [x] Disable housing shell "lightgard.mdl"
 11. [x] Disable shame cube "env_cube.mdl"
 12. [x] Disable camera collision with furnishings
+13. [ ] Highlight placeable surfaces

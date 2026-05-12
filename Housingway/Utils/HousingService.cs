@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -38,7 +36,7 @@ public unsafe class HousingService : IDisposable
     public static event FurnitureAdded? OnFurnitureAdded;
     public static event FurnitureUpdate? OnFurnitureUpdate;
 
-    public static HashSet<Furniture> CurrentFurniture = [];
+    internal static HashSet<Furniture> CurrentFurniture = [];
 
     public HousingService()
     {
@@ -106,6 +104,7 @@ public unsafe class HousingService : IDisposable
         Plugin.Framework.Update -= OnUpdate;
         Plugin.ClientState.ZoneInit -= OnZoneInit;
         CurrentFurniture.Clear();
+        GC.SuppressFinalize(this);
     }
 }
 
