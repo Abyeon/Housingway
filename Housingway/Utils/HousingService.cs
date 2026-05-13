@@ -28,8 +28,8 @@ public unsafe class HousingService : IDisposable
         }
     }
 
-    internal static bool IsInside;
-    internal static bool IsOutside;
+    internal static bool IsInside => Manager != null && Manager->IsInside();
+    internal static bool IsOutside => Manager != null && Manager->IsOutside();
     internal static bool InHousingArea => IsInside || IsOutside;
     
     internal delegate void FurnitureAdded(Furniture furniture);
@@ -45,9 +45,9 @@ public unsafe class HousingService : IDisposable
         Plugin.ClientState.ZoneInit += OnZoneInit;
         
         CheckForHousing();
-        
+
         if (InHousingArea)
-            UpdateFurniture();
+            Plugin.Framework.RunOnFrameworkThread(UpdateFurniture);
     }
 
     private void OnZoneInit(ZoneInitEventArgs obj)
@@ -58,16 +58,16 @@ public unsafe class HousingService : IDisposable
 
     private void CheckForHousing()
     {
-        if (Manager != null)
-        {
-            IsInside = Manager->IsInside();
-            IsOutside = Manager->IsOutside();
-        }
-        else
-        {
-            IsInside = false;
-            IsOutside = false;
-        }
+        // if (Manager != null)
+        // {
+        //     IsInside = Manager->IsInside();
+        //     IsOutside = Manager->IsOutside();
+        // }
+        // else
+        // {
+        //     IsInside = false;
+        //     IsOutside = false;
+        // }
         
         if (InHousingArea)
         {
@@ -81,11 +81,11 @@ public unsafe class HousingService : IDisposable
 
     private void OnUpdate(IFramework framework) => UpdateFurniture();
 
-    private static readonly HashSet<Furniture> Touched = [];
+    private readonly HashSet<Furniture> touched = [];
 
     private void UpdateFurniture()
     {
-        Touched.Clear();
+        touched.Clear();
 
         foreach (var furn in FurnitureManager->FurnitureVector)
         {
@@ -99,7 +99,7 @@ public unsafe class HousingService : IDisposable
             
             if (!exists && !furniture.IsValid) continue;
 
-            Touched.Add(furniture);
+            touched.Add(furniture);
             
             if (!exists)
             {
@@ -110,7 +110,7 @@ public unsafe class HousingService : IDisposable
             OnFurnitureUpdate?.Invoke(furniture);
         }
 
-        CurrentFurniture.RemoveWhere(x => !Touched.Contains(x));
+        CurrentFurniture.RemoveWhere(x => !touched.Contains(x));
     }
 
     public void Dispose()

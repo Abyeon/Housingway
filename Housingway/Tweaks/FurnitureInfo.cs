@@ -1,4 +1,5 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Game.Object;
+﻿using Dalamud.Game.ClientState;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Housingway.Utils;
 
 namespace Housingway.Tweaks;
@@ -15,11 +16,21 @@ public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfi
         PluginConfig = plugin.Configuration;
         Config = PluginConfig.Tweaks.FurnitureInfo;
     }
-    
-    public override void Enable() { }
+
+    public override void Enable()
+    {
+        Plugin.ClientState.ZoneInit += OnZoneInit;
+    }
+
+    private void OnZoneInit(ZoneInitEventArgs obj)
+    {
+        selectedFurniture = null;
+    }
 
     public override void Disable()
     {
+        Plugin.ClientState.ZoneInit -= OnZoneInit;
+        
         foreach (var furn in HousingService.CurrentFurniture)
         {
             if (!furn.IsValid) continue;

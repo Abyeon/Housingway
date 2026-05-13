@@ -4,6 +4,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using Housingway.Utils;
 
 namespace Housingway.Tweaks;
 
@@ -38,7 +39,15 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     {
         // Only check if we're in a house.
         if (obj.TerritoryType.Value.Bg.ToString().Contains("/ind/"))
+        {
             Plugin.Framework.Update += OnUpdate;
+        }
+        else
+        {
+            Plugin.Framework.Update -= OnUpdate;
+            lightguard = null;
+            shameCube = null;
+        }
     }
     
     // Yeah yeah, Im polling- I don't know a better way atm.
@@ -82,18 +91,13 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
 
     private void ToggleModels(bool enable = false)
     {
-        var man = HousingManager.Instance();
-        if (man == null || !man->IsInside()) return;
+        if (HousingService.InHousingArea) return;
 
         try
         {
             if (lightguard != null)
             {
                 lightguard->IsVisible = !Config.DisableLightguard || enable;
-                // fun way to remove light bleed
-                // var radians = float.Pi / 180;
-                // lightguard->Rotation = (!Config.DisableLightguard || enable) ? Quaternion.Identity : Quaternion.CreateFromYawPitchRoll(0, 0, radians * 180);
-                // lightguard->Scale = (!Config.DisableLightguard || enable) ? Vector3.One : -Vector3.One * 100;
                 lightguard->UpdateRender();
             }
 
