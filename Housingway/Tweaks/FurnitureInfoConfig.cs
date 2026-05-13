@@ -175,16 +175,17 @@ public unsafe partial class FurnitureInfo
     {
         using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
         {
+            UIMask = UIMask.BackbufferAlpha,
             DrawWhenFaded = true,
             DrawInCutscene = true,
             DefaultParams = new PctDxParams
             {
-                OccludedAlpha = 0.2f,
-                OcclusionTolerance = 0f,
+                OccludedAlpha = 0f,
+                OcclusionTolerance = 0.05f,
             }
         });
 
-        var color = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.4f, 0.2f, 0.35f));
+        var color = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.4f, 0.2f, 1f));
         
         if (drawList is null) return;
         
@@ -199,27 +200,51 @@ public unsafe partial class FurnitureInfo
 
         void DrawNode(MeshPCB.FileNode* node, ref Matrix4x3 world)
         {
-            if (node == null) return;
-
-            if (node->NumPrims > 0)
+            while (true)
             {
-                Vector3[] verts = new Vector3[node->NumVertsRaw + node->NumVertsCompressed];
+                if (node == null) return;
 
-                for (int i = 0; i < node->NumVertsRaw + node->NumVertsCompressed; ++i)
-                    verts[i] = node->Vertex(i);
-                
-                foreach (ref var prim in node->Primitives)
+                if (node->NumPrims > 0)
                 {
-                    var v1 = TransformVert(verts[prim.V1], world);
-                    var v2 = TransformVert(verts[prim.V2], world);
-                    var v3 = TransformVert(verts[prim.V3], world);
-                    
-                    drawList.AddTriangleFilled(v1, v3, v2, color);
+                    var verts = new Vector3[node->NumVertsRaw + node->NumVertsCompressed];
+
+                    for (var i = 0; i < node->NumVertsRaw + node->NumVertsCompressed; ++i) verts[i] = node->Vertex(i);
+
+                    foreach (ref var prim in node->Primitives)
+                    {
+                        var v1 = TransformVert(verts[prim.V1], world);
+                        var v2 = TransformVert(verts[prim.V2], world);
+                        var v3 = TransformVert(verts[prim.V3], world);
+                        
+                        var edge1 = v2 - v1;
+                        var edge2 = v3 - v1;
+                        var normal = Vector3.Normalize(Vector3.Cross(edge1, edge2));
+                        
+                        float incline = Vector3.Dot(normal, Vector3.UnitY);
+                        Vector4 inclineColor;
+
+                        switch (incline)
+                        {
+                            case < -0.0001f:
+                                inclineColor = ImGuiColors.ParsedBlue;
+                                break;
+                            case <= 0.5f:
+                                inclineColor = ImGuiColors.DalamudRed;
+                                break;
+                            default:
+                                inclineColor = ImGuiColors.ParsedGreen;
+                                break;
+                        }
+                        
+                        // cant draw backface without a proper z buffer or something
+                        // drawList.AddTriangleFilled(v1, v2, v3, ImGui.ColorConvertFloat4ToU32(ImGuiColors.DalamudWhite));
+                        drawList.AddTriangleFilled(v1, v3, v2, ImGui.ColorConvertFloat4ToU32(inclineColor));
+                    }
                 }
+
+                DrawNode(node->Child1, ref world);
+                node = node->Child2;
             }
-            
-            DrawNode(node->Child1, ref world);
-            DrawNode(node->Child2, ref world);
         }
     }
 
@@ -238,66 +263,27 @@ public unsafe partial class FurnitureInfo
         
         using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
         {
+            UIMask = UIMask.BackbufferAlpha,
             DrawWhenFaded = true,
             DrawInCutscene = true,
             DefaultParams = new PctDxParams
             {
                 OccludedAlpha = 0,
                 OcclusionTolerance = 0,
+                FresnelOpacity = 1f,
+                FresnelIntensity = 1f,
+                ProjectionHeight = 0.01f
             }
         });
         
         if (drawList is null) return;
         
+        
         var pos = new Vector3(boundSphere.X, boundSphere.Y, boundSphere.Z);
         var radius = boundSphere.W + Plugin.ObjectTable.LocalPlayer.HitboxRadius;
 
-        Vector4 fillColor = new(1f, 0.4f, 0.2f, 0.35f);
-        DrawSphere(drawList, pos, radius, ImGui.ColorConvertFloat4ToU32(fillColor), 32, 32);
-    }
-    
-    public static void DrawSphere(PctDrawList drawList, Vector3 center, float radius, uint color, int rings = 16, int segments = 16)
-    {
-        var sinTheta = new float[segments + 1];
-        var cosTheta = new float[segments + 1];
-        for (var j = 0; j <= segments; j++)
-        {
-            var theta = 2.0f * (float)Math.PI * j / segments;
-            sinTheta[j] = (float)Math.Sin(theta);
-            cosTheta[j] = (float)Math.Cos(theta);
-        }
-        
-        var y1 = radius;
-        var r1 = 0f;
-
-        for (var i = 0; i < rings; i++)
-        {
-            var phi2 = (float)Math.PI * (i + 1) / rings;
-            var y2 = radius * (float)Math.Cos(phi2);
-            var r2 = radius * (float)Math.Sin(phi2);
-
-            for (int j = 0; j < segments; j++)
-            {
-                var v1 = center + new Vector3(r1 * cosTheta[j], y1, r1 * sinTheta[j]);
-                var v2 = center + new Vector3(r1 * cosTheta[j + 1], y1, r1 * sinTheta[j + 1]);
-                
-                var v3 = center + new Vector3(r2 * cosTheta[j], y2, r2 * sinTheta[j]);
-                var v4 = center + new Vector3(r2 * cosTheta[j + 1], y2, r2 * sinTheta[j + 1]);
-                
-                if (i != 0) 
-                {
-                    drawList.AddTriangleFilled(v1, v3, v2, color); 
-                }
-                
-                if (i != rings - 1) 
-                {
-                    drawList.AddTriangleFilled(v2, v3, v4, color);
-                }
-            }
-            
-            y1 = y2;
-            r1 = r2;
-        }
+        Vector4 fillColor = new(0.4f, 0.1f, 1f, 0.35f);
+        drawList.AddSphere(pos, radius, ImGui.ColorConvertFloat4ToU32(fillColor));
     }
 
     private void DrawLineToGamePos(Vector3 pos, uint color)

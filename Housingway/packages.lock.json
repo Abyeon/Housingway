@@ -16,9 +16,9 @@
       },
       "Pictomancy": {
         "type": "Direct",
-        "requested": "[1.0.4, )",
-        "resolved": "1.0.4",
-        "contentHash": "F2kWdw7rUARtIHGqjD8pCp4FqkIFuLYezCqyUGs4PWYGIbY/HXePAEjSrXALyweOxlZZ4N7pBy5wQoK2RL3JpA==",
+        "requested": "[1.0.6, )",
+        "resolved": "1.0.6",
+        "contentHash": "AeqHdjvWtJY4WS/XbKNmlDJqtXmHQPS1pm4hnSt7pfgOLLV0VFvbDUuRiriKjGraSTUunDMRy+xlLrYP6oCTig==",
         "dependencies": {
           "KamiToolKit": "1.1.2",
           "SharpDX.D3DCompiler": "4.2.0",
