@@ -6,6 +6,8 @@ using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility.Numerics;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
+using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
 using Housingway.Interface;
 using Housingway.Utils;
 using Lumina.Data.Parsing;
@@ -113,7 +115,10 @@ public unsafe partial class FurnitureInfo
 
         ImGui.InputFloat4($"Bounding Sphere", ref boundSphere);
         
-        DrawBoundingSphere(boundSphere);
+        //DrawBoundingSphere(boundSphere);
+        
+        if (furn.Collider->GetColliderType() == ColliderType.Mesh)
+            DrawCollision(pos, (ColliderMesh*)furn.Collider);
 
         var stain = furn.Group->StainInfo;
         var chosenIndex = stain->ChosenStainIndex;
@@ -166,6 +171,67 @@ public unsafe partial class FurnitureInfo
         );
     }
 
+    private static void DrawCollision(Vector3 pos, ColliderMesh* coll)
+    {
+        using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
+        {
+            DrawWhenFaded = true,
+            DrawInCutscene = true,
+            DefaultParams = new PctDxParams
+            {
+                OccludedAlpha = 0.2f,
+                OcclusionTolerance = 0f,
+            }
+        });
+
+        var color = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.4f, 0.2f, 0.35f));
+        
+        if (drawList is null) return;
+        
+        if (coll != null && !coll->MeshIsSimple && coll->Mesh != null)
+        {
+            var mesh = (MeshPCB*)coll->Mesh;
+            var node = mesh->RootNode;
+            DrawNode(node, ref coll->World);
+        }
+
+        return;
+
+        void DrawNode(MeshPCB.FileNode* node, ref Matrix4x3 world)
+        {
+            if (node == null) return;
+
+            if (node->NumPrims > 0)
+            {
+                Vector3[] verts = new Vector3[node->NumVertsRaw + node->NumVertsCompressed];
+
+                for (int i = 0; i < node->NumVertsRaw + node->NumVertsCompressed; ++i)
+                    verts[i] = node->Vertex(i);
+                
+                foreach (ref var prim in node->Primitives)
+                {
+                    var v1 = TransformVert(verts[prim.V1], world);
+                    var v2 = TransformVert(verts[prim.V2], world);
+                    var v3 = TransformVert(verts[prim.V3], world);
+                    
+                    drawList.AddTriangleFilled(v1, v3, v2, color);
+                }
+            }
+            
+            DrawNode(node->Child1, ref world);
+            DrawNode(node->Child2, ref world);
+        }
+    }
+
+    private static Vector3 TransformVert(Vector3 vert, Matrix4x3 matrix)
+    {
+        return new Vector3(
+            (vert.X * matrix.M11) + (vert.Y * matrix.M21) + (vert.Z * matrix.M31) + matrix.M41,
+            (vert.X * matrix.M12) + (vert.Y * matrix.M22) + (vert.Z * matrix.M32) + matrix.M42,
+            (vert.X * matrix.M13) + (vert.Y * matrix.M23) + (vert.Z * matrix.M33) + matrix.M43
+        );
+    }
+
     private void DrawBoundingSphere(Vector4 boundSphere)
     {
         if (Plugin.ObjectTable.LocalPlayer == null) return;
@@ -177,16 +243,17 @@ public unsafe partial class FurnitureInfo
             DefaultParams = new PctDxParams
             {
                 OccludedAlpha = 0,
-                OcclusionTolerance = 0
+                OcclusionTolerance = 0,
             }
         });
         
         if (drawList is null) return;
         
         var pos = new Vector3(boundSphere.X, boundSphere.Y, boundSphere.Z);
+        var radius = boundSphere.W + Plugin.ObjectTable.LocalPlayer.HitboxRadius;
 
         Vector4 fillColor = new(1f, 0.4f, 0.2f, 0.35f);
-        DrawSphere(drawList, pos, boundSphere.W + Plugin.ObjectTable.LocalPlayer.HitboxRadius, ImGui.ColorConvertFloat4ToU32(fillColor));
+        DrawSphere(drawList, pos, radius, ImGui.ColorConvertFloat4ToU32(fillColor), 32, 32);
     }
     
     public static void DrawSphere(PctDrawList drawList, Vector3 center, float radius, uint color, int rings = 16, int segments = 16)
