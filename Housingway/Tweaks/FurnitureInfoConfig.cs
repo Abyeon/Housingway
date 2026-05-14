@@ -9,6 +9,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
 using Housingway.Interface;
+using Housingway.Render;
 using Housingway.Utils;
 using Lumina.Data.Parsing;
 using Pictomancy;
@@ -17,9 +18,16 @@ using Stains = Lumina.Excel.Sheets.Stain;
 
 namespace Housingway.Tweaks;
 
+public enum DebugView
+{
+    None = 0,
+    Collision,
+    PhaseRange
+}
+
 public class FurnitureInfoConfig
 {
-    
+    public DebugView DebugView { get; set; } = DebugView.Collision;
 }
 
 public unsafe partial class FurnitureInfo
@@ -114,11 +122,9 @@ public unsafe partial class FurnitureInfo
         furn.Group->GetBoundingSphereImpl(&boundSphere);
 
         ImGui.InputFloat4($"Bounding Sphere", ref boundSphere);
-        
-        //DrawBoundingSphere(boundSphere);
-        
-        if (furn.Collider->GetColliderType() == ColliderType.Mesh)
-            DrawCollision(pos, (ColliderMesh*)furn.Collider);
+
+        var collType = furn.Collider->GetColliderType().ToString();
+        ImGui.InputText("Collision Type", ref collType, flags: ImGuiInputTextFlags.ReadOnly);
 
         var stain = furn.Group->StainInfo;
         var chosenIndex = stain->ChosenStainIndex;
@@ -135,6 +141,26 @@ public unsafe partial class FurnitureInfo
         {
             var defaultColor = UintToVector4(defaultStain.Color);
             ImGui.ColorEdit4($"Default Stain [{defaultStain.Name.ToString()}]", ref defaultColor, ImGuiColorEditFlags.NoInputs);
+        }
+        
+        var names = Enum.GetNames<DebugView>();
+        var curr = (int)Config.DebugView;
+        
+        if (ImGui.Combo("Debug Drawing", ref curr, names, names.Length))
+        {
+            Config.DebugView = (DebugView)curr;
+            PluginConfig.Save();
+        }
+
+        switch (Config.DebugView)
+        {
+            case DebugView.PhaseRange: 
+                DrawBoundingSphere(boundSphere);
+                break;
+            case DebugView.Collision:
+                if (furn.Collider->GetColliderType() == ColliderType.Mesh)
+                    DrawCollision(pos, (ColliderMesh*)furn.Collider);
+                break;
         }
 
         using var header = ImRaii.Header("Instances", ImGuiTreeNodeFlags.Framed);
@@ -184,8 +210,6 @@ public unsafe partial class FurnitureInfo
                 OcclusionTolerance = 0.05f,
             }
         });
-
-        var color = ImGui.ColorConvertFloat4ToU32(new Vector4(1f, 0.4f, 0.2f, 1f));
         
         if (drawList is null) return;
         
@@ -206,39 +230,15 @@ public unsafe partial class FurnitureInfo
 
                 if (node->NumPrims > 0)
                 {
-                    var verts = new Vector3[node->NumVertsRaw + node->NumVertsCompressed];
+                    using var render = new SimpleRender(drawList);
+                    render.AddInstance(world);
 
-                    for (var i = 0; i < node->NumVertsRaw + node->NumVertsCompressed; ++i) verts[i] = node->Vertex(i);
+                    for (var i = 0; i < node->NumVertsRaw + node->NumVertsCompressed; ++i)
+                        render.AddVertex(node->Vertex(i));
 
                     foreach (ref var prim in node->Primitives)
                     {
-                        var v1 = TransformVert(verts[prim.V1], world);
-                        var v2 = TransformVert(verts[prim.V2], world);
-                        var v3 = TransformVert(verts[prim.V3], world);
-                        
-                        var edge1 = v2 - v1;
-                        var edge2 = v3 - v1;
-                        var normal = Vector3.Normalize(Vector3.Cross(edge1, edge2));
-                        
-                        float incline = Vector3.Dot(normal, Vector3.UnitY);
-                        Vector4 inclineColor;
-
-                        switch (incline)
-                        {
-                            case < -0.0001f:
-                                inclineColor = ImGuiColors.ParsedBlue;
-                                break;
-                            case <= 0.5f:
-                                inclineColor = ImGuiColors.DalamudRed;
-                                break;
-                            default:
-                                inclineColor = ImGuiColors.ParsedGreen;
-                                break;
-                        }
-                        
-                        // cant draw backface without a proper z buffer or something
-                        // drawList.AddTriangleFilled(v1, v2, v3, ImGui.ColorConvertFloat4ToU32(ImGuiColors.DalamudWhite));
-                        drawList.AddTriangleFilled(v1, v3, v2, ImGui.ColorConvertFloat4ToU32(inclineColor));
+                        render.AddTriangle(prim.V1, prim.V2, prim.V3);
                     }
                 }
 
@@ -246,15 +246,6 @@ public unsafe partial class FurnitureInfo
                 node = node->Child2;
             }
         }
-    }
-
-    private static Vector3 TransformVert(Vector3 vert, Matrix4x3 matrix)
-    {
-        return new Vector3(
-            (vert.X * matrix.M11) + (vert.Y * matrix.M21) + (vert.Z * matrix.M31) + matrix.M41,
-            (vert.X * matrix.M12) + (vert.Y * matrix.M22) + (vert.Z * matrix.M32) + matrix.M42,
-            (vert.X * matrix.M13) + (vert.Y * matrix.M23) + (vert.Z * matrix.M33) + matrix.M43
-        );
     }
 
     private void DrawBoundingSphere(Vector4 boundSphere)

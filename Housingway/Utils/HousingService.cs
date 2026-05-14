@@ -9,6 +9,7 @@ using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using Housingway.Structs;
+using ColliderType = FFXIVClientStructs.FFXIV.Common.Component.BGCollision.ColliderType;
 
 namespace Housingway.Utils;
 
@@ -86,6 +87,7 @@ public unsafe class HousingService : IDisposable
     private void UpdateFurniture()
     {
         touched.Clear();
+        if (FurnitureManager == null) return;
 
         foreach (var furn in FurnitureManager->FurnitureVector)
         {
@@ -170,6 +172,8 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         get
         {
             if (Group == null) return null;
+
+            Collider* foundCollider = null;
             foreach (var instance in Group->Instances.Instances)
             {
                 var ptr = instance.Value;
@@ -177,10 +181,14 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
 
                 if (ptr->Instance->GetCollider() == null) continue;
                 
-                return ptr->Instance->GetCollider();
+                var coll = ptr->Instance->GetCollider();
+                
+                // Prefer mesh collision
+                if (coll->GetColliderType() == ColliderType.Mesh) return coll;
+                foundCollider = coll;
             }
         
-            return null;
+            return foundCollider;
         }
     }
 
