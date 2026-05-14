@@ -4,6 +4,8 @@
   "Punchline": "Experience better housing!",
   "Description": "A small collection of tweaks pertaining to housing.",
   "ApplicableVersion": "any",
+  "RepoUrl": "https://github.com/Abyeon/Housingway",
+  "IconUrl": "https://raw.githubusercontent.com/Abyeon/Housingway/refs/heads/master/Data/icon.png",
   "Tags": [
     "util",
     "housing",
