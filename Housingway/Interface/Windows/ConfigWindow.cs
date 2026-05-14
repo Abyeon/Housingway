@@ -1,7 +1,10 @@
 ﻿using System;
+using System.Linq;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -13,8 +16,12 @@ namespace Housingway.Interface.Windows;
 
 public class ConfigWindow : CustomWindow, IDisposable
 {
-    private readonly Configuration configuration;
     private readonly Plugin plugin;
+    
+    private string searchText = "";
+    private ITweak[] tweaks = [];
+    private ITweak? selectedTweak;
+
     
     public ConfigWindow(Plugin plugin) : base("Housingway###HousingwayConfigWindow")
     {
@@ -23,37 +30,69 @@ public class ConfigWindow : CustomWindow, IDisposable
             MinimumSize = new Vector2(700, 550),
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
-
-        configuration = plugin.Configuration;
+        
         this.plugin = plugin;
+        FilterTweaks();
     }
 
     public void Dispose() { }
 
     protected override void Render()
     {
-        using var _ = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f));
-
-        using (var color = ImRaii.PushColor(ImGuiCol.ChildBg, ImGuiColors.DalamudWhite with { W = 0.05f }))
+        using var color = ImRaii.PushColor(ImGuiCol.FrameBg, ImGuiColors.DalamudWhite with { W = 0.05f });
+        
+        
+        using var _ = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f) * ImGuiHelpers.GlobalScale);
+        using (ImRaii.Child("LeftSide", new Vector2(220, ImGui.GetWindowHeight())))
         {
-            using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
-            using var list = ImRaii.Child($"TweakList", new Vector2(220, ImGui.GetWindowHeight()), false, ImGuiWindowFlags.AlwaysUseWindowPadding);
-            TweakList();
+            Search();
+            
+            using (ImRaii.PushColor(ImGuiCol.ChildBg, ImGuiColors.DalamudWhite with { W = 0.05f }))
+            {
+                using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
+                using var list = ImRaii.Child($"TweakList", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding);
+                TweakList();
+            }
         }
 
         ImGui.SameLine();
-        using (var config = ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
+        using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
             TweakConfig();
     }
 
-    private ITweak? selectedTweak;
 
+    private void Search()
+    {
+        using var frame = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(5f, 6f) * ImGuiHelpers.GlobalScale);
+        using var round = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 5f);
+
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.Home))
+        {
+            selectedTweak = null;
+            searchText = "";
+        }
+        
+        ImGui.SameLine();
+        
+        using var width = ImRaii.ItemWidth(ImGui.GetContentRegionAvail().X);
+        
+        if (ImGui.InputTextWithHint("###SearchBar", "Start typing...", ref searchText))
+        {
+            FilterTweaks();
+        }
+    }
+    
+    private void FilterTweaks()
+    {
+        tweaks = plugin.Tweaks.Where(x => x.Name.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToArray();
+    }
+    
     private void TweakList()
     {
-        //using var _ = ImRaii.PushStyle(ImGuiStyleVar.Se, 5f);
+        using var frame = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(3f, 4f) * ImGuiHelpers.GlobalScale);
         
         uint id = 0;
-        foreach (var tweak in plugin.Tweaks)
+        foreach (var tweak in tweaks)
         {
             ImGui.PushID(id++);
 

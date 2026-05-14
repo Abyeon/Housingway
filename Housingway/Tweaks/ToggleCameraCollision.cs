@@ -21,17 +21,11 @@ public enum CollisionFlags : ulong
     PlayerCollision = 1UL << 13, // Player collides with this
 }
 
-public unsafe partial class CameraCollision : ConfigurableTweak<CameraCollisionConfig>
+public unsafe partial class ToggleCameraCollision : BaseTweak
 {
-    public override string Name { get; init; } = "Camera Collision";
-    public override string Description { get; init; } = "Allows the camera to clip through furnishings, and fades out the furnishing it is clipped through!";
+    public override string Name { get; init; } = "Disable Camera Collision";
+    public override string Description { get; init; } = "Allows the camera to clip through furnishings!";
     public override bool Enabled { get; set; }
-
-    public CameraCollision(Plugin plugin)
-    {
-        PluginConfig = plugin.Configuration;
-        Config = PluginConfig.Tweaks.CameraCollision;
-    }
     
     public override void Enable()
     {

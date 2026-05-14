@@ -45,25 +45,13 @@ public sealed class Plugin : IDalamudPlugin
     public Plugin()
     {
         Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
-        
-        ConfigWindow = new ConfigWindow(this);
-
-        WindowSystem.AddWindow(ConfigWindow);
-
-        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
-        {
-            HelpMessage = "Show the Housingway config window."
-        });
-        
-        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
 
         PctContext = PctService.Initialize(PluginInterface, new PctOptions()
         {
             EnableDxRenderer = true,
             EnableKtkOutput = false,
             EnableVfxRenderer = false,
-            MaxTriangleVertices = 10000
+            MaxTriangleVertices = 100000
         });
         
         Tweaks = [
@@ -71,10 +59,12 @@ public sealed class Plugin : IDalamudPlugin
             new ToggleAmbientOcclusion(),
             new ToggleCastShadows(),
             new ModelAdjustments(this),
-            new CameraCollision(this),
+            new ToggleCameraCollision(),
             new HighlightPhasedObjects(this),
             new FurnitureInfo(this)
         ];
+        
+        Tweaks.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
         
         foreach (var tweak in Tweaks)
         {
@@ -85,6 +75,17 @@ public sealed class Plugin : IDalamudPlugin
         }
         
         HousingService = new HousingService();
+        
+        ConfigWindow = new ConfigWindow(this);
+        WindowSystem.AddWindow(ConfigWindow);
+        
+        CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
+        {
+            HelpMessage = "Show the Housingway config window."
+        });
+        
+        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
     }
 
     public void EnableTweak(ITweak tweak)

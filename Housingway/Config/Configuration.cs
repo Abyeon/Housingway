@@ -23,7 +23,6 @@ public class TweakConfigs
 {
     public readonly OverrideInteriorLightingConfig OverrideInteriorLighting = new();
     public readonly ModelAdjustmentsConfig ModelAdjustments = new();
-    public readonly CameraCollisionConfig CameraCollision = new();
     public readonly HighlightPhasedObjectsConfig HighlightPhasedObjects = new();
     public readonly FurnitureInfoConfig FurnitureInfo = new();
 }

@@ -5,6 +5,7 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility.Numerics;
+using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
@@ -64,12 +65,38 @@ public unsafe partial class FurnitureInfo
         if (Plugin.ObjectTable.LocalPlayer == null) return;
         var playerPos = Plugin.ObjectTable.LocalPlayer.Position;
         
+        using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
+        {
+            UIMask = UIMask.BackbufferAlpha,
+            DrawWhenFaded = true,
+            DrawInCutscene = true,
+            DefaultParams = new PctDxParams
+            {
+                OccludedAlpha = 0,
+                OcclusionTolerance = 0,
+                FresnelOpacity = 1f,
+                FresnelIntensity = 1f,
+                ProjectionHeight = 0.01f
+            }
+        });
+
+        if (drawList is null) return;
+        
+        Vector4 fillColor = new(0.4f, 0.1f, 1f, 0.35f);
+        uint convertedFillColor = ImGui.ColorConvertFloat4ToU32(fillColor);
+        
         int id = 0;
         foreach (var furn in HousingService.CurrentFurniture)
         {
             if (!furn.IsValid) continue;
 
             using var _ = ImRaii.PushId(id++);
+            
+            // var boundSphere = new Vector4();
+            // furn.Group->GetBoundingSphereImpl(&boundSphere);
+            //
+            // var pos = new Vector3(boundSphere.X, boundSphere.Y, boundSphere.Z);
+            // drawList.AddSphere(pos, boundSphere.W, convertedFillColor);
 
             var dist = Vector3.Distance(playerPos, furn.Object->Position);
             if (ImGui.Selectable($"[{dist:F}] {furn.Object->NameString}"))
@@ -268,7 +295,6 @@ public unsafe partial class FurnitureInfo
         });
         
         if (drawList is null) return;
-        
         
         var pos = new Vector3(boundSphere.X, boundSphere.Y, boundSphere.Z);
         var radius = boundSphere.W + Plugin.ObjectTable.LocalPlayer.HitboxRadius;

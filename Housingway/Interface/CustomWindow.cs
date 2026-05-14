@@ -16,6 +16,8 @@ public abstract class CustomWindow : Window
     private const float BlurNoiseOpacity = 0.17f;
     private const float MaxBlurStrength = 14f;
     private static readonly Vector4 BlurTintMultiplier = new(158 / 255f, 158 / 255f, 158 / 255f, 25 / 255f);
+
+    private const float GradientPercent = 0.15f;
     
     protected CustomWindow(string name, ImGuiWindowFlags flags = ImGuiWindowFlags.None, bool forceMainWindow = false)
         : base(name, flags, forceMainWindow)
@@ -158,7 +160,7 @@ public abstract class CustomWindow : Window
                 var size = new Vector2
                 {
                     X = ImGui.GetWindowSize().X + 5f,
-                    Y = SizeConstraints.HasValue ? SizeConstraints.Value.MinimumSize.Y * 0.5f : ImGui.GetWindowSize().Y * 0.5f
+                    Y = SizeConstraints.HasValue ? SizeConstraints.Value.MinimumSize.Y * GradientPercent : ImGui.GetWindowSize().Y * GradientPercent
                 };
 
                 var noDeco = (Flags & ImGuiWindowFlags.NoDecoration) == ImGuiWindowFlags.NoDecoration;
