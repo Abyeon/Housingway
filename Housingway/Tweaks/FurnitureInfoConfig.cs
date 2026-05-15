@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Numerics;
+using System.Globalization;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -7,23 +7,30 @@ using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility.Numerics;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
+using FFXIVClientStructs.FFXIV.Common.Math;
 using Housingway.Interface;
 using Housingway.Render;
+using Housingway.Structs;
 using Housingway.Utils;
 using Lumina.Data.Parsing;
 using Pictomancy;
 
 using Stains = Lumina.Excel.Sheets.Stain;
+using Vector2 = System.Numerics.Vector2;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace Housingway.Tweaks;
 
 public enum DebugView
 {
     None = 0,
-    Collision,
-    PhaseRange
+    Collision = 1,
+    PhaseRange = 2,
+    SnapRange = 3
 }
 
 public class FurnitureInfoConfig
@@ -65,38 +72,12 @@ public unsafe partial class FurnitureInfo
         if (Plugin.ObjectTable.LocalPlayer == null) return;
         var playerPos = Plugin.ObjectTable.LocalPlayer.Position;
         
-        using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
-        {
-            UIMask = UIMask.BackbufferAlpha,
-            DrawWhenFaded = true,
-            DrawInCutscene = true,
-            DefaultParams = new PctDxParams
-            {
-                OccludedAlpha = 0,
-                OcclusionTolerance = 0,
-                FresnelOpacity = 1f,
-                FresnelIntensity = 1f,
-                ProjectionHeight = 0.01f
-            }
-        });
-
-        if (drawList is null) return;
-        
-        Vector4 fillColor = new(0.4f, 0.1f, 1f, 0.35f);
-        uint convertedFillColor = ImGui.ColorConvertFloat4ToU32(fillColor);
-        
-        int id = 0;
+        var id = 0;
         foreach (var furn in HousingService.CurrentFurniture)
         {
             if (!furn.IsValid) continue;
 
             using var _ = ImRaii.PushId(id++);
-            
-            // var boundSphere = new Vector4();
-            // furn.Group->GetBoundingSphereImpl(&boundSphere);
-            //
-            // var pos = new Vector3(boundSphere.X, boundSphere.Y, boundSphere.Z);
-            // drawList.AddSphere(pos, boundSphere.W, convertedFillColor);
 
             var dist = Vector3.Distance(playerPos, furn.Object->Position);
             if (ImGui.Selectable($"[{dist:F}] {furn.Object->NameString}"))
@@ -138,9 +119,24 @@ public unsafe partial class FurnitureInfo
         
         var name = furn.Object->NameString;
         ImGui.InputText("Name", ref name, flags: ImGuiInputTextFlags.ReadOnly);
+
+        var row = ((uint)furn.Object->HousingObjectId.Type | furn.HousingFurniture.Id);
+        ImGui.InputUInt("Row", ref row, flags: ImGuiInputTextFlags.ReadOnly);
         
         var path = furn.Group->ResourceHandle->FileName.ToString();
         ImGui.InputText("Path", ref path, flags: ImGuiInputTextFlags.ReadOnly);
+        
+        var housingType = furn.Object->HousingObjectId.Type.ToString();
+        ImGui.InputText("Type", ref housingType, flags: ImGuiInputTextFlags.ReadOnly);
+        
+        var collType = furn.Collider->GetColliderType().ToString();
+        ImGui.InputText("Collision Type", ref collType, flags: ImGuiInputTextFlags.ReadOnly);
+
+        var id = furn.Object->HousingObjectId.Id.ToString();
+        ImGui.InputText("ID", ref id, flags: ImGuiInputTextFlags.ReadOnly);
+
+        var entry = furn.Object->HousingObjectId.EntryId.ToString();
+        ImGui.InputText("Entry", ref entry, flags: ImGuiInputTextFlags.ReadOnly);
             
         Vector3 pos = furn.Object->Position;
         ImGui.InputFloat3($"Position", ref pos);
@@ -150,9 +146,9 @@ public unsafe partial class FurnitureInfo
 
         ImGui.InputFloat4($"Bounding Sphere", ref boundSphere);
 
-        var collType = furn.Collider->GetColliderType().ToString();
-        ImGui.InputText("Collision Type", ref collType, flags: ImGuiInputTextFlags.ReadOnly);
-
+        // var loadState = furn.Graphics->LoadState;
+        // ImGui.InputByte("Load State", ref loadState, flags: ImGuiInputTextFlags.ReadOnly);
+        
         var stain = furn.Group->StainInfo;
         var chosenIndex = stain->ChosenStainIndex;
         var defaultIndex = stain->DefaultStainIndex;
@@ -181,12 +177,15 @@ public unsafe partial class FurnitureInfo
 
         switch (Config.DebugView)
         {
-            case DebugView.PhaseRange: 
-                DrawBoundingSphere(boundSphere);
-                break;
             case DebugView.Collision:
                 if (furn.Collider->GetColliderType() == ColliderType.Mesh)
                     DrawCollision(pos, (ColliderMesh*)furn.Collider);
+                break;
+            case DebugView.PhaseRange: 
+                DrawBoundingSphere(boundSphere);
+                break;
+            case DebugView.SnapRange:
+                DrawSnapRange(pos, furn);
                 break;
         }
 
@@ -206,14 +205,17 @@ public unsafe partial class FurnitureInfo
 
             if (ImGui.IsItemHovered())
             {
-                Vector3 childPos = new Vector3();
-                instance->GetTranslation(&childPos);
-                    
-                DrawLineToGamePos(childPos, ImGuiColors.DalamudYellow.ToByteColor().RGBA);
+                var transform = *instance->GetTransformImpl();
+                DrawLineToGamePos(transform.Translation, ImGuiColors.DalamudYellow.ToByteColor().RGBA);
+            }
+
+            if (ImGui.IsItemClicked(ImGuiMouseButton.Left))
+            {
+                ImGui.SetClipboardText($"{((IntPtr)instance):X8}");
             }
         }
     }
-    
+
     private static Vector4 UintToVector4(uint color)
     {
         return new Vector4(
@@ -222,6 +224,33 @@ public unsafe partial class FurnitureInfo
             (color         & 0xFF) / 255.0f,        // Blue
             ((color >> 24) & 0xFF) / 255.0f      // Alpha
         );
+    }
+    
+    private static void DrawSnapRange(Vector3 pos, Furniture furn)
+    {
+        using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
+        {
+            UIMask = UIMask.BackbufferAlpha,
+            DrawWhenFaded = true,
+            DrawInCutscene = true,
+            DefaultParams = new PctDxParams
+            {
+                OccludedAlpha = 0,
+                OcclusionTolerance = 0,
+                FresnelOpacity = 1f,
+                FresnelIntensity = 1f,
+                FresnelSpread = 0.1f,
+                ProjectionHeight = 0.1f,
+                FadeStart = 0f,
+            }
+        });
+
+        if (drawList is null) return;
+        
+        var radius = furn.GetSnapDistance();
+        Plugin.Log.Debug(radius.ToString(CultureInfo.InvariantCulture));
+        
+        drawList.AddSphere(pos, radius, 0x0C5CFF5C);
     }
 
     private static void DrawCollision(Vector3 pos, ColliderMesh* coll)
@@ -275,7 +304,7 @@ public unsafe partial class FurnitureInfo
         }
     }
 
-    private void DrawBoundingSphere(Vector4 boundSphere)
+    private static void DrawBoundingSphere(Vector4 boundSphere)
     {
         if (Plugin.ObjectTable.LocalPlayer == null) return;
         

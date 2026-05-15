@@ -52,7 +52,7 @@ public class SimpleRender(PctDrawList? draw) : IDisposable
             var inclineColor = incline switch
             {
                 < -0.0001f => ImGuiColors.ParsedBlue,
-                <= 0.4f => ImGuiColors.DalamudRed,
+                < 0.5f => ImGuiColors.DalamudRed,
                 _ => ImGuiColors.ParsedGreen
             };
             

@@ -16,4 +16,4 @@ List of goal tweaks to include with Housingway
 11. [x] Disable shame cube "env_cube.mdl"
 12. [x] Disable camera collision with furnishings
 13. [ ] Highlight placeable surfaces
-14. [ ] Debug / furniture info tools (perhaps the phasing bounding sphere display)
+14. [X] Debug / furniture info tools (perhaps the phasing bounding sphere display)

@@ -41,7 +41,6 @@ public class ConfigWindow : CustomWindow, IDisposable
     {
         using var color = ImRaii.PushColor(ImGuiCol.FrameBg, ImGuiColors.DalamudWhite with { W = 0.05f });
         
-        
         using var _ = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f) * ImGuiHelpers.GlobalScale);
         using (ImRaii.Child("LeftSide", new Vector2(220, ImGui.GetWindowHeight())))
         {

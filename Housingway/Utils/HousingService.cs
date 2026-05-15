@@ -1,14 +1,19 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Numerics;
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using Housingway.Structs;
+using Lumina.Data.Parsing.Layer;
+using Lumina.Extensions;
 using ColliderType = FFXIVClientStructs.FFXIV.Common.Component.BGCollision.ColliderType;
 
 namespace Housingway.Utils;
@@ -121,115 +126,5 @@ public unsafe class HousingService : IDisposable
         Plugin.ClientState.ZoneInit -= OnZoneInit;
         CurrentFurniture.Clear();
         GC.SuppressFinalize(this);
-    }
-}
-
-public readonly unsafe struct Furniture : IEquatable<Furniture>
-{
-    public readonly HousingFurniture HousingFurniture;
-    public readonly ulong Id;
-
-    public Furniture(HousingFurniture* ptr)
-    {
-        HousingFurniture = *ptr;
-
-        if (!HousingService.InHousingArea)
-        {
-            Id = 0;
-            return;
-        }
-        
-        var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-        var index = HousingFurniture.Index;
-        if (index >= 0 && index < arr.Objects.Length && index < arr.ObjectCount)
-        {
-            var obj = (HousingObject*)arr.Objects[index].Value;
-            Id = obj == null ? 0 : Object->GetGameObjectId().Id;
-        }
-        else
-        {
-            Id = 0;
-        }
-    }
-
-    public HousingObject* Object
-    {
-        get
-        {
-            if (!HousingService.InHousingArea) return null;
-            var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-            var index = HousingFurniture.Index;
-            if (index < 0) return null;
-            if (index >= arr.Objects.Length || index >= arr.ObjectCount) return null;
-            return (HousingObject*)arr.Objects[HousingFurniture.Index].Value;
-        }
-    }
-
-    public SharedGroupLayoutInstance* Group => Object == null ? null : Object->SharedGroupLayoutInstance;
-
-    public Collider* Collider
-    {
-        get
-        {
-            if (Group == null) return null;
-
-            Collider* foundCollider = null;
-            foreach (var instance in Group->Instances.Instances)
-            {
-                var ptr = instance.Value;
-                if (ptr == null) continue;
-
-                if (ptr->Instance->GetCollider() == null) continue;
-                
-                var coll = ptr->Instance->GetCollider();
-                
-                // Prefer mesh collision
-                if (coll->GetColliderType() == ColliderType.Mesh) return coll;
-                foundCollider = coll;
-            }
-        
-            return foundCollider;
-        }
-    }
-
-    public BgObject* Graphics
-    {
-        get
-        {
-            if (Group == null) return null;
-            if (Group->Instances.Instances.Count == 0) return null;
-            
-            var parts = (BgPartsLayoutInstance*)Group->Instances.Instances[0].Value->Instance;
-            return parts == null ? null : parts->GraphicsObject;
-        }
-    }
-
-    public CullObject* Cull
-    {
-        get
-        {
-            if (!HousingService.IsInside) return null;
-            
-            var man = AreaCullingManager.Instance();
-            if (man == null) return null;
-
-            return &man->CullObjects[HousingFurniture.Index];
-        }
-    }
-
-    public bool IsValid => Graphics != null && Collider != null;
-
-    public bool Equals(Furniture other) => Id == other.Id;
-    public override bool Equals(object? obj) => obj is Furniture other && Equals(other);
-    public override int GetHashCode() => Id.GetHashCode();
-
-    public static bool operator ==(Furniture left, Furniture right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(Furniture left, Furniture right)
-    {
-        return !(left == right);
     }
 }
