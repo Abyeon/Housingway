@@ -79,7 +79,7 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
             if (obj->GetObjectType() == ObjectType.BgObject)
             {
                 var bgObject = (BgObject*)obj;
-                if (bgObject->ModelResourceHandle->FileName.ToString().Contains(contains, System.StringComparison.InvariantCultureIgnoreCase))
+                if (bgObject->ModelResourceHandle->FileName.ToString().Contains(contains, StringComparison.InvariantCultureIgnoreCase))
                 {
                     return bgObject;
                 }
@@ -91,8 +91,8 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
 
     private void ToggleModels(bool enable = false)
     {
-        if (HousingService.InHousingArea) return;
-
+        if (!HousingService.IsInside) return;
+        
         try
         {
             if (lightguard != null)

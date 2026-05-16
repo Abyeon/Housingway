@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using FFXIVClientStructs.FFXIV.Client.Game.Control;
 using Pictomancy;
@@ -38,6 +39,8 @@ public unsafe partial class ModelAdjustments
             Config.ShowBuildLimit = limit;
             PluginConfig.Save();
         }
+        
+        DrawDebug();
 
         var camMan = CameraManager.Instance();
         if (camMan is null) return;
@@ -70,5 +73,15 @@ public unsafe partial class ModelAdjustments
             
             drawList.AddSphere(Vector3.Zero, 50, 0x0CFFFFFF);
         }
+    }
+
+    [Conditional("DEBUG")]
+    private void DrawDebug()
+    {
+        var guard = lightguard is null ? "Null" : lightguard->ModelResourceHandle->FileName.ToString();
+        var cube = shameCube is null ? "Null" : shameCube->ModelResourceHandle->FileName.ToString();
+        
+        ImGui.InputText("Lightguard", ref guard, flags: ImGuiInputTextFlags.ReadOnly);
+        ImGui.InputText("ShameCube", ref cube, flags: ImGuiInputTextFlags.ReadOnly);
     }
 }

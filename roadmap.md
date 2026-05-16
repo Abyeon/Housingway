@@ -17,3 +17,4 @@ List of goal tweaks to include with Housingway
 12. [x] Disable camera collision with furnishings
 13. [ ] Highlight placeable surfaces
 14. [X] Debug / furniture info tools (perhaps the phasing bounding sphere display)
+15. [ ] Click / hover detection improvements when editing furnishings

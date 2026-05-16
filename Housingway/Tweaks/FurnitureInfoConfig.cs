@@ -1,8 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility.Numerics;
 using FFXIVClientStructs.FFXIV.Client.Game.Character;
@@ -42,12 +45,18 @@ public unsafe partial class FurnitureInfo
 {
     private Furniture? selectedFurniture;
     private const int InfoHeight = 200;
-    
+
+    private string search = string.Empty;
+
+    private IEnumerable<Furniture> FilteredFurniture => HousingService.CurrentFurniture.Where(x => x.Object is not null && x.Object->NameString.Contains( search, StringComparison.InvariantCulture));
+
     public override void DrawConfig()
     {
         var height = selectedFurniture == null
                          ? ImGui.GetContentRegionAvail().Y
                          : ImGui.GetContentRegionAvail().Y - InfoHeight;
+        
+        Search();
         
         using (var child = ImRaii.Child($"Furniture List", new Vector2(ImGui.GetContentRegionAvail().X, height)))
         {
@@ -66,6 +75,18 @@ public unsafe partial class FurnitureInfo
             DrawSelected();
         }
     }
+    
+    private void Search()
+    {
+        using var frame = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(5f, 6f) * ImGuiHelpers.GlobalScale);
+        using var round = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 5f);
+        
+        ImGui.SameLine();
+        
+        using var width = ImRaii.ItemWidth(ImGui.GetContentRegionAvail().X);
+
+        ImGui.InputTextWithHint("###SearchBar", "Search for furniture...", ref search);
+    }
 
     private void DrawList()
     {
@@ -73,7 +94,7 @@ public unsafe partial class FurnitureInfo
         var playerPos = Plugin.ObjectTable.LocalPlayer.Position;
         
         var id = 0;
-        foreach (var furn in HousingService.CurrentFurniture)
+        foreach (var furn in FilteredFurniture)
         {
             if (!furn.IsValid) continue;
 
@@ -119,9 +140,6 @@ public unsafe partial class FurnitureInfo
         
         var name = furn.Object->NameString;
         ImGui.InputText("Name", ref name, flags: ImGuiInputTextFlags.ReadOnly);
-
-        var row = ((uint)furn.Object->HousingObjectId.Type | furn.HousingFurniture.Id);
-        ImGui.InputUInt("Row", ref row, flags: ImGuiInputTextFlags.ReadOnly);
         
         var path = furn.Group->ResourceHandle->FileName.ToString();
         ImGui.InputText("Path", ref path, flags: ImGuiInputTextFlags.ReadOnly);

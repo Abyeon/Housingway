@@ -173,7 +173,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
     {
         get
         {
-            var mask = HousingService.IsInside ? 0x20000u : 0x30000u;
+            var mask = Object->HousingObjectId.Type == HousingObjectType.Furniture ? 0x20000u : 0x30000u;
             var row = mask | HousingFurniture.Id;
             var sheet = Plugin.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.HousingFurniture>();
             return sheet.GetRowOrDefault(row);
