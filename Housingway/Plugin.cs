@@ -37,6 +37,7 @@ public sealed class Plugin : IDalamudPlugin
     
     public readonly WindowSystem WindowSystem = new("Housingway");
     private ConfigWindow ConfigWindow { get; init; }
+    internal static Overlay Overlay { get; private set; } = new();
 
     public readonly PctContext PctContext;
     
@@ -54,6 +55,9 @@ public sealed class Plugin : IDalamudPlugin
             MaxTriangleVertices = 100000
         });
         
+        WindowSystem.AddWindow(Overlay);
+        Overlay.Toggle();
+        
         Tweaks = [
             new OverrideInteriorLighting(this),
             new ToggleAmbientOcclusion(),
@@ -61,7 +65,8 @@ public sealed class Plugin : IDalamudPlugin
             new ModelAdjustments(this),
             new ToggleCameraCollision(),
             new HighlightPhasedObjects(this),
-            new FurnitureInfo(this)
+            new FurnitureInfo(this),
+            new DisplayPopRange(this)
         ];
         
         Tweaks.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));

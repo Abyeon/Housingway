@@ -64,17 +64,6 @@ public unsafe class HousingService : IDisposable
 
     private void CheckForHousing()
     {
-        // if (Manager != null)
-        // {
-        //     IsInside = Manager->IsInside();
-        //     IsOutside = Manager->IsOutside();
-        // }
-        // else
-        // {
-        //     IsInside = false;
-        //     IsOutside = false;
-        // }
-        
         if (InHousingArea)
         {
             Plugin.Framework.Update += OnUpdate;

@@ -25,4 +25,5 @@ public class TweakConfigs
     public readonly ModelAdjustmentsConfig ModelAdjustments = new();
     public readonly HighlightPhasedObjectsConfig HighlightPhasedObjects = new();
     public readonly FurnitureInfoConfig FurnitureInfo = new();
+    public readonly DisplayPopRangeConfig DisplayPopRange = new();
 }
