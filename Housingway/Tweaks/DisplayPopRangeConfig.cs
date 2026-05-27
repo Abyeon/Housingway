@@ -17,7 +17,6 @@ public class DisplayPopRangeConfig
 {
     public float Size { get; set; } = 5f;
     public Vector4 Color { get; set; } = new(1f, 1f, 1f, 0.75f);
-    
     public DisplayLocation Display { get; set; } = DisplayLocation.Both;
 }
 
