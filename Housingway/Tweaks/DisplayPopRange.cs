@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.ClientState;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using Housingway.Structs;
 using Housingway.Utils;
-using Lumina.Data.Files;
-using Lumina.Data.Parsing.Layer;
-using Lumina.Excel.Sheets;
-using Lumina.Extensions;
 using Pictomancy;
 
 namespace Housingway.Tweaks;
