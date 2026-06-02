@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
-using Housingway.Utils;
-using Pictomancy;
 
 namespace Housingway.Tweaks;
 

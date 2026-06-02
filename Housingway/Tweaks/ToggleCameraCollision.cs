@@ -1,15 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
-using Dalamud.Plugin.Services;
-using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
-using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
-using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
 using Housingway.Utils;
+using Scene = Housingway.Utils.Scene;
+using Vector3 = System.Numerics.Vector3;
+using Vector4 = System.Numerics.Vector4;
 
 namespace Housingway.Tweaks;
 
@@ -30,66 +23,66 @@ public unsafe partial class ToggleCameraCollision : BaseTweak
     public override void Enable()
     {
         HousingService.OnFurnitureAdded += OnFurnitureAdded;
+        HousingService.OnFurnitureUpdate += OnFurnitureUpdate;
         UpdateFurniture();
+    }
+
+    private void OnFurnitureUpdate(Furniture furniture)
+    {
+        var cam = Scene.CurrentCamera;
+        if (cam == null) return;
+        
+        var graphics = furniture.Graphics;
+        if (graphics == null) return;
+        
+        var group = furniture.Group;
+        
+        try
+        {
+            Vector4 bounds = new();
+            group->GetBoundingSphereImpl(&bounds);
+
+            if (IsBetween(cam->Position, Plugin.ObjectTable.LocalPlayer!.Position, new Vector3(bounds.X, bounds.Y, bounds.Z), bounds.W))
+            {
+                var alpha = Math.Clamp(graphics->GetTransparency() + 0.01f, 0f, 1f);
+                graphics->SetTransparency(alpha);
+            }
+            else
+            {
+                graphics->SetTransparency(0f);
+            }
+        }
+        catch (Exception e)
+        {
+            Plugin.Log.Error(e.ToString());
+        }
+        
+    }
+    
+    public static bool IsBetween(Vector3 camera, Vector3 player, Vector3 target, float thicknessRadius)
+    {
+        var camToPlayer = player - camera;
+        var camToTarget = target - camera;
+
+        var distSq = Vector3.Dot(camToPlayer, camToPlayer);
+        var proj = Vector3.Dot(camToTarget, camToPlayer);
+        
+        if (proj < 0 || proj > distSq)
+        {
+            return false;
+        }
+
+        if (thicknessRadius <= 0f) return true;
+        
+        var targetDistSq = Vector3.Dot(camToTarget, camToTarget);
+        var perpDistSq = targetDistSq - ((proj * proj) / distSq);
+            
+        return perpDistSq <= (thicknessRadius * thicknessRadius);
     }
 
     private void OnFurnitureAdded(Furniture furniture)
     {
         DisableCameraCollision(furniture);
-    }
-
-    private List<int> faded = [];
-
-    private void DoFade()
-    {
-        if (Plugin.ObjectTable.LocalPlayer == null) return;
-        if (!HousingService.IsInside) return;
-        
-        var camMan = CameraManager.Instance();
-        if (camMan == null) return;
-
-        var cam = camMan->CurrentCamera;
-        if (cam == null) return;
-        
-        Vector3 start = cam->Position;
-        Vector3 end = Plugin.ObjectTable.LocalPlayer.Position;
-        Vector4 boundSphere = ((start + end) * 0.5f).AsVector4() with { W = Vector3.Distance(start, end) * 0.5f };
-
-        foreach (var furn in HousingService.CurrentFurniture)
-        {
-            var index = furn.HousingFurniture.Index;
-            var obj = furn.Object;
-            if (obj == null) continue;
-            
-            var cull = furn.Cull;
-            if (cull == null || cull->Distance >= 1000f) continue;
-
-            var dist = Vector3.Distance(obj->Position, boundSphere.AsVector3());
-
-            var graphics = furn.Graphics;
-            if (graphics == null) continue;
-
-            Plugin.Log.Verbose($"Trying to set transparency on {obj->NameString}");
-            
-            // try
-            // {
-            //     if (dist < boundSphere.W)
-            //     {
-            //         faded?.Add(index);
-            //         graphics->SetTransparency(1f);
-            //     }
-            //     else if (faded != null && faded.Contains(index))
-            //     {
-            //         faded.Remove(index);
-            //         graphics->SetTransparency(0);
-            //     }
-            // }
-            // catch (Exception e)
-            // {
-            //     Plugin.Log.Error($"Error while trying to set transparency on {obj->NameString}.\n{e}");
-            // }
-            
-        }
     }
     
     private void UpdateFurniture(bool enabled = false)
@@ -121,6 +114,7 @@ public unsafe partial class ToggleCameraCollision : BaseTweak
     public override void Disable()
     {
         HousingService.OnFurnitureAdded -= OnFurnitureAdded;
+        HousingService.OnFurnitureUpdate -= OnFurnitureUpdate;
         UpdateFurniture(true);
     }
 

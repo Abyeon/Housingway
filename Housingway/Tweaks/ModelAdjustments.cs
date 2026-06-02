@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Numerics;
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -16,11 +15,8 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
                                                         "No more house shell or shame cube.";
     public override bool Enabled { get; set; }
 
-    private readonly Plugin plugin;
-
     public ModelAdjustments(Plugin plugin)
     {
-        this.plugin = plugin;
         PluginConfig = plugin.Configuration;
         Config = PluginConfig.Tweaks.ModelAdjustments;
     }
@@ -50,7 +46,7 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         }
     }
     
-    // Yeah yeah, Im polling- I don't know a better way atm.
+    // Yeah yeah, I'm polling- I don't know a better way atm.
     private void OnUpdate(IFramework framework)
     {
         FindModels();

@@ -8,7 +8,6 @@ using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using Housingway.Structs;
-using Vector3 = System.Numerics.Vector3;
 
 namespace Housingway.Utils;
 

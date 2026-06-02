@@ -13,8 +13,6 @@ public partial class OverrideInteriorLighting
     public override void DrawConfig()
     {
         var light = Config.Light;
-        var color = ImGui.GetColorU32(ImGuiCol.TitleBgActive);
-        //using var _ = ImRaii.PushColor(ImGuiCol.Separator, color);
         if (Ui.SliderWithDefault("Light", ref light, 0, 1, InitialValue))
         {
             Config.Light = light;

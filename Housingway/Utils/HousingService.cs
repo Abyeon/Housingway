@@ -1,20 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Numerics;
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Game.Object;
-using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
-using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
-using Housingway.Structs;
-using Lumina.Data.Parsing.Layer;
-using Lumina.Extensions;
-using ColliderType = FFXIVClientStructs.FFXIV.Common.Component.BGCollision.ColliderType;
 
 namespace Housingway.Utils;
 
