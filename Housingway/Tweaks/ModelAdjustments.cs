@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Numerics;
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using Housingway.Utils;
+using Pictomancy;
 
 namespace Housingway.Tweaks;
 
@@ -24,10 +27,33 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     public override void Enable()
     {
         Plugin.ClientState.ZoneInit += OnZoneInit;
+        Plugin.Overlay.OnDraw += OnOverlay;
         FindModels();
         ToggleModels();
     }
-    
+
+    private void OnOverlay(PctDrawList drawList)
+    {
+        if (!Config.ShowBuildLimit) return;
+        
+        var cam = Scene.CurrentCamera;
+        if (cam is null) return;
+        if (cam->Position.SqrMagnitude < 2025) return;
+        
+        var p = new PctDxParams
+        {
+            OccludedAlpha = 0,
+            OcclusionTolerance = 0,
+            FresnelOpacity = 1f,
+            FresnelIntensity = 1f,
+            FresnelSpread = 0.1f,
+            ProjectionHeight = 0f,
+            FadeStart = 0f,
+        };
+        
+        drawList.AddSphere(Vector3.Zero, 50, 0x0CFFFFFF, p: p);
+    }
+
     private BgObject* lightguard = null;
     private BgObject* shameCube = null;
 

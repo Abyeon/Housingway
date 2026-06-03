@@ -40,43 +40,11 @@ public unsafe partial class ModelAdjustments
             PluginConfig.Save();
         }
         
-        DrawDebug();
-
-        var camMan = CameraManager.Instance();
-        if (camMan is null) return;
-
-        var cam = camMan->GetActiveCamera();
-        if (cam is null) return;
-        
-        var distance = Vector3.Distance(cam->LastPosition, Vector3.Zero);
-
-        if (limit && distance >= 45)
-        {
-            using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
-            {
-                UIMask = UIMask.BackbufferAlpha,
-                DrawWhenFaded = true,
-                DrawInCutscene = true,
-                DefaultParams = new PctDxParams
-                {
-                    OccludedAlpha = 0,
-                    OcclusionTolerance = 0,
-                    FresnelOpacity = 1f,
-                    FresnelIntensity = 1f,
-                    FresnelSpread = 0.1f,
-                    ProjectionHeight = 0f,
-                    FadeStart = 0f,
-                }
-            });
-
-            if (drawList is null) return;
-            
-            drawList.AddSphere(Vector3.Zero, 50, 0x0CFFFFFF);
-        }
+        Debug();
     }
 
     [Conditional("DEBUG")]
-    private void DrawDebug()
+    private void Debug()
     {
         var guard = lightguard is null ? "Null" : lightguard->ModelResourceHandle->FileName.ToString();
         var cube = shameCube is null ? "Null" : shameCube->ModelResourceHandle->FileName.ToString();

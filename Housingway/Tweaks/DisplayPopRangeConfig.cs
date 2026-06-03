@@ -1,6 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Numerics;
+using System.Text.Json;
 using Dalamud.Bindings.ImGui;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
+using Housingway.Structs;
 
 namespace Housingway.Tweaks;
 
@@ -11,11 +17,18 @@ public enum DisplayLocation
     Both
 }
 
+public enum DisplayType
+{
+    Radius,
+    Points
+}
+
 public class DisplayPopRangeConfig
 {
     public float Size { get; set; } = 5f;
     public Vector4 Color { get; set; } = new(1f, 1f, 1f, 0.75f);
     public DisplayLocation Display { get; set; } = DisplayLocation.Both;
+    public DisplayType Type { get; set; } = DisplayType.Points;
 }
 
 public partial class DisplayPopRange
@@ -51,6 +64,29 @@ public partial class DisplayPopRange
         {
             Config.Display = (DisplayLocation)curr;
             PluginConfig.Save();
+        }
+        
+        var typeNames = Enum.GetNames<DisplayType>();
+        var currType = (int)Config.Type;
+
+        if (ImGui.Combo("Display Type", ref currType, typeNames, typeNames.Length))
+        {
+            Config.Type = (DisplayType)currType;
+            PluginConfig.Save();
+        }
+        
+        Debug();
+    }
+
+    [Conditional("DEBUG")]
+    private static void Debug()
+    {
+        if (ImGui.Button("Copy PopRanges"))
+        {
+            var ranges = GetPopRanges();
+            var json = JsonSerializer.Serialize(ranges, new JsonSerializerOptions { WriteIndented = true, IncludeFields = true });
+            Plugin.Log.Debug(json);
+            ImGui.SetClipboardText(json);
         }
     }
 }

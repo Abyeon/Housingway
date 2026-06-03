@@ -27,6 +27,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     
+    internal Scene Scene { get; init; }
     internal HousingService HousingService { get; init; }
 
     private const string CommandName = "/housingway";
@@ -35,7 +36,7 @@ public sealed class Plugin : IDalamudPlugin
     
     public readonly WindowSystem WindowSystem = new("Housingway");
     private ConfigWindow ConfigWindow { get; init; }
-    internal static Overlay Overlay { get; private set; } = new();
+    internal static Overlay Overlay { get; private set; } = null!;
 
     public readonly PctContext PctContext;
     
@@ -53,8 +54,11 @@ public sealed class Plugin : IDalamudPlugin
             MaxTriangleVertices = 100000
         });
         
+        Scene = new Scene();
+        Overlay = new Overlay();
+        
         WindowSystem.AddWindow(Overlay);
-        Overlay.Toggle();
+        //Overlay.Toggle();
         
         Tweaks = [
             new OverrideInteriorLighting(this),
@@ -76,7 +80,7 @@ public sealed class Plugin : IDalamudPlugin
                 EnableTweak(tweak);
             }
         }
-        
+
         HousingService = new HousingService();
         
         ConfigWindow = new ConfigWindow(this);
@@ -137,6 +141,7 @@ public sealed class Plugin : IDalamudPlugin
         WindowSystem.RemoveAllWindows();
 
         ConfigWindow.Dispose();
+        Overlay.Dispose();
 
         CommandManager.RemoveHandler(CommandName);
 
@@ -147,6 +152,7 @@ public sealed class Plugin : IDalamudPlugin
         }
         
         HousingService.Dispose();
+        Scene.Dispose();
         
         PctContext.Dispose();
     }

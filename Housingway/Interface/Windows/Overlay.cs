@@ -1,10 +1,13 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using System;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
+using Housingway.Utils;
 using Pictomancy;
 
 namespace Housingway.Interface.Windows;
 
-public class Overlay : Window
+public class Overlay : Window, IDisposable
 {
     internal delegate void OverlayDraw(PctDrawList drawList);
     internal event OverlayDraw? OnDraw;
@@ -20,6 +23,18 @@ public class Overlay : Window
                 | ImGuiWindowFlags.NoInputs
                 | ImGuiWindowFlags.NoBringToFrontOnFocus
                 | ImGuiWindowFlags.NoFocusOnAppearing;
+        
+        Scene.OnZoneLoaded += OnZoneLoaded;
+    }
+
+    private void OnZoneLoaded()
+    {
+        IsOpen = HousingService.InHousingArea;
+    }
+
+    public void Dispose()
+    {
+        Scene.OnZoneLoaded -= OnZoneLoaded;
     }
 
     public override void Draw()
