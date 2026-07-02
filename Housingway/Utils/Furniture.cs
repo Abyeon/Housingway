@@ -129,19 +129,6 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
     }
 
-    public CullObject* Cull
-    {
-        get
-        {
-            if (!HousingService.IsInside) return null;
-
-            var man = AreaCullingManager.Instance();
-            if (man == null) return null;
-
-            return &man->CullObjects[HousingFurniture.Index];
-        }
-    }
-
     public SphereCastRange* SphereCastRange
     {
         get

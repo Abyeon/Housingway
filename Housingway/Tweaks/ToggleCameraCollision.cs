@@ -23,62 +23,62 @@ public unsafe partial class ToggleCameraCollision : BaseTweak
     public override void Enable()
     {
         HousingService.OnFurnitureAdded += OnFurnitureAdded;
-        HousingService.OnFurnitureUpdate += OnFurnitureUpdate;
+        // HousingService.OnFurnitureUpdate += OnFurnitureUpdate;
         UpdateFurniture();
     }
 
-    private void OnFurnitureUpdate(Furniture furniture)
-    {
-        var cam = Scene.CurrentCamera;
-        if (cam == null) return;
-        
-        var graphics = furniture.Graphics;
-        if (graphics == null) return;
-        
-        var group = furniture.Group;
-        
-        try
-        {
-            Vector4 bounds = new();
-            group->GetBoundingSphereImpl(&bounds);
-
-            if (IsBetween(cam->Position, Plugin.ObjectTable.LocalPlayer!.Position, new Vector3(bounds.X, bounds.Y, bounds.Z), bounds.W))
-            {
-                var alpha = Math.Clamp(graphics->GetTransparency() + 0.01f, 0f, 1f);
-                graphics->SetTransparency(alpha);
-            }
-            else
-            {
-                graphics->SetTransparency(0f);
-            }
-        }
-        catch (Exception e)
-        {
-            Plugin.Log.Error(e.ToString());
-        }
-        
-    }
+    // private void OnFurnitureUpdate(Furniture furniture)
+    // {
+    //     var cam = Scene.CurrentCamera;
+    //     if (cam == null) return;
+    //     
+    //     var graphics = furniture.Graphics;
+    //     if (graphics == null) return;
+    //     
+    //     var group = furniture.Group;
+    //     
+    //     try
+    //     {
+    //         Vector4 bounds = new();
+    //         group->GetBoundingSphereImpl(&bounds);
+    //
+    //         if (IsBetween(cam->Position, Plugin.ObjectTable.LocalPlayer!.Position, new Vector3(bounds.X, bounds.Y, bounds.Z), bounds.W))
+    //         {
+    //             var alpha = Math.Clamp(graphics->GetTransparency() + 0.01f, 0f, 1f);
+    //             graphics->SetTransparency(alpha);
+    //         }
+    //         else
+    //         {
+    //             graphics->SetTransparency(0f);
+    //         }
+    //     }
+    //     catch (Exception e)
+    //     {
+    //         Plugin.Log.Error(e.ToString());
+    //     }
+    //     
+    // }
     
-    public static bool IsBetween(Vector3 camera, Vector3 player, Vector3 target, float thicknessRadius)
-    {
-        var camToPlayer = player - camera;
-        var camToTarget = target - camera;
-
-        var distSq = Vector3.Dot(camToPlayer, camToPlayer);
-        var proj = Vector3.Dot(camToTarget, camToPlayer);
-        
-        if (proj < 0 || proj > distSq)
-        {
-            return false;
-        }
-
-        if (thicknessRadius <= 0f) return true;
-        
-        var targetDistSq = Vector3.Dot(camToTarget, camToTarget);
-        var perpDistSq = targetDistSq - ((proj * proj) / distSq);
-            
-        return perpDistSq <= (thicknessRadius * thicknessRadius);
-    }
+    // public static bool IsBetween(Vector3 camera, Vector3 player, Vector3 target, float thicknessRadius)
+    // {
+    //     var camToPlayer = player - camera;
+    //     var camToTarget = target - camera;
+    //
+    //     var distSq = Vector3.Dot(camToPlayer, camToPlayer);
+    //     var proj = Vector3.Dot(camToTarget, camToPlayer);
+    //     
+    //     if (proj < 0 || proj > distSq)
+    //     {
+    //         return false;
+    //     }
+    //
+    //     if (thicknessRadius <= 0f) return true;
+    //     
+    //     var targetDistSq = Vector3.Dot(camToTarget, camToTarget);
+    //     var perpDistSq = targetDistSq - ((proj * proj) / distSq);
+    //         
+    //     return perpDistSq <= (thicknessRadius * thicknessRadius);
+    // }
 
     private void OnFurnitureAdded(Furniture furniture)
     {
@@ -114,7 +114,7 @@ public unsafe partial class ToggleCameraCollision : BaseTweak
     public override void Disable()
     {
         HousingService.OnFurnitureAdded -= OnFurnitureAdded;
-        HousingService.OnFurnitureUpdate -= OnFurnitureUpdate;
+        // HousingService.OnFurnitureUpdate -= OnFurnitureUpdate;
         UpdateFurniture(true);
     }
 

@@ -3,7 +3,7 @@ List of goal tweaks to include with Housingway
 
 ---
 
-1. [ ] Skybox Editor
+1. [X] Skybox Editor
 2. [ ] Toggle for Void Lighting
 3. [x] Interior Lighting slider
 4. [x] SSAO+ toggle

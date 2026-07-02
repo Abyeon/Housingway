@@ -7,6 +7,7 @@ using Dalamud.Plugin.Services;
 using Housingway.Config;
 using Housingway.Interface.Windows;
 using Housingway.Tweaks;
+using Housingway.Tweaks.OverrideSkybox;
 using Housingway.Utils;
 using Pictomancy;
 
@@ -26,6 +27,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IFramework Framework { get; private set; } = null!;
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
+    [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
     
     internal Scene Scene { get; init; }
     internal HousingService HousingService { get; init; }
@@ -68,7 +70,9 @@ public sealed class Plugin : IDalamudPlugin
             new ToggleCameraCollision(),
             new HighlightPhasedObjects(this),
             new FurnitureInfo(this),
-            new DisplayPopRange(this)
+            new DisplayPopRange(this),
+            new DoorCommand(),
+            new OverrideSkybox(this)
         ];
         
         Tweaks.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
@@ -82,6 +86,7 @@ public sealed class Plugin : IDalamudPlugin
         }
 
         HousingService = new HousingService();
+        Overlay.IsOpen = HousingService.InHousingArea;
         
         ConfigWindow = new ConfigWindow(this);
         WindowSystem.AddWindow(ConfigWindow);

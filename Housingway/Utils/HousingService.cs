@@ -28,9 +28,11 @@ public unsafe class HousingService : IDisposable
     
     internal delegate void FurnitureAdded(Furniture furniture);
     internal delegate void FurnitureUpdate(Furniture furniture);
+    internal delegate void EnterHousingArea(bool indoors);
     
     internal static event FurnitureAdded? OnFurnitureAdded;
     internal static event FurnitureUpdate? OnFurnitureUpdate;
+    internal static event EnterHousingArea? OnEnterHousingArea;
 
     internal static HashSet<Furniture> CurrentFurniture = [];
 
@@ -55,6 +57,7 @@ public unsafe class HousingService : IDisposable
         if (InHousingArea)
         {
             Plugin.Framework.Update += OnUpdate;
+            OnEnterHousingArea?.Invoke(IsInside);
         }
         else
         {

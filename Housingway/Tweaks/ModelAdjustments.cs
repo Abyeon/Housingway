@@ -27,7 +27,6 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     public override void Enable()
     {
         Plugin.ClientState.ZoneInit += OnZoneInit;
-        Plugin.Overlay.OnDraw += OnOverlay;
         FindModels();
         ToggleModels();
     }
@@ -35,10 +34,11 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     private void OnOverlay(PctDrawList drawList)
     {
         if (!Config.ShowBuildLimit) return;
+        if (!HousingService.IsInside) return;
         
         var cam = Scene.CurrentCamera;
         if (cam is null) return;
-        if (cam->Position.SqrMagnitude < 2025) return;
+        if (cam->Position.SqrMagnitude < 2025) return; // dist from Vector3.Zero is < 45 units.
         
         var p = new PctDxParams
         {
@@ -63,10 +63,12 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         if (obj.TerritoryType.Value.Bg.ToString().Contains("/ind/"))
         {
             Plugin.Framework.Update += OnUpdate;
+            Plugin.Overlay.OnDraw += OnOverlay;
         }
         else
         {
             Plugin.Framework.Update -= OnUpdate;
+            Plugin.Overlay.OnDraw -= OnOverlay;
             lightguard = null;
             shameCube = null;
         }
@@ -140,13 +142,13 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     {
         Plugin.ClientState.ZoneInit -= OnZoneInit;
         Plugin.Framework.Update -= OnUpdate; // in case this gets disabled while we still haven't found objs
+        Plugin.Overlay.OnDraw -= OnOverlay;
         
         ToggleModels(true);
-    }
-
-    public override void Dispose()
-    {
+        
         lightguard = null;
         shameCube = null;
     }
+
+    public override void Dispose() { }
 }

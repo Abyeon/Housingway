@@ -43,7 +43,7 @@ public class Overlay : Window, IDisposable
         
         using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
         {
-            UIMask = UIMask.BackbufferAlpha,
+            UIMask = UIMask.Default,
             DrawWhenFaded = true,
             DrawInCutscene = true,
             DefaultParams = new PctDxParams

@@ -15,7 +15,7 @@ public unsafe class Scene : IDisposable
     public static string Bg = string.Empty;
 
     internal delegate void ZoneLoaded();
-    internal static event ZoneLoaded? OnZoneLoaded = null;
+    internal static event ZoneLoaded? OnZoneLoaded;
     
     public Scene()
     {

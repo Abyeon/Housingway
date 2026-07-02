@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Dalamud.Configuration;
 using Housingway.Tweaks;
+using Housingway.Tweaks.OverrideSkybox;
 
 namespace Housingway.Config;
 
@@ -26,4 +27,5 @@ public class TweakConfigs
     public readonly HighlightPhasedObjectsConfig HighlightPhasedObjects = new();
     public readonly FurnitureInfoConfig FurnitureInfo = new();
     public readonly DisplayPopRangeConfig DisplayPopRange = new();
+    public readonly OverrideSkyboxConfig OverrideSkybox = new();
 }

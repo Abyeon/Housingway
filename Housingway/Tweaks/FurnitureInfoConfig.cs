@@ -11,6 +11,7 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
 using Housingway.Render;
+using Housingway.Structs;
 using Housingway.Utils;
 using Pictomancy;
 
@@ -41,7 +42,7 @@ public unsafe partial class FurnitureInfo
 
     private string search = string.Empty;
 
-    private IEnumerable<Furniture> FilteredFurniture => HousingService.CurrentFurniture.Where(x => x.Object is not null && x.Object->NameString.Contains( search, StringComparison.InvariantCulture));
+    private IEnumerable<Furniture> FilteredFurniture => HousingService.CurrentFurniture.Where(x => x.Object is not null && x.Object->NameString.Contains(search, StringComparison.InvariantCultureIgnoreCase));
 
     public override void DrawConfig()
     {
@@ -179,6 +180,14 @@ public unsafe partial class FurnitureInfo
         {
             var defaultColor = UintToVector4(defaultStain.Color);
             ImGui.ColorEdit4($"Default Stain [{defaultStain.Name.ToString()}]", ref defaultColor, ImGuiColorEditFlags.NoInputs);
+        }
+
+        ImGui.Text("Properties:");
+        var props = ((StainInfoEx*)furn.Group->StainInfo)->Properties;
+        for (var i = 0; i < 8; i++)
+        {
+            var prop = props[i].ToString();
+            ImGui.InputText($"x{i}", ref prop, flags: ImGuiInputTextFlags.ReadOnly);
         }
         
         var names = Enum.GetNames<DebugView>();
