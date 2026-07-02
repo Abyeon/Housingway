@@ -26,13 +26,18 @@ public partial class OverrideSkybox : ConfigurableTweak<OverrideSkyboxConfig>
 
     private unsafe void UpdateEnvironment()
     {
-        if (!HousingService.IsInside) return;
+        if (HousingService.IsInside)
+        {
+            var env = EnvManagerEx.Instance();
+            if (env is null) return;
         
-        var env = EnvManagerEx.Instance();
-        if (env is null) return;
-        
-        envService!.Override = Config.Override;
-        env->EnvState = Config.State;
+            envService!.Override = Config.Override;
+            env->EnvState = Config.State;
+        }
+        else
+        {
+            envService!.Override = EnvOverride.None;
+        }
         
         Plugin.Log.Debug("should do thing");
     }

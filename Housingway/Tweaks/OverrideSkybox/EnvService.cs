@@ -88,8 +88,8 @@ public class EnvService : IDisposable {
 	private unsafe delegate nint EnvStateCopyDelegate(EnvState* dest, EnvState* src);
 	private unsafe delegate nint EnvManagerUpdateDelegate(EnvManagerEx* env, float a2, float a3);
 
-	[Signature("E8 ?? ?? ?? ?? 49 3B F5 75 0D")]
-	private EnvStateCopyDelegate envStateCopy = null!;
+	// [Signature("E8 ?? ?? ?? ?? 49 3B F5 75 0D")]
+	// private EnvStateCopyDelegate envStateCopy = null!;
 
 	[Signature("E8 ?? ?? ?? ?? 49 3B F5 75 0D", DetourName = nameof(EnvStateCopyDetour))]
 	private Hook<EnvStateCopyDelegate> envStateCopyHook = null!;
