@@ -18,7 +18,7 @@ public class OverrideSkyboxConfig
         {
             CloudTexture = 6,
             CloudSideTexture = 45,
-            CloudColor = Vector3.One,
+            CloudColor = new Vector3(0.47197425f, 0.53638506f, 0.62441313f),
             Color2 = new Vector3(0.20952633f, 0.34112024f, 0.45539904f),
             Gradient = 0.919f,
             SideHeight = 0.575f,
