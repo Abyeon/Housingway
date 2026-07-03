@@ -1,6 +1,8 @@
 ﻿using System;
+using System.Globalization;
 using System.Linq;
 using System.Numerics;
+using System.Reflection;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -8,6 +10,7 @@ using Dalamud.Interface.Components;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
+using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 using Housingway.Config;
 using Housingway.Tweaks;
@@ -117,7 +120,7 @@ public class ConfigWindow : CustomWindow, IDisposable
     {
         if (selectedTweak is null)
         {
-            ImGui.Text("No tweak selected!");
+            HomePage();
             return;
         }
         
@@ -135,5 +138,39 @@ public class ConfigWindow : CustomWindow, IDisposable
         {
             config.DrawConfig();
         }
+    }
+
+    private static void HomePage()
+    {
+        var content = ImGui.GetContentRegionAvail();
+        
+        // Icon
+        if (Plugin.TextureProvider.GetFromManifestResource(Assembly.GetExecutingAssembly(), "Housingway.Assets.IconNoBg.png").TryGetWrap(out var icon, out _))
+        {
+            var size = icon.Size * 0.25f * ImGuiHelpers.GlobalScale;
+            ImGui.SetCursorPos((content / 2) - (size / 2));
+            ImGui.Image(icon.Handle, size);
+        }
+
+        // Version + Last Updated display
+        var version = $"v{Plugin.PluginInterface.Manifest.AssemblyVersion.ToString()} ";
+        var lastUpdated = DateTimeOffset.FromUnixTimeSeconds(Plugin.PluginInterface.Manifest.LastUpdate).DateTime.ToString(CultureInfo.CurrentCulture);
+        ImGuiHelpers.CenterCursorForText(version + lastUpdated);
+        ImGui.Text(version);
+        ImGui.SameLine();
+        ImGui.TextColored(ImGuiColors.DalamudGrey, lastUpdated);
+        
+        // Links
+        ImGui.Spacing();
+        
+        var group = new ImGuiHelpers.HorizontalButtonGroup
+        {
+            IsCentered = true,
+            Height = ImGui.GetFrameHeightWithSpacing()
+        };
+        
+        group.Add("Github", () => Util.OpenLink("https://github.com/Abyeon/Housingway"));
+        group.Add("Donate", () => Util.OpenLink("https://ko-fi.com/abyeon"));
+        group.Draw();
     }
 }

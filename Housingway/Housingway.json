@@ -2,10 +2,10 @@
   "Author": "Abyeon",
   "Name": "Housingway",
   "Punchline": "Experience better housing!",
-  "Description": "A small collection of tweaks pertaining to housing.",
+  "Description": "A housing tweak collection plugin.",
   "ApplicableVersion": "any",
   "RepoUrl": "https://github.com/Abyeon/Housingway",
-  "IconUrl": "https://raw.githubusercontent.com/Abyeon/Housingway/refs/heads/master/Data/icon.png",
+  "IconUrl": "https://raw.githubusercontent.com/Abyeon/Housingway/refs/heads/master/Housingway/Assets/Icon.png",
   "Tags": [
     "util",
     "housing",

@@ -72,20 +72,20 @@ public partial class OverrideSkybox
     private bool DrawSkyEditor(ref EnvState state)
     {
         var result = false;
-        result |= DrawToggleCheckbox("Override Sky", EnvOverride.SkyId);
+        result |= DrawToggleCheckbox("Edit Sky", EnvOverride.SkyId);
         
         using (ImRaii.Disabled(!Config.Override.HasFlag(EnvOverride.SkyId)))
         {
             result |= texSky.Draw("Sky", ref state.SkyId, id => $"bgcommon/nature/sky/texture/sky_{id:D3}.tex");
         }
         
-        result |= DrawToggleCheckbox("Override Cloud", EnvOverride.Clouds);
+        result |= DrawToggleCheckbox("Edit Cloud", EnvOverride.Clouds);
         using var clouds = ImRaii.Disabled(!Config.Override.HasFlag(EnvOverride.Clouds));
         
-        result |= texCloudTop.Draw("Cloud Top", ref state.Clouds.CloudTexture, id => $"bgcommon/nature/cloud/texture/cloud_{id:D3}.tex");
-        result |= texCloudSide.Draw("Cloud Side", ref state.Clouds.CloudSideTexture, id => $"bgcommon/nature/cloud/texture/cloudside_{id:D3}.tex");
+        result |= texCloudTop.Draw("Top Clouds", ref state.Clouds.CloudTexture, id => $"bgcommon/nature/cloud/texture/cloud_{id:D3}.tex");
+        result |= texCloudSide.Draw("Side Clouds", ref state.Clouds.CloudSideTexture, id => $"bgcommon/nature/cloud/texture/cloudside_{id:D3}.tex");
 
-        result |= ImGui.ColorEdit3("Sky Color", ref state.Clouds.CloudColor);
+        result |= ImGui.ColorEdit3("Cloud Color", ref state.Clouds.CloudColor);
         result |= ImGui.ColorEdit3("Shadow Color", ref state.Clouds.Color2);
         result |= ImGui.SliderFloat("Shadows", ref state.Clouds.Gradient, 0.0f, 2.0f);
         result |= ImGui.SliderFloat("Side Height", ref state.Clouds.SideHeight, 0.0f, 2.0f);
@@ -96,15 +96,15 @@ public partial class OverrideSkybox
     private bool DrawStarsEditor(ref EnvState state)
     {
         var result = false;
-        result |= DrawToggleCheckbox("Override Stars", EnvOverride.Stars);
+        result |= DrawToggleCheckbox("Edit Stars", EnvOverride.Stars);
 
         using var _ = ImRaii.Disabled(!Config.Override.HasFlag(EnvOverride.Stars));
         
         result |= ImGui.SliderFloat("Stars", ref state.Stars.Stars, 0.0f, 20.0f);
-        result |= ImGui.SliderFloat("Intensity" + "##1", ref state.Stars.StarIntensity, 0.0f, 2.5f);
+        result |= ImGui.SliderFloat("Intensity##1", ref state.Stars.StarIntensity, 0.0f, 2.5f);
         ImGui.Spacing();
         result |= ImGui.SliderFloat("Constellations", ref state.Stars.Constellations, 0.0f, 10.0f);
-        result |= ImGui.SliderFloat("Constellation Intensity" + "##2", ref state.Stars.ConstellationIntensity, 0.0f, 2.5f);
+        result |= ImGui.SliderFloat("Intensity##2", ref state.Stars.ConstellationIntensity, 0.0f, 2.5f);
         ImGui.Spacing();
         result |= ImGui.SliderFloat("Galaxy Intensity", ref state.Stars.GalaxyIntensity, 0.0f, 10.0f);
         // ImGui.Spacing();
