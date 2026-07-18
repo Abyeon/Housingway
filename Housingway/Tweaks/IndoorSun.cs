@@ -17,7 +17,7 @@ public class IndoorSun : BaseTweak
         }
     }
 
-    private void OnEnterHousingArea(bool indoors)
+    private static void OnEnterHousingArea(bool indoors)
     {
         if (!indoors) return;
         ToggleSun();
