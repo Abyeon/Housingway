@@ -12,7 +12,6 @@ public unsafe class ToggleCastShadows : BaseTweak
     public override string Description { get; init; } =
         "Disables the shadows casted by different light objects when within housing. " +
         "This may help with performance and some disgusting lighting pop-in.";
-    public override bool Enabled { get; set; }
     
     public override void Enable()
     {

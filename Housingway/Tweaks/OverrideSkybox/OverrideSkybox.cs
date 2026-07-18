@@ -8,7 +8,6 @@ public partial class OverrideSkybox : ConfigurableTweak<OverrideSkyboxConfig>
 {
     public override string Name { get; init; } = "Skybox";
     public override string Description { get; init; } = "Overrides the interior skybox.";
-    public override bool Enabled { get; set; }
 
     private EnvService? envService;
 

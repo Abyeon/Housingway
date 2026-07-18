@@ -9,7 +9,6 @@ public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfi
     public override string Name { get; init; } = "Furniture Info";
 
     public override string Description { get; init; } = "Less of a tweak, more of a tool for learning about different furniture.";
-    public override bool Enabled { get; set; }
 
     public FurnitureInfo()
     {

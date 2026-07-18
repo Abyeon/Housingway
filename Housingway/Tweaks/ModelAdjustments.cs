@@ -16,7 +16,6 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
 
     public override string Description { get; init; } = "Some toggleable adjustments geared towards void builders. " +
                                                         "No more house shell or shame cube.";
-    public override bool Enabled { get; set; }
 
     public ModelAdjustments()
     {

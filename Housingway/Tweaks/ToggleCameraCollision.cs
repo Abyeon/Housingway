@@ -18,7 +18,6 @@ public unsafe partial class ToggleCameraCollision : BaseTweak
 {
     public override string Name { get; init; } = "Disable Camera Collision";
     public override string Description { get; init; } = "Allows the camera to clip through furnishings!";
-    public override bool Enabled { get; set; }
     
     public override void Enable()
     {

@@ -8,7 +8,6 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
 {
     public override string Name { get; init; } = "Override Interior Lighting";
     public override string Description { get; init; } = "Overrides the interior lighting of other player's houses to your desired setting.";
-    public override bool Enabled { get; set; }
 
     public OverrideInteriorLighting()
     {

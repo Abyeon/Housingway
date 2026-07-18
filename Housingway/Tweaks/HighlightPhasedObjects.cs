@@ -9,7 +9,6 @@ public unsafe partial class HighlightPhasedObjects : ConfigurableTweak<Highlight
 {
     public override string Name { get; init; } = "Highlight Phased Objects";
     public override string Description { get; init; } = "Highlights objects that have had their player collision disabled.";
-    public override bool Enabled { get; set; }
 
     public HighlightPhasedObjects()
     {

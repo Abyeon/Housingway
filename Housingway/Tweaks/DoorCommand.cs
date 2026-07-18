@@ -11,7 +11,6 @@ public unsafe class DoorCommand : BaseTweak
     public override string Name { get; init; } = "Door Command";
 
     public override string Description { get; init; } = "Adds the /door command to easily return to the entrance of a house, plot, or apartment.";
-    public override bool Enabled { get; set; }
     
     public override void Enable()
     {
