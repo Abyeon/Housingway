@@ -7,6 +7,7 @@ namespace Housingway.Tweaks.OverrideSkybox;
 public partial class OverrideSkybox : ConfigurableTweak<OverrideSkyboxConfig>
 {
     public override string Name { get; init; } = "Skybox";
+    public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Overrides the interior skybox.";
 
     private EnvService? envService;

@@ -7,7 +7,7 @@ namespace Housingway.Tweaks;
 public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfig>
 {
     public override string Name { get; init; } = "Furniture Info";
-
+    public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Less of a tweak, more of a tool for learning about different furniture.";
 
     public FurnitureInfo()

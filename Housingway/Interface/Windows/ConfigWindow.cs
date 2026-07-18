@@ -128,6 +128,13 @@ public class ConfigWindow : CustomWindow, IDisposable
         var color = ImGui.GetColorU32(ImGuiCol.Separator);
         
         Ui.CenteredTextWithLine(selectedTweak.Name, color);
+        
+        ImGuiHelpers.CenterCursorForText($"by {selectedTweak.Author}");
+        ImGui.TextColored(ImGuiColors.DalamudGrey, "by");
+        ImGui.SameLine();
+        ImGui.TextColored(ImGui.GetColorU32(ImGuiCol.Text), selectedTweak.Author);
+        ImGui.Spacing();
+        
         ImGui.TextWrapped(selectedTweak.Description);
         ImGui.Spacing();
 

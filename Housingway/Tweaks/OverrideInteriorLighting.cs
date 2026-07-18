@@ -7,6 +7,7 @@ namespace Housingway.Tweaks;
 public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteriorLightingConfig>
 {
     public override string Name { get; init; } = "Override Interior Lighting";
+    public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Overrides the interior lighting of other player's houses to your desired setting.";
 
     public OverrideInteriorLighting()

@@ -7,6 +7,7 @@ namespace Housingway.Tweaks;
 public unsafe class ToggleAmbientOcclusion : BaseTweak
 {
     public override string Name { get; init; } = "Disable SSAO";
+    public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Disables SSAO within housing.";
 
     private delegate nint ToggleSSAO(HousingManager* instance, bool option);

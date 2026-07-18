@@ -9,7 +9,7 @@ namespace Housingway.Tweaks;
 public unsafe class DoorCommand : BaseTweak
 {
     public override string Name { get; init; } = "Door Command";
-
+    public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Adds the /door command to easily return to the entrance of a house, plot, or apartment.";
     
     public override void Enable()

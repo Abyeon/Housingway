@@ -17,6 +17,7 @@ public enum CollisionFlags : ulong
 public unsafe partial class ToggleCameraCollision : BaseTweak
 {
     public override string Name { get; init; } = "Disable Camera Collision";
+    public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Allows the camera to clip through furnishings!";
     
     public override void Enable()

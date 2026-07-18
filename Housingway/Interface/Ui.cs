@@ -169,7 +169,7 @@ public static class Ui
 
         return false;
     }
-
+    
     public static void CenteredTextWithLine(uint textColor, ImU8String text, uint lineColor, float padding = 5f)
     {
         var draw = ImGui.GetWindowDrawList();

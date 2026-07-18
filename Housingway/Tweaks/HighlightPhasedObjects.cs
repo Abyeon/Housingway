@@ -8,6 +8,7 @@ namespace Housingway.Tweaks;
 public unsafe partial class HighlightPhasedObjects : ConfigurableTweak<HighlightPhasedObjectsConfig>
 {
     public override string Name { get; init; } = "Highlight Phased Objects";
+    public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Highlights objects that have had their player collision disabled.";
 
     public HighlightPhasedObjects()

@@ -13,6 +13,7 @@ namespace Housingway.Tweaks;
 public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig>
 {
     public override string Name { get; init; } = "Model Adjustments";
+    public override string Author { get; init; } = "Abyeon";
 
     public override string Description { get; init; } = "Some toggleable adjustments geared towards void builders. " +
                                                         "No more house shell or shame cube.";
