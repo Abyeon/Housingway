@@ -11,10 +11,9 @@ public unsafe partial class HighlightPhasedObjects : ConfigurableTweak<Highlight
     public override string Description { get; init; } = "Highlights objects that have had their player collision disabled.";
     public override bool Enabled { get; set; }
 
-    public HighlightPhasedObjects(Plugin plugin)
+    public HighlightPhasedObjects()
     {
-        PluginConfig = plugin.Configuration;
-        Config = PluginConfig.Tweaks.HighlightPhasedObjects;
+        Config = Plugin.Configuration.Tweaks.HighlightPhasedObjects;
     }
     
     public override void Enable()

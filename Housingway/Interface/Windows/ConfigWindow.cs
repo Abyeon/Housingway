@@ -19,14 +19,12 @@ namespace Housingway.Interface.Windows;
 
 public class ConfigWindow : CustomWindow, IDisposable
 {
-    private readonly Plugin plugin;
-    
     private string searchText = "";
     private ITweak[] tweaks = [];
     private ITweak? selectedTweak;
 
     
-    public ConfigWindow(Plugin plugin) : base("Housingway###HousingwayConfigWindow")
+    public ConfigWindow() : base("Housingway###HousingwayConfigWindow")
     {
         SizeConstraints = new WindowSizeConstraints
         {
@@ -34,7 +32,6 @@ public class ConfigWindow : CustomWindow, IDisposable
             MaximumSize = new Vector2(float.MaxValue, float.MaxValue)
         };
         
-        this.plugin = plugin;
         FilterTweaks();
     }
 
@@ -86,7 +83,7 @@ public class ConfigWindow : CustomWindow, IDisposable
     
     private void FilterTweaks()
     {
-        tweaks = plugin.Tweaks.Where(x => x.Name.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToArray();
+        tweaks = Plugin.TweakManager.Tweaks.Where(x => x.Name.Contains(searchText, StringComparison.InvariantCultureIgnoreCase)).ToArray();
     }
     
     private void TweakList()
@@ -101,8 +98,8 @@ public class ConfigWindow : CustomWindow, IDisposable
             var enabled = tweak.Enabled;
             if (ImGui.Checkbox($"###{nameof(tweak)}", ref enabled))
             {
-                if (enabled) plugin.EnableTweak(tweak);
-                else plugin.DisableTweak(tweak);
+                if (enabled) TweakManager.EnableTweak(tweak);
+                else TweakManager.DisableTweak(tweak);
             }
 
             ImGui.SameLine();
@@ -153,12 +150,12 @@ public class ConfigWindow : CustomWindow, IDisposable
         }
 
         // Version + Last Updated display
-        var version = $"v{Plugin.PluginInterface.Manifest.AssemblyVersion.ToString()} ";
-        var lastUpdated = DateTimeOffset.FromUnixTimeSeconds(Plugin.PluginInterface.Manifest.LastUpdate).DateTime.ToString(CultureInfo.CurrentCulture);
-        ImGuiHelpers.CenterCursorForText(version + lastUpdated);
+        var version = $"v{Plugin.PluginInterface.Manifest.AssemblyVersion.ToString()}";
+        var author = $"made by {Plugin.PluginInterface.Manifest.Author}";
+        ImGuiHelpers.CenterCursorForText(version + author);
         ImGui.Text(version);
         ImGui.SameLine();
-        ImGui.TextColored(ImGuiColors.DalamudGrey, lastUpdated);
+        ImGui.TextColored(ImGuiColors.DalamudGrey, author);
         
         // Links
         ImGui.Spacing();

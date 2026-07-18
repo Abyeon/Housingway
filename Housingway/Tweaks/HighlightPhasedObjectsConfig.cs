@@ -20,7 +20,7 @@ public partial class HighlightPhasedObjects
         if (ImGui.Combo("Highlight Color", ref curr, names, names.Length))
         {
             Config.HighlightColor = (ObjectHighlightColor)curr;
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
         
         ImGuiComponents.HelpMarker($"Black causes a fun graphical glitch that makes seeing phased objects very easy.");

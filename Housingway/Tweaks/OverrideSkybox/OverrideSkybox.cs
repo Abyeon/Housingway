@@ -12,10 +12,9 @@ public partial class OverrideSkybox : ConfigurableTweak<OverrideSkyboxConfig>
 
     private EnvService? envService;
 
-    public OverrideSkybox(Plugin plugin)
+    public OverrideSkybox()
     {
-        PluginConfig = plugin.Configuration;
-        Config = PluginConfig.Tweaks.OverrideSkybox;
+        Config = Plugin.Configuration.Tweaks.OverrideSkybox;
 
         texSky = new SetTextureSelect(Plugin.TextureProvider);
         texCloudTop = new SetTextureSelect(Plugin.TextureProvider);

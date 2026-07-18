@@ -10,10 +10,9 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
     public override string Description { get; init; } = "Overrides the interior lighting of other player's houses to your desired setting.";
     public override bool Enabled { get; set; }
 
-    public OverrideInteriorLighting(Plugin plugin)
+    public OverrideInteriorLighting()
     {
-        PluginConfig = plugin.Configuration;
-        Config = PluginConfig.Tweaks.OverrideInteriorLighting;
+        Config = Plugin.Configuration.Tweaks.OverrideInteriorLighting;
         
         Plugin.ClientState.ZoneInit += OnZoneInit;
     }

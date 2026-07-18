@@ -21,7 +21,7 @@ public partial class OverrideInteriorLighting
 
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
 
         ImGui.Spacing();
@@ -29,7 +29,7 @@ public partial class OverrideInteriorLighting
         {
             IndoorLight = InitialValue;
             Config.Light = IndoorLight;
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
     }
 }

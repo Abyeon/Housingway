@@ -34,15 +34,14 @@ public sealed class Plugin : IDalamudPlugin
 
     private const string CommandName = "/housingway";
 
-    public Configuration Configuration { get; init; }
-    
+    public static Configuration Configuration { get; set; } = null!;
+    public static TweakManager TweakManager { get; set; } = null!;
+
     public readonly WindowSystem WindowSystem = new("Housingway");
     private ConfigWindow ConfigWindow { get; init; }
     internal static Overlay Overlay { get; private set; } = null!;
 
     public readonly PctContext PctContext;
-    
-    public ITweak[] Tweaks { get; init; }
     
     public Plugin()
     {
@@ -61,34 +60,14 @@ public sealed class Plugin : IDalamudPlugin
         
         WindowSystem.AddWindow(Overlay);
         //Overlay.Toggle();
-        
-        Tweaks = [
-            new OverrideInteriorLighting(this),
-            new ToggleAmbientOcclusion(),
-            new ToggleCastShadows(),
-            new ModelAdjustments(this),
-            new ToggleCameraCollision(),
-            new HighlightPhasedObjects(this),
-            new FurnitureInfo(this),
-            new DisplayPopRange(this),
-            new DoorCommand(),
-            new OverrideSkybox(this)
-        ];
-        
-        Tweaks.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
-        
-        foreach (var tweak in Tweaks)
-        {
-            if (Configuration.EnabledTweaks.Contains(tweak.GetType().Name))
-            {
-                EnableTweak(tweak);
-            }
-        }
+
+        TweakManager = new TweakManager();
+        TweakManager.LoadTweaks();
 
         HousingService = new HousingService();
         Overlay.IsOpen = HousingService.InHousingArea;
         
-        ConfigWindow = new ConfigWindow(this);
+        ConfigWindow = new ConfigWindow();
         WindowSystem.AddWindow(ConfigWindow);
         
         CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
@@ -98,44 +77,6 @@ public sealed class Plugin : IDalamudPlugin
         
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
-    }
-
-    public void EnableTweak(ITweak tweak)
-    {
-        if (tweak.Enabled) return;
-
-        try
-        {
-            tweak.Enable();
-            tweak.Enabled = true;
-            Configuration.EnabledTweaks.Add(tweak.GetType().Name);
-            Configuration.Save();
-            Log.Verbose($"Enabled Tweak {tweak.Name}");
-        }
-        catch (Exception e)
-        {
-            Log.Error(e.ToString());
-            ChatGui.PrintError($"Error while enabling {tweak.Name}");
-        }
-    }
-
-    public void DisableTweak(ITweak tweak)
-    {
-        if (!tweak.Enabled) return;
-        
-        try
-        {
-            tweak.Disable();
-            tweak.Enabled = false;
-            Configuration.EnabledTweaks.Remove(tweak.GetType().Name);
-            Configuration.Save();
-            Log.Verbose($"Disabled Tweak {tweak.Name}");
-        }
-        catch (Exception e)
-        {
-            Log.Error(e.ToString());
-            ChatGui.PrintError($"Error while disabling {tweak.Name}");
-        }
     }
 
     public void Dispose()
@@ -150,11 +91,7 @@ public sealed class Plugin : IDalamudPlugin
 
         CommandManager.RemoveHandler(CommandName);
 
-        foreach (var tweak in Tweaks)
-        {
-            if (tweak.Enabled) tweak.Disable();
-            tweak.Dispose();
-        }
+        TweakManager.Dispose();
         
         HousingService.Dispose();
         Scene.Dispose();

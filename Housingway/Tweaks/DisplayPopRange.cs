@@ -19,10 +19,9 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
     
     private PopRange[] ranges = [];
 
-    public DisplayPopRange(Plugin plugin)
+    public DisplayPopRange()
     {
-        PluginConfig = plugin.Configuration;
-        Config = PluginConfig.Tweaks.DisplayPopRange;
+        Config = Plugin.Configuration.Tweaks.DisplayPopRange;
     }
     
     public override void Enable()

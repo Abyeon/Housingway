@@ -22,7 +22,7 @@ public unsafe partial class ModelAdjustments
         {
             Config.DisableLightguard = guard;
             ToggleModels();
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
         
         var cube = Config.DisableShameCube;
@@ -30,14 +30,14 @@ public unsafe partial class ModelAdjustments
         {
             Config.DisableShameCube = cube;
             ToggleModels();
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
 
         var limit = Config.ShowBuildLimit;
         if (ImGui.Checkbox("Show Build Limit When Camera Near", ref limit))
         {
             Config.ShowBuildLimit = limit;
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
         
         Debug();

@@ -18,10 +18,9 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
                                                         "No more house shell or shame cube.";
     public override bool Enabled { get; set; }
 
-    public ModelAdjustments(Plugin plugin)
+    public ModelAdjustments()
     {
-        PluginConfig = plugin.Configuration;
-        Config = PluginConfig.Tweaks.ModelAdjustments;
+        Config = Plugin.Configuration.Tweaks.ModelAdjustments;
     }
     
     public override void Enable()

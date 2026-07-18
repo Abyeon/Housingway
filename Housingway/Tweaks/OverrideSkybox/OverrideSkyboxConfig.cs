@@ -55,7 +55,7 @@ public partial class OverrideSkybox
             Config.Override = envService!.Override;
             env->EnvState = Config.State;
             
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
         
         ImGui.Spacing();
@@ -65,7 +65,7 @@ public partial class OverrideSkybox
             Config.Override = envService!.Override;
             env->EnvState = Config.State;
             
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
     }
 

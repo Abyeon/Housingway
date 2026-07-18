@@ -196,7 +196,7 @@ public unsafe partial class FurnitureInfo
         if (ImGui.Combo("Debug Drawing", ref curr, names, names.Length))
         {
             Config.DebugView = (DebugView)curr;
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
 
         switch (Config.DebugView)

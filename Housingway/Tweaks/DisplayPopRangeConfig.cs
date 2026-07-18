@@ -43,7 +43,7 @@ public partial class DisplayPopRange
 
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
 
         var color = Config.Color;
@@ -54,7 +54,7 @@ public partial class DisplayPopRange
         
         if (ImGui.IsItemDeactivatedAfterEdit())
         {
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
         
         var names = Enum.GetNames<DisplayLocation>();
@@ -63,7 +63,7 @@ public partial class DisplayPopRange
         if (ImGui.Combo("Display Location", ref curr, names, names.Length))
         {
             Config.Display = (DisplayLocation)curr;
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
         
         var typeNames = Enum.GetNames<DisplayType>();
@@ -72,7 +72,7 @@ public partial class DisplayPopRange
         if (ImGui.Combo("Display Type", ref currType, typeNames, typeNames.Length))
         {
             Config.Type = (DisplayType)currType;
-            PluginConfig.Save();
+            Plugin.Configuration.Save();
         }
         
         Debug();
