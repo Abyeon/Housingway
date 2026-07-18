@@ -59,11 +59,8 @@ public sealed class Plugin : IDalamudPlugin
         Overlay = new Overlay();
         
         WindowSystem.AddWindow(Overlay);
-        //Overlay.Toggle();
 
         TweakManager = new TweakManager();
-        TweakManager.LoadTweaks();
-
         HousingService = new HousingService();
         Overlay.IsOpen = HousingService.InHousingArea;
         

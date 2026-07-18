@@ -9,6 +9,11 @@ namespace Housingway;
 public class TweakManager : IDisposable
 {
     public List<ITweak> Tweaks { get; private set; } = [];
+
+    public TweakManager()
+    {
+        LoadTweaks();
+    }
     
     public void LoadTweaks()
     {
