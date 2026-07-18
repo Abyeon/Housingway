@@ -38,12 +38,12 @@ public unsafe class HousingService : IDisposable
 
     public HousingService()
     {
-        Plugin.ClientState.ZoneInit += OnZoneInit;
+        Service.ClientState.ZoneInit += OnZoneInit;
         
         CheckForHousing();
 
         if (InHousingArea)
-            Plugin.Framework.RunOnFrameworkThread(UpdateFurniture);
+            Service.Framework.RunOnFrameworkThread(UpdateFurniture);
     }
 
     private void OnZoneInit(ZoneInitEventArgs obj)
@@ -56,12 +56,12 @@ public unsafe class HousingService : IDisposable
     {
         if (InHousingArea)
         {
-            Plugin.Framework.Update += OnUpdate;
+            Service.Framework.Update += OnUpdate;
             OnEnterHousingArea?.Invoke(IsInside);
         }
         else
         {
-            Plugin.Framework.Update -= OnUpdate;
+            Service.Framework.Update -= OnUpdate;
         }
     }
 
@@ -102,8 +102,8 @@ public unsafe class HousingService : IDisposable
 
     public void Dispose()
     {
-        Plugin.Framework.Update -= OnUpdate;
-        Plugin.ClientState.ZoneInit -= OnZoneInit;
+        Service.Framework.Update -= OnUpdate;
+        Service.ClientState.ZoneInit -= OnZoneInit;
         CurrentFurniture.Clear();
         GC.SuppressFinalize(this);
     }

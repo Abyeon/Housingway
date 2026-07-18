@@ -85,7 +85,7 @@ public partial class DisplayPopRange
         {
             var ranges = GetPopRanges();
             var json = JsonSerializer.Serialize(ranges, new JsonSerializerOptions { WriteIndented = true, IncludeFields = true });
-            Plugin.Log.Debug(json);
+            Service.Log.Debug(json);
             ImGui.SetClipboardText(json);
         }
     }

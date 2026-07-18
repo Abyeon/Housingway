@@ -142,7 +142,7 @@ public class ConfigWindow : CustomWindow, IDisposable
         var content = ImGui.GetContentRegionAvail();
         
         // Icon
-        if (Plugin.TextureProvider.GetFromManifestResource(Assembly.GetExecutingAssembly(), "Housingway.Assets.IconNoBg.png").TryGetWrap(out var icon, out _))
+        if (Service.TextureProvider.GetFromManifestResource(Assembly.GetExecutingAssembly(), "Housingway.Assets.IconNoBg.png").TryGetWrap(out var icon, out _))
         {
             var size = icon.Size * 0.25f * ImGuiHelpers.GlobalScale;
             ImGui.SetCursorPos((content / 2) - (size / 2));
@@ -150,8 +150,8 @@ public class ConfigWindow : CustomWindow, IDisposable
         }
 
         // Version + Last Updated display
-        var version = $"v{Plugin.PluginInterface.Manifest.AssemblyVersion.ToString()}";
-        var author = $"made by {Plugin.PluginInterface.Manifest.Author}";
+        var version = $"v{Service.PluginInterface.Manifest.AssemblyVersion.ToString()}";
+        var author = $"made by {Service.PluginInterface.Manifest.Author}";
         ImGuiHelpers.CenterCursorForText(version + author);
         ImGui.Text(version);
         ImGui.SameLine();

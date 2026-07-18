@@ -29,6 +29,6 @@ public unsafe struct AreaCullingManager
     
     public static AreaCullingManager* Instance()
     {
-        return *(AreaCullingManager**)Plugin.SigScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 03 C9");
+        return *(AreaCullingManager**)Service.SigScanner.GetStaticAddressFromSig("48 8B 05 ?? ?? ?? ?? 48 03 C9");
     }
 }

@@ -13,7 +13,7 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
     {
         Config = Plugin.Configuration.Tweaks.OverrideInteriorLighting;
         
-        Plugin.ClientState.ZoneInit += OnZoneInit;
+        Service.ClientState.ZoneInit += OnZoneInit;
     }
     
     private static float InitialValue
@@ -58,7 +58,7 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
     {
         if (Enabled)
         {
-            Plugin.Framework.Run(UpdateLight);
+            Service.Framework.Run(UpdateLight);
         }
     }
 
@@ -67,5 +67,5 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
         IndoorLight = Config.Light;
     }
 
-    public override void Dispose() => Plugin.ClientState.ZoneInit -= OnZoneInit;
+    public override void Dispose() => Service.ClientState.ZoneInit -= OnZoneInit;
 }

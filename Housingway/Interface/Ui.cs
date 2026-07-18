@@ -206,7 +206,7 @@ public static class Ui
     {
         using var id = ImRaii.PushId(label);
 
-        var locale = Plugin.ClientState.ClientLanguage.ToCode();
+        var locale = Service.ClientState.ClientLanguage.ToCode();
         var fontFamily = font.FontId.Family.GetLocalizedName(locale);
         var fontStyle = font.FontId.GetLocalizedName(locale);
         fontStyle = fontStyle.Equals(fontFamily) ? "" : $" - {fontStyle}";
@@ -215,7 +215,7 @@ public static class Ui
         if (!ImGui.Button($"{buttonText}##{label}"))
             return null;
 
-        var chooser = SingleFontChooserDialog.CreateAuto((UiBuilder)Plugin.PluginInterface.UiBuilder);
+        var chooser = SingleFontChooserDialog.CreateAuto((UiBuilder)Service.PluginInterface.UiBuilder);
         chooser.SelectedFont = font;
         if (exclusion is not null)
             chooser.FontFamilyExcludeFilter = exclusion;

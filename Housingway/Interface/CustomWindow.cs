@@ -178,7 +178,7 @@ public abstract class CustomWindow : Window
         }
         catch (Exception ex)
         {
-            Plugin.Log.Error(ex.ToString());
+            Service.Log.Error(ex.ToString());
         }
     }
 

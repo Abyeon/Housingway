@@ -13,12 +13,12 @@ namespace Housingway.Utils;
 
 public readonly unsafe struct Furniture : IEquatable<Furniture>
 {
-    public readonly HousingFurniture HousingFurniture;
+    public readonly HousingFurniture* HousingFurniture;
     public readonly ulong Id;
 
     public Furniture(HousingFurniture* ptr)
     {
-        HousingFurniture = *ptr;
+        HousingFurniture = ptr;
 
         if (!HousingService.InHousingArea)
         {
@@ -27,7 +27,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
 
         var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-        var index = HousingFurniture.Index;
+        var index = HousingFurniture->Index;
         if (index >= 0 && index < arr.Objects.Length && index < arr.ObjectCount)
         {
             var obj = (HousingObject*)arr.Objects[index].Value;
@@ -45,10 +45,10 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         {
             if (!HousingService.InHousingArea) return null;
             var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-            var index = HousingFurniture.Index;
+            var index = HousingFurniture->Index;
             if (index < 0) return null;
             if (index >= arr.Objects.Length || index >= arr.ObjectCount) return null;
-            return (HousingObject*)arr.Objects[HousingFurniture.Index].Value;
+            return (HousingObject*)arr.Objects[HousingFurniture->Index].Value;
         }
     }
 
@@ -160,8 +160,8 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         get
         {
             var mask = Object->HousingObjectId.Type == HousingObjectType.Furniture ? 0x20000u : 0x30000u;
-            var row = mask | HousingFurniture.Id;
-            var sheet = Plugin.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.HousingFurniture>();
+            var row = mask | HousingFurniture->Id;
+            var sheet = Service.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.HousingFurniture>();
             return sheet.GetRowOrDefault(row);
         }
     }
@@ -227,8 +227,25 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         if (!found) return 0;
         return MathF.Abs(MathF.Round(max, 2)) * 0.5f;
     }
+    
+    public bool HasGraphics()
+    {
+        if (Group == null || Group->Instances.Instances.Count == 0) return false;
 
-    public bool IsValid => AllGraphics.Count != 0 && Collider != null;
+        foreach (var child in Group->Instances.Instances)
+        {
+            var ptr = child.Value;
+            if (ptr == null || ptr->Instance == null) continue;
+
+            if (ptr->Instance->Id.Type == InstanceType.BgPart && ptr->Instance->GetGraphics() != null)
+            {
+                return true; // Break early, no allocations
+            }
+        }
+        return false;
+    }
+
+    public bool IsValid => HasGraphics() && Collider != null;
 
     public bool Equals(Furniture other) => Id == other.Id;
     public override bool Equals(object? obj) => obj is Furniture other && Equals(other);

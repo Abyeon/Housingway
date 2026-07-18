@@ -39,12 +39,12 @@ public class TweakManager : IDisposable
             tweak.Enabled = true;
             Plugin.Configuration.EnabledTweaks.Add(tweak.GetType().Name);
             Plugin.Configuration.Save();
-            Plugin.Log.Verbose($"Enabled Tweak {tweak.Name}");
+            Service.Log.Verbose($"Enabled Tweak {tweak.Name}");
         }
         catch (Exception e)
         {
-            Plugin.Log.Error(e.ToString());
-            Plugin.ChatGui.PrintError($"Error while enabling {tweak.Name}");
+            Service.Log.Error(e.ToString());
+            Service.ChatGui.PrintError($"Error while enabling {tweak.Name}");
         }
     }
 
@@ -58,12 +58,12 @@ public class TweakManager : IDisposable
             tweak.Enabled = false;
             Plugin.Configuration.EnabledTweaks.Remove(tweak.GetType().Name);
             Plugin.Configuration.Save();
-            Plugin.Log.Verbose($"Disabled Tweak {tweak.Name}");
+            Service.Log.Verbose($"Disabled Tweak {tweak.Name}");
         }
         catch (Exception e)
         {
-            Plugin.Log.Error(e.ToString());
-            Plugin.ChatGui.PrintError($"Error while disabling {tweak.Name}");
+            Service.Log.Error(e.ToString());
+            Service.ChatGui.PrintError($"Error while disabling {tweak.Name}");
         }
     }
     

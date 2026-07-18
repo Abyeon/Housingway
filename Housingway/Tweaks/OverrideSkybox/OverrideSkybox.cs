@@ -15,9 +15,9 @@ public partial class OverrideSkybox : ConfigurableTweak<OverrideSkyboxConfig>
     {
         Config = Plugin.Configuration.Tweaks.OverrideSkybox;
 
-        texSky = new SetTextureSelect(Plugin.TextureProvider);
-        texCloudTop = new SetTextureSelect(Plugin.TextureProvider);
-        texCloudSide = new SetTextureSelect(Plugin.TextureProvider);
+        texSky = new SetTextureSelect(Service.TextureProvider);
+        texCloudTop = new SetTextureSelect(Service.TextureProvider);
+        texCloudSide = new SetTextureSelect(Service.TextureProvider);
     }
 
     private void OnZoneLoaded() => UpdateEnvironment();
@@ -37,7 +37,7 @@ public partial class OverrideSkybox : ConfigurableTweak<OverrideSkyboxConfig>
             envService!.Override = EnvOverride.None;
         }
         
-        Plugin.Log.Debug("should do thing");
+        Service.Log.Debug("should do thing");
     }
 
     public override unsafe void Enable()

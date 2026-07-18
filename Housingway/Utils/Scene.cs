@@ -19,13 +19,13 @@ public unsafe class Scene : IDisposable
     
     public Scene()
     {
-        Plugin.ClientState.ZoneInit += OnZoneInit;
+        Service.ClientState.ZoneInit += OnZoneInit;
         CheckLayout();
     }
 
     private static void OnZoneInit(ZoneInitEventArgs obj)
     {
-        Plugin.Framework.Update += OnUpdate;
+        Service.Framework.Update += OnUpdate;
         Bg = obj.TerritoryType.Value.Bg.ExtractText();
     }
 
@@ -43,7 +43,7 @@ public unsafe class Scene : IDisposable
 
         if (active->InitState == 7)
         {
-            Plugin.Framework.Update -= OnUpdate;
+            Service.Framework.Update -= OnUpdate;
             OnZoneLoaded?.Invoke();
         }
     }
@@ -62,13 +62,13 @@ public unsafe class Scene : IDisposable
             
             gameObject->DisableDraw();
             
-            Plugin.Log.Verbose($"Redrawing {gameObject->NameString} : {((IntPtr)gameObject):X}");
+            Service.Log.Verbose($"Redrawing {gameObject->NameString} : {((IntPtr)gameObject):X}");
         }
     }
 
     public void Dispose()
     {
-        Plugin.ClientState.ZoneInit -= OnZoneInit;
-        Plugin.Framework.Update -= OnUpdate;
+        Service.ClientState.ZoneInit -= OnZoneInit;
+        Service.Framework.Update -= OnUpdate;
     }
 }

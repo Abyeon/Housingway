@@ -14,7 +14,7 @@ public unsafe class DoorCommand : BaseTweak
     
     public override void Enable()
     {
-        Plugin.CommandManager.AddHandler("/door", new CommandInfo(OnCommand)
+        Service.CommandManager.AddHandler("/door", new CommandInfo(OnCommand)
         {
             HelpMessage = "Moves the player to the entrance."
         });
@@ -22,7 +22,7 @@ public unsafe class DoorCommand : BaseTweak
     
     public override void Disable()
     {
-        Plugin.CommandManager.RemoveHandler("/door");
+        Service.CommandManager.RemoveHandler("/door");
     }
     
     private void OnCommand(string command, string args)

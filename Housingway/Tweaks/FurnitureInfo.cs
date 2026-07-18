@@ -17,7 +17,7 @@ public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfi
 
     public override void Enable()
     {
-        Plugin.ClientState.ZoneInit += OnZoneInit;
+        Service.ClientState.ZoneInit += OnZoneInit;
     }
 
     private void OnZoneInit(ZoneInitEventArgs obj)
@@ -27,7 +27,7 @@ public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfi
 
     public override void Disable()
     {
-        Plugin.ClientState.ZoneInit -= OnZoneInit;
+        Service.ClientState.ZoneInit -= OnZoneInit;
         
         foreach (var furn in HousingService.CurrentFurniture)
         {

@@ -154,7 +154,7 @@ public class SetTextureSelect(ITextureProvider texture)
             LoadAsync(values, Source.Token).ContinueWith(task =>
             {
                 if (task.Exception != null)
-                    Plugin.Log.Error(task.Exception.ToString());
+                    Service.Log.Error(task.Exception.ToString());
             });
         }
 

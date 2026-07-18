@@ -16,14 +16,14 @@ public unsafe class ToggleCastShadows : BaseTweak
     public override void Enable()
     {
         SetCastShadows(false);
-        Plugin.ClientState.ZoneInit += OnZoneInit;
+        Service.ClientState.ZoneInit += OnZoneInit;
     }
 
     private void OnZoneInit(ZoneInitEventArgs obj) => SetCastShadows(false);
 
     public override void Disable()
     {
-        Plugin.ClientState.ZoneInit -= OnZoneInit;
+        Service.ClientState.ZoneInit -= OnZoneInit;
         SetCastShadows(true);
     }
 
@@ -41,7 +41,7 @@ public unsafe class ToggleCastShadows : BaseTweak
         }
         else
         {
-            if (Plugin.GameConfig.System.TryGetUInt("ShadowLightValidType", out var maxShadows))
+            if (Service.GameConfig.System.TryGetUInt("ShadowLightValidType", out var maxShadows))
             {
                 config->ShadowLightValidType = maxShadows switch
                 {
@@ -53,7 +53,7 @@ public unsafe class ToggleCastShadows : BaseTweak
             }
             else
             {
-                Plugin.Log.Error("Could not find ShadowLightValidType.");
+                Service.Log.Error("Could not find ShadowLightValidType.");
             }
         }
     }

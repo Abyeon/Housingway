@@ -16,14 +16,14 @@ public unsafe class ToggleAmbientOcclusion : BaseTweak
 
     public ToggleAmbientOcclusion()
     {
-        Plugin.GameInteropProvider.InitializeFromAttributes(this);
+        Service.GameInteropProvider.InitializeFromAttributes(this);
     }
 
     private void SetSSAO(bool state)
     {
         if (toggle == null)
         {
-            Plugin.Log.Warning($"Sig for ToggleSSAO not found! (I blame Karou and Bwuny)");
+            Service.Log.Warning($"Sig for ToggleSSAO not found! (I blame Karou and Bwuny)");
             return;
         }
         

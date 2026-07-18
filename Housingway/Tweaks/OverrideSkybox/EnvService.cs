@@ -28,7 +28,7 @@ public class EnvService : IDisposable {
 
     public EnvService()
     {
-        Plugin.GameInteropProvider.InitializeFromAttributes(this);
+        Service.GameInteropProvider.InitializeFromAttributes(this);
         
         envStateCopyHook.Enable();
         envUpdateHook.Enable();

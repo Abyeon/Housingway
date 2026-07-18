@@ -84,8 +84,8 @@ public unsafe partial class FurnitureInfo
 
     private void DrawList()
     {
-        if (Plugin.ObjectTable.LocalPlayer == null) return;
-        var playerPos = Plugin.ObjectTable.LocalPlayer.Position;
+        if (Service.ObjectTable.LocalPlayer == null) return;
+        var playerPos = Service.ObjectTable.LocalPlayer.Position;
         
         var id = 0;
         foreach (var furn in FilteredFurniture)
@@ -169,7 +169,7 @@ public unsafe partial class FurnitureInfo
         var chosenIndex = stain->ChosenStainIndex;
         var defaultIndex = stain->DefaultStainIndex;
 
-        var stains = Plugin.DataManager.GetExcelSheet<Stains>();
+        var stains = Service.DataManager.GetExcelSheet<Stains>();
         if (stains.TryGetRow(chosenIndex, out var chosenStain))
         {
             var chosenColor = UintToVector4(chosenStain.Color);
@@ -272,7 +272,7 @@ public unsafe partial class FurnitureInfo
         if (drawList is null) return;
         
         var radius = furn.GetSnapDistance();
-        Plugin.Log.Debug(radius.ToString(CultureInfo.InvariantCulture));
+        Service.Log.Debug(radius.ToString(CultureInfo.InvariantCulture));
         
         drawList.AddSphere(pos, radius, 0x0C5CFF5C);
     }
@@ -330,7 +330,7 @@ public unsafe partial class FurnitureInfo
 
     private static void DrawBoundingSphere(Vector4 boundSphere)
     {
-        if (Plugin.ObjectTable.LocalPlayer == null) return;
+        if (Service.ObjectTable.LocalPlayer == null) return;
         
         using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
         {
@@ -350,7 +350,7 @@ public unsafe partial class FurnitureInfo
         if (drawList is null) return;
         
         var pos = new Vector3(boundSphere.X, boundSphere.Y, boundSphere.Z);
-        var radius = boundSphere.W + Plugin.ObjectTable.LocalPlayer.HitboxRadius;
+        var radius = boundSphere.W + Service.ObjectTable.LocalPlayer.HitboxRadius;
 
         Vector4 fillColor = new(0.4f, 0.1f, 1f, 0.35f);
         drawList.AddSphere(pos, radius, ImGui.ColorConvertFloat4ToU32(fillColor));
@@ -358,7 +358,7 @@ public unsafe partial class FurnitureInfo
 
     private void DrawLineToGamePos(Vector3 pos, uint color)
     {
-        if (Plugin.GameGui.WorldToScreen(pos, out var screenPos))
+        if (Service.GameGui.WorldToScreen(pos, out var screenPos))
         {
             var draw = ImGui.GetForegroundDrawList();
             draw.AddLine(ImGui.GetMousePos(), screenPos, color);

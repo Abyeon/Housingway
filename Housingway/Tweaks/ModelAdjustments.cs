@@ -24,7 +24,7 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     
     public override void Enable()
     {
-        Plugin.ClientState.ZoneInit += OnZoneInit;
+        Service.ClientState.ZoneInit += OnZoneInit;
         FindModels();
         ToggleModels();
     }
@@ -60,12 +60,12 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         // Only check if we're in a house.
         if (obj.TerritoryType.Value.Bg.ToString().Contains("/ind/"))
         {
-            Plugin.Framework.Update += OnUpdate;
+            Service.Framework.Update += OnUpdate;
             Plugin.Overlay.OnDraw += OnOverlay;
         }
         else
         {
-            Plugin.Framework.Update -= OnUpdate;
+            Service.Framework.Update -= OnUpdate;
             Plugin.Overlay.OnDraw -= OnOverlay;
             lightguard = null;
             shameCube = null;
@@ -80,7 +80,7 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         if (lightguard != null && shameCube != null)
         {
             ToggleModels();
-            Plugin.Framework.Update -= OnUpdate;
+            Service.Framework.Update -= OnUpdate;
         }
     }
 
@@ -131,15 +131,15 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         }
         catch (Exception e)
         {
-            Plugin.Log.Error(e.ToString());
+            Service.Log.Error(e.ToString());
         }
         
     }
 
     public override void Disable()
     {
-        Plugin.ClientState.ZoneInit -= OnZoneInit;
-        Plugin.Framework.Update -= OnUpdate; // in case this gets disabled while we still haven't found objs
+        Service.ClientState.ZoneInit -= OnZoneInit;
+        Service.Framework.Update -= OnUpdate; // in case this gets disabled while we still haven't found objs
         Plugin.Overlay.OnDraw -= OnOverlay;
         
         ToggleModels(true);
