@@ -1,5 +1,9 @@
-# Housingway
-A FFXIV tweak collection plugin for housing. Custom skyboxes, helper tools, and adjustments for all your housing needs!
+<p align="center">
+    <img src="Housingway/Assets/IconNoBg.png" alt="Housingway Icon" height="250">
+</p>
+
+<h1 align="center">Housingway</h1>
+<p align="center">A FFXIV tweak collection plugin for housing. Custom skyboxes, helper tools, and adjustments for all your housing needs!</p>
 
 ## Showcase
 <table>
