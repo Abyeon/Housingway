@@ -12,4 +12,8 @@
     <ItemGroup>
         <EmbeddedResource Include="Assets\IconNoBg.png"/>
     </ItemGroup>
+    <ItemGroup>
+        <Compile Remove="Tweaks\_Templates\**"/>
+        <None Include="Tweaks\_Templates\**"/>
+    </ItemGroup>
 </Project>
