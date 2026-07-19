@@ -2,10 +2,14 @@
 A FFXIV tweak collection plugin for housing. Custom skyboxes, helper tools, and adjustments for all your housing needs!
 
 ## Showcase
-<img src="Housingway/Assets/Showcase/Skybox.png" alt="Skybox Showcase" height="175">
-<img src="Housingway/Assets/Showcase/InteriorLighting.gif" alt="Override Interior Lighting" height="175">
-<img src="Housingway/Assets/Showcase/HighlightPhasedObjects.gif" alt="Highlight Phased Objects" height="175">
-<img src="Housingway/Assets/Showcase/CollisionDisplay.png" alt="Collision Display" height="175">
+<table>
+    <tr>
+        <td><img src="Housingway/Assets/Showcase/Skybox.png" alt="Skybox Showcase" height="175"></td>
+        <td><img src="Housingway/Assets/Showcase/InteriorLighting.gif" alt="Override Interior Lighting" height="175"></td>
+        <td><img src="Housingway/Assets/Showcase/HighlightPhasedObjects.gif" alt="Highlight Phased Objects" height="175"></td>
+        <td><img src="Housingway/Assets/Showcase/CollisionDisplay.png" alt="Collision Display" height="175"></td>
+    </tr>
+</table>
 
 ## Tweaks
 
