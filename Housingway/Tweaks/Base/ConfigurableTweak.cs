@@ -1,10 +1,35 @@
-﻿using Housingway.Config;
+﻿using System;
+using Housingway.Utils;
 
-namespace Housingway.Tweaks;
+namespace Housingway.Tweaks.Base;
 
-public abstract partial class ConfigurableTweak<T> : BaseTweak, IConfigurableTweak
+public abstract class ConfigurableTweak<T> : BaseTweak, IConfigurableTweak
 {
     protected T Config = default!;
     
     public abstract void DrawConfig();
+
+    public void ResetConfig()
+    {
+        if (Config is null) return;
+        
+        var defaultInstance = Activator.CreateInstance<T>();
+        Config = defaultInstance;
+        
+        Plugin.Configuration.Save();
+    }
+
+    public void ExportConfig()
+    {
+        Serializer.CompressToClipboard(Config);
+    }
+
+    public void ImportConfig()
+    {
+        if (Serializer.TryDecompressFromClipboard(out T newConfig))
+        {
+            Config = newConfig;
+            Plugin.Configuration.Save();
+        }
+    }
 }

@@ -1,5 +1,6 @@
 ﻿using Dalamud.Game.ClientState;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Housingway.Tweaks.Base;
 
 namespace Housingway.Tweaks;
 

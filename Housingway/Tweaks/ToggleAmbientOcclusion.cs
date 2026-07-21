@@ -1,5 +1,6 @@
 ﻿using Dalamud.Utility.Signatures;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Housingway.Tweaks.Base;
 
 namespace Housingway.Tweaks;
 

@@ -2,6 +2,7 @@
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
+using Dalamud.Interface.Components;
 using Dalamud.Interface.FontIdentifier;
 using Dalamud.Interface.ImGuiFontChooserDialog;
 using Dalamud.Interface.ManagedFontAtlas;
@@ -270,6 +271,81 @@ public static class Ui
             }
             
             GC.SuppressFinalize(this);
+        }
+    }
+
+    public class DropdownTray : IDisposable
+    {
+        public string Id { get; private set; }
+        public bool Success { get; private set; }
+
+        private readonly Vector2 startPosition;
+        private readonly Vector2 startScreenPos;
+        private readonly Vector2 contentAvail;
+        private readonly uint key;
+        private ImDrawListPtr draw;
+
+        
+        public DropdownTray(string id)
+        {
+            Id = id;
+            startPosition = ImGui.GetCursorPos();
+            startScreenPos = ImGui.GetCursorScreenPos();
+            contentAvail = ImGui.GetContentRegionAvail();
+
+            var storage = ImGui.GetStateStorage();
+            key = ImGui.GetID($"{Id}Dropdown");
+            
+            ref var open = ref storage.GetBoolRef(key);
+            
+            draw = ImGui.GetWindowDrawList();
+            draw.Splitter.Split(draw, 3);
+            draw.Splitter.SetCurrentChannel(draw, 2);
+
+            if (open)
+            {
+                ImGui.BeginGroup();
+                Success = true;
+            }
+        }
+        
+        public void Dispose()
+        {
+            var storage = ImGui.GetStateStorage();
+            ref var open = ref storage.GetBoolRef(key);
+            
+            draw.Splitter.SetCurrentChannel(draw, 1);
+            
+            if (Success)
+            {
+                ImGui.EndGroup();
+
+                var endPos = ImGui.GetCursorScreenPos();
+                endPos.X += contentAvail.X;
+                
+                draw.AddRectFilled(startScreenPos, endPos, 0xFF000000, 5, ImDrawFlags.RoundCornersBottom);
+            }
+            
+            var icon = open ? FontAwesomeIcon.ArrowUp : FontAwesomeIcon.ArrowDown;
+            
+            var iconSize = ImGui.CalcTextSize(icon.ToIconString());
+            var width = iconSize.X + (ImGui.GetStyle().FramePadding.X * 2);
+            var height = ImGui.GetFrameHeightWithSpacing();
+            
+            ImGuiHelpers.CenterCursorFor(width);
+            var buttonPos = ImGui.GetCursorScreenPos();
+            draw.AddRectFilled(buttonPos, new Vector2(buttonPos.X + width, buttonPos.Y + height), 0xFF000000, 5, ImDrawFlags.RoundCornersBottom);
+            draw.Splitter.SetCurrentChannel(draw, 2);
+            
+            if (ImGuiComponents.IconButton($"###{Id}IconButton", icon))
+            {
+                open = !open;
+            }
+            
+            draw.Splitter.SetCurrentChannel(draw, 0);
+            draw.Splitter.Merge(draw);
+            
+            ImGui.SetCursorPos(startPosition);
         }
     }
     

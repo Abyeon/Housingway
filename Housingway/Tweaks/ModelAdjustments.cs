@@ -4,7 +4,7 @@ using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
+using Housingway.Tweaks.Base;
 using Housingway.Utils;
 using Pictomancy;
 

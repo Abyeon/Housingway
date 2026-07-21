@@ -1,5 +1,5 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Graphics.Environment;
-using Housingway.Structs.Env;
+﻿using Housingway.Structs.Env;
+using Housingway.Tweaks.Base;
 using Housingway.Utils;
 
 namespace Housingway.Tweaks.OverrideSkybox;

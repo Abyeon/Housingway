@@ -1,4 +1,5 @@
 ﻿using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
+using Housingway.Tweaks.Base;
 using Housingway.Utils;
 
 namespace Housingway.Tweaks;

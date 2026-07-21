@@ -1,8 +1,6 @@
-﻿using System;
-using Dalamud.Game.ClientState;
-using Dalamud.Game.Command;
+﻿using Dalamud.Game.Command;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
+using Housingway.Tweaks.Base;
 
 namespace Housingway.Tweaks;
 

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
+using Housingway.Tweaks.Base;
 using Housingway.Utils;
 
 namespace Housingway.Tweaks;

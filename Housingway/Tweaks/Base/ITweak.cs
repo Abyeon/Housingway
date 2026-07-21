@@ -1,4 +1,4 @@
-﻿namespace Housingway.Tweaks;
+﻿namespace Housingway.Tweaks.Base;
 
 public interface ITweak
 {

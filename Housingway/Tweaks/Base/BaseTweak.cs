@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Housingway.Tweaks;
+namespace Housingway.Tweaks.Base;
 
 public abstract class BaseTweak : ITweak, IDisposable
 {

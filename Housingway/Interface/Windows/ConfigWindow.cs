@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
@@ -11,9 +10,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
-using Dalamud.Utility.Numerics;
-using Housingway.Config;
-using Housingway.Tweaks;
+using Housingway.Tweaks.Base;
 
 namespace Housingway.Interface.Windows;
 
@@ -39,14 +36,15 @@ public class ConfigWindow : CustomWindow, IDisposable
 
     protected override void Render()
     {
-        using var color = ImRaii.PushColor(ImGuiCol.FrameBg, ImGuiColors.DalamudWhite with { W = 0.05f });
+        var white = ImGuiColors.DalamudWhite with { W = 0.05f };
+        using var color = ImRaii.PushColor(ImGuiCol.FrameBg, white);
         
         using var _ = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f) * ImGuiHelpers.GlobalScale);
         using (ImRaii.Child("LeftSide", new Vector2(220, ImGui.GetWindowHeight())))
         {
             Search();
             
-            using (ImRaii.PushColor(ImGuiCol.ChildBg, ImGuiColors.DalamudWhite with { W = 0.05f }))
+            using (ImRaii.PushColor(ImGuiCol.ChildBg, white))
             {
                 using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
                 using var list = ImRaii.Child($"TweakList", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding);
@@ -55,8 +53,12 @@ public class ConfigWindow : CustomWindow, IDisposable
         }
 
         ImGui.SameLine();
-        using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
-            TweakConfig();
+        using (ImRaii.Group())
+        {
+            Tray();
+            using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
+                TweakConfig();
+        }
     }
 
 
@@ -121,6 +123,8 @@ public class ConfigWindow : CustomWindow, IDisposable
             return;
         }
         
+        // Tray();
+        
         using var _ = ImRaii.Disabled(!selectedTweak.Enabled);
         
         ImGui.Spacing();
@@ -141,6 +145,50 @@ public class ConfigWindow : CustomWindow, IDisposable
         if (selectedTweak is IConfigurableTweak config)
         {
             config.DrawConfig();
+        }
+    }
+
+    private void Tray()
+    {
+        if (selectedTweak is not IConfigurableTweak { Enabled: true } tweak) return;
+        
+        using var childColor = ImRaii.PushColor(ImGuiCol.ChildBg, ImGuiColors.DalamudWhite with { W = 0.05f });
+        using var padding = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(5f, 0));
+        using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
+        
+        using var _ = ImRaii.Child("Tray", new Vector2(0, ImGui.GetFrameHeight()), false);
+        
+        using var buttonColor = ImRaii.PushColor(ImGuiCol.Button, 0x00000000);
+        if (ImGui.SmallButton("Export"))
+        {
+            tweak.ExportConfig();
+        }
+
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Export this tweak's config to the clipboard.");
+        }
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Import"))
+        {
+            tweak.ImportConfig();
+        }
+        
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Import a configuration from your clipboard.");
+        }
+
+        ImGui.SameLine();
+        if (ImGui.SmallButton("Reset"))
+        {
+            tweak.ResetConfig();
+        }
+        
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Reset this tweak's config to default.");
         }
     }
 

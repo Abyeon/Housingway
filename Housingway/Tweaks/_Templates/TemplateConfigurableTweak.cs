@@ -1,4 +1,6 @@
-﻿namespace Housingway.Tweaks._Templates;
+﻿using Housingway.Tweaks.Base;
+
+namespace Housingway.Tweaks._Templates;
 
 public partial class TemplateConfigurableTweak : ConfigurableTweak<TemplateConfig>
 {

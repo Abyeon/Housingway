@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
-using System.Text.Json.Serialization;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Game.ClientState;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using Housingway.Structs;
+using Housingway.Tweaks.Base;
 using Housingway.Utils;
 using Pictomancy;
 
