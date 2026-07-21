@@ -43,7 +43,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
     {
         get
         {
-            if (!HousingService.InHousingArea) return null;
+            // if (!HousingService.InHousingArea) return null;
             var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
             var index = HousingFurniture->Index;
             if (index < 0) return null;
@@ -239,7 +239,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
 
             if (ptr->Instance->Id.Type == InstanceType.BgPart && ptr->Instance->GetGraphics() != null)
             {
-                return true; // Break early, no allocations
+                return true;
             }
         }
         return false;

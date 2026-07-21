@@ -46,9 +46,13 @@ public unsafe partial class FurnitureInfo
 
     public override void DrawConfig()
     {
-        var height = selectedFurniture == null
-                         ? ImGui.GetContentRegionAvail().Y
-                         : ImGui.GetContentRegionAvail().Y - InfoHeight;
+        var height = ImGui.GetContentRegionAvail().Y;
+        if (selectedFurniture != null)
+        {
+            height -= InfoHeight;
+        }
+
+        height -= ImGui.GetFrameHeightWithSpacing();
         
         Search();
         

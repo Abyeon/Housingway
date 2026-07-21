@@ -56,8 +56,26 @@ public class ConfigWindow : CustomWindow, IDisposable
         using (ImRaii.Group())
         {
             Tray();
-            using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
-                TweakConfig();
+            
+            var flags = ImGuiWindowFlags.AlwaysUseWindowPadding;
+            var isConfig = selectedTweak is IConfigurableTweak;
+            
+            if (isConfig)
+            {
+                flags = ((IConfigurableTweak)selectedTweak!).OverwriteFlags;
+            }
+        
+            using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, flags))
+            {
+                if (selectedTweak == null)
+                {
+                    HomePage();
+                    return;
+                }
+                
+                Tweak(selectedTweak);
+                if (isConfig) TweakConfig((IConfigurableTweak)selectedTweak);
+            }
         }
     }
 
@@ -115,37 +133,29 @@ public class ConfigWindow : CustomWindow, IDisposable
         }
     }
 
-    private void TweakConfig()
+    private static void Tweak(ITweak tweak)
     {
-        if (selectedTweak is null)
-        {
-            HomePage();
-            return;
-        }
-        
-        // Tray();
-        
-        using var _ = ImRaii.Disabled(!selectedTweak.Enabled);
+        using var _ = ImRaii.Disabled(!tweak.Enabled);
         
         ImGui.Spacing();
 
         var color = ImGui.GetColorU32(ImGuiCol.Separator);
         
-        Ui.CenteredTextWithLine(selectedTweak.Name, color);
+        Ui.CenteredTextWithLine(tweak.Name, color);
         
-        ImGuiHelpers.CenterCursorForText($"by {selectedTweak.Author}");
+        ImGuiHelpers.CenterCursorForText($"by {tweak.Author}");
         ImGui.TextColored(ImGuiColors.DalamudGrey, "by");
         ImGui.SameLine();
-        ImGui.TextColored(ImGui.GetColorU32(ImGuiCol.Text), selectedTweak.Author);
+        ImGui.TextColored(ImGui.GetColorU32(ImGuiCol.Text), tweak.Author);
         ImGui.Spacing();
         
-        ImGui.TextWrapped(selectedTweak.Description);
-        ImGui.Spacing();
+        ImGui.TextWrapped(tweak.Description);
+    }
 
-        if (selectedTweak is IConfigurableTweak config)
-        {
-            config.DrawConfig();
-        }
+    private static void TweakConfig(IConfigurableTweak tweak)
+    { 
+        ImGui.Spacing();
+        tweak.DrawConfig();
     }
 
     private void Tray()

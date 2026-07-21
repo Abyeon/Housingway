@@ -1,4 +1,5 @@
-﻿using Dalamud.Game.ClientState;
+﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Game.ClientState;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
@@ -14,6 +15,7 @@ public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfi
     public FurnitureInfo()
     {
         Config = Plugin.Configuration.Tweaks.FurnitureInfo;
+        OverwriteFlags |= ImGuiWindowFlags.NoScrollbar;
     }
 
     public override void Enable()

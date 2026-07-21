@@ -1,4 +1,6 @@
-﻿namespace Housingway.Tweaks.Base;
+﻿using Dalamud.Bindings.ImGui;
+
+namespace Housingway.Tweaks.Base;
 
 public interface IConfigurableTweak : ITweak
 {
@@ -6,4 +8,5 @@ public interface IConfigurableTweak : ITweak
     void ResetConfig();
     void ExportConfig();
     void ImportConfig();
+    ImGuiWindowFlags OverwriteFlags { get; init; }
 }

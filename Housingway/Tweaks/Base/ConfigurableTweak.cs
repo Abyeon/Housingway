@@ -1,4 +1,5 @@
 ﻿using System;
+using Dalamud.Bindings.ImGui;
 using Housingway.Utils;
 
 namespace Housingway.Tweaks.Base;
@@ -6,6 +7,7 @@ namespace Housingway.Tweaks.Base;
 public abstract class ConfigurableTweak<T> : BaseTweak, IConfigurableTweak
 {
     protected T Config = default!;
+    public ImGuiWindowFlags OverwriteFlags { get; init; }
     
     public abstract void DrawConfig();
 
