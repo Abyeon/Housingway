@@ -78,9 +78,6 @@ public unsafe partial class FurnitureInfo
     {
         using var frame = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(5f, 6f) * ImGuiHelpers.GlobalScale);
         using var round = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 5f);
-        
-        ImGui.SameLine();
-        
         using var width = ImRaii.ItemWidth(ImGui.GetContentRegionAvail().X);
 
         ImGui.InputTextWithHint("###SearchBar", "Search for furniture...", ref search);

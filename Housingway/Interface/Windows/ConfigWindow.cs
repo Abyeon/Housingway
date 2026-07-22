@@ -53,29 +53,33 @@ public class ConfigWindow : CustomWindow, IDisposable
         }
 
         ImGui.SameLine();
-        using (ImRaii.Group())
+        var flags = ImGuiWindowFlags.AlwaysUseWindowPadding;
+            
+        if (selectedTweak is IConfigurableTweak)
         {
-            Tray();
-            
-            var flags = ImGuiWindowFlags.AlwaysUseWindowPadding;
-            var isConfig = selectedTweak is IConfigurableTweak;
-            
-            if (isConfig)
-            {
-                flags = ((IConfigurableTweak)selectedTweak!).OverwriteFlags;
-            }
+            flags |= ((IConfigurableTweak)selectedTweak!).Flags;
+        }
         
-            using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, flags))
+        using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, flags))
+        {
+            if (selectedTweak == null)
             {
-                if (selectedTweak == null)
-                {
-                    HomePage();
-                    return;
-                }
-                
-                Tweak(selectedTweak);
-                if (isConfig) TweakConfig((IConfigurableTweak)selectedTweak);
+                HomePage();
+                return;
             }
+                
+            Tweak(selectedTweak);
+            if (selectedTweak is IConfigurableTweak tweak)
+            {
+                ImGui.PushStyleColor(ImGuiCol.ChildBg, white); // yes I know ImRaii exists, but I only want to apply this color to the child.
+                using var padding = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f) * ImGuiHelpers.GlobalScale);
+                using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
+                using var config = ImRaii.Child($"TweakList", ImGui.GetContentRegionAvail(), false, flags);
+                ImGui.PopStyleColor();
+                    
+                Tray(tweak);
+                TweakConfig(tweak);
+            };
         }
     }
 
@@ -84,7 +88,8 @@ public class ConfigWindow : CustomWindow, IDisposable
     {
         using var frame = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(5f, 6f) * ImGuiHelpers.GlobalScale);
         using var round = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 5f);
-
+        using var button = ImRaii.PushColor(ImGuiCol.Button, 0);
+        
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Home))
         {
             selectedTweak = null;
@@ -158,10 +163,9 @@ public class ConfigWindow : CustomWindow, IDisposable
         tweak.DrawConfig();
     }
 
-    private void Tray()
+    private static void Tray(IConfigurableTweak tweak)
     {
-        if (selectedTweak is not IConfigurableTweak { Enabled: true } tweak) return;
-        
+        // -- Styling --
         using var childColor = ImRaii.PushColor(ImGuiCol.ChildBg, ImGuiColors.DalamudWhite with { W = 0.05f });
         using var padding = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(5f, 0));
         using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
@@ -169,6 +173,8 @@ public class ConfigWindow : CustomWindow, IDisposable
         using var _ = ImRaii.Child("Tray", new Vector2(0, ImGui.GetFrameHeight()), false);
         
         using var buttonColor = ImRaii.PushColor(ImGuiCol.Button, 0x00000000);
+        
+        // -- Buttons --
         if (ImGui.SmallButton("Export"))
         {
             tweak.ExportConfig();
@@ -182,7 +188,7 @@ public class ConfigWindow : CustomWindow, IDisposable
         ImGui.SameLine();
         if (ImGui.SmallButton("Import"))
         {
-            tweak.ImportConfig();
+            ImGui.OpenPopup("ImportPopup");
         }
         
         if (ImGui.IsItemHovered())
@@ -193,12 +199,23 @@ public class ConfigWindow : CustomWindow, IDisposable
         ImGui.SameLine();
         if (ImGui.SmallButton("Reset"))
         {
-            tweak.ResetConfig();
+            ImGui.OpenPopup("ResetPopup");
         }
         
         if (ImGui.IsItemHovered())
         {
             ImGui.SetTooltip("Reset this tweak's config to default.");
+        }
+        
+        // -- Popups --
+        if (Ui.AddConfirmationPopup("ImportPopup", "Importing will overwrite your current configuration, are you sure?"))
+        {
+            tweak.ImportConfig();
+        }
+        
+        if (Ui.AddConfirmationPopup("ResetPopup", "Are you sure you want to reset this tweak's config?"))
+        {
+            tweak.ResetConfig();
         }
     }
 

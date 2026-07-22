@@ -46,6 +46,7 @@ public static class Serializer
         try
         {
             var temp = DecompressFromClipboard<T>();
+            
             if (temp is not null)
             {
                 data = temp;
@@ -57,7 +58,7 @@ public static class Serializer
             // ignored
         }
 
-        data = Activator.CreateInstance<T>();
+        data = default!;
         return false;
     }
 

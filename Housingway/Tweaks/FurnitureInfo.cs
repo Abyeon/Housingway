@@ -15,7 +15,7 @@ public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfi
     public FurnitureInfo()
     {
         Config = Plugin.Configuration.Tweaks.FurnitureInfo;
-        OverwriteFlags |= ImGuiWindowFlags.NoScrollbar;
+        Flags |= ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
     }
 
     public override void Enable()

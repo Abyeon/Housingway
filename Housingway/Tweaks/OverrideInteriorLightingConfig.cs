@@ -1,5 +1,10 @@
 ﻿using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Colors;
+using Dalamud.Interface.Components;
+using Dalamud.Interface.Utility;
+using Dalamud.Interface.Utility.Raii;
 using Housingway.Interface;
+using Housingway.Utils;
 
 namespace Housingway.Tweaks;
 
@@ -23,6 +28,8 @@ public partial class OverrideInteriorLighting
         {
             Plugin.Configuration.Save();
         }
+        
+        using var _ = ImRaii.Disabled(!HousingService.IsInside);
 
         ImGui.Spacing();
         if (ImGui.Button("Restore"))

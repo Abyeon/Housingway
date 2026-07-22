@@ -8,5 +8,5 @@ public interface IConfigurableTweak : ITweak
     void ResetConfig();
     void ExportConfig();
     void ImportConfig();
-    ImGuiWindowFlags OverwriteFlags { get; init; }
+    ImGuiWindowFlags Flags { get; set; }
 }
