@@ -30,6 +30,8 @@ public abstract class CustomWindow : Window
         // Replace additional button with custom pin button
         TitleBarButtons.Add(PinButton);
     }
+
+    public Action? CustomTitleDrawing = null;
     
     private bool isPinned;
 
@@ -102,6 +104,8 @@ public abstract class CustomWindow : Window
         
         try
         {
+            if (CustomTitleDrawing is not null) UpdateTitle(CustomTitleDrawing);
+            
             var drawList = ImGui.GetWindowDrawList();
             
             // --- Add blur back ---
@@ -180,6 +184,24 @@ public abstract class CustomWindow : Window
         {
             Service.Log.Error(ex.ToString());
         }
+    }
+
+    // based off of https://github.com/ocornut/imgui/issues/6002#issuecomment-1356797544
+    private static void UpdateTitle(Action action)
+    {
+        var startPos = ImGui.GetCursorPos();
+        var titleBarRect = ImGuiP.GetCurrentWindow().TitleBarRect();
+        var style = ImGui.GetStyle();
+        
+        ImGui.PushClipRect(titleBarRect.Min, titleBarRect.Max, false);
+        var position = style.FramePadding.X + ImGui.GetCurrentContext().FontSize + style.ItemInnerSpacing.X;
+        
+        ImGui.SetCursorPos(style.FramePadding with { X = style.FramePadding.X + style.ItemInnerSpacing.X });
+        action.Invoke(); // do custom rendering
+        
+        ImGui.PopClipRect();
+        
+        ImGui.SetCursorPos(startPos);
     }
 
     public override void PostDraw()

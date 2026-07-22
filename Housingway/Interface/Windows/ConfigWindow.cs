@@ -19,9 +19,8 @@ public class ConfigWindow : CustomWindow, IDisposable
     private string searchText = "";
     private ITweak[] tweaks = [];
     private ITweak? selectedTweak;
-
     
-    public ConfigWindow() : base("Housingway###HousingwayConfigWindow")
+    public ConfigWindow() : base("###HousingwayConfigWindow")
     {
         SizeConstraints = new WindowSizeConstraints
         {
@@ -30,6 +29,18 @@ public class ConfigWindow : CustomWindow, IDisposable
         };
         
         FilterTweaks();
+        CustomTitleDrawing = TitleRendering;
+    }
+
+    public static void TitleRendering()
+    {
+        const string title = "Housingway";
+        const string profile = "[Mario]";
+        ImGuiHelpers.CenterCursorForText(title + " " + profile);
+        ImGui.Text(title);
+        ImGui.SameLine();
+
+        ImGui.TextColored(ImGuiColors.DalamudOrange, profile);
     }
 
     public void Dispose() { }
