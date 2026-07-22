@@ -47,12 +47,11 @@ public unsafe partial class FurnitureInfo
     public override void DrawConfig()
     {
         var height = ImGui.GetContentRegionAvail().Y;
+        
         if (selectedFurniture != null)
         {
             height -= InfoHeight;
         }
-
-        height -= ImGui.GetFrameHeightWithSpacing();
         
         Search();
         
@@ -67,7 +66,7 @@ public unsafe partial class FurnitureInfo
         using var _ = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f));
         using var color = ImRaii.PushColor(ImGuiCol.ChildBg, ImGuiColors.DalamudWhite with { W = 0.05f });
         using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
-        using (var infoChild = ImRaii.Child($"Furniture Info", new Vector2(ImGui.GetContentRegionAvail().X, InfoHeight - 7), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
+        using (var infoChild = ImRaii.Child($"Furniture Info", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding))
         {
             if (!infoChild.Success) return;
             DrawSelected();

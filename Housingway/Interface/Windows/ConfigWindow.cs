@@ -60,7 +60,7 @@ public class ConfigWindow : CustomWindow, IDisposable
             flags |= ((IConfigurableTweak)selectedTweak!).Flags;
         }
         
-        using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, flags))
+        using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.None))
         {
             if (selectedTweak == null)
             {
