@@ -216,7 +216,7 @@ public static class Ui
         if (!ImGui.Button($"{buttonText}##{label}"))
             return null;
 
-        var chooser = SingleFontChooserDialog.CreateAuto((UiBuilder)Service.PluginInterface.UiBuilder);
+        var chooser = SingleFontChooserDialog.CreateAuto((UiBuilder)Plugin.PluginInterface.UiBuilder);
         chooser.SelectedFont = font;
         if (exclusion is not null)
             chooser.FontFamilyExcludeFilter = exclusion;

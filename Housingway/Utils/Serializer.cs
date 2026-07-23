@@ -201,7 +201,7 @@ public static class Serializer
     /// <returns>DirectoryInfo</returns>
     public static DirectoryInfo GetDirectory(params string[] path)
     {
-        var directory = Service.PluginInterface.ConfigDirectory;
+        var directory = Plugin.PluginInterface.ConfigDirectory;
         foreach (var dir in path)
         {
             directory = new DirectoryInfo(Path.Combine(directory.FullName, dir));

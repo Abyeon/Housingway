@@ -23,7 +23,7 @@ public class Configuration : IPluginConfiguration
             return;
         }
         
-        Service.PluginInterface.SavePluginConfig(this);
+        Plugin.PluginInterface.SavePluginConfig(this);
     }
 }
 

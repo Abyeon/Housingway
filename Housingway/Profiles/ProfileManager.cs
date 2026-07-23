@@ -1,52 +1,67 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Housingway.Config;
 using Housingway.Utils;
 
 namespace Housingway.Profiles;
 
-public class ProfileManager : IDisposable
+public class ProfileManager : IAsyncDisposable
 {
     public Profile? Profile { get; set; }
-    
-    public ProfileManager()
+
+    public async Task LoadAsync()
     {
         HousingService.OnEnterHousingArea += OnEnterHousingArea;
+        Address? currAddress = null;
+        await Service.Framework.Run(() =>
+        {
+            if (Address.TryGetAddress(out var address))
+            {
+                currAddress = address;
+            }
+        });
+
+        if (currAddress is not null)
+        {
+            await LoadAddress((Address)currAddress);
+        }
     }
 
     private void OnEnterHousingArea(bool indoors)
     {
         if (Address.TryGetAddress(out var currAddress))
         {
-            Task.Run(async () =>
-            {
-                var profile = await GetAddressProfile(currAddress);
-                if (profile is not null)
-                {
-                    LoadProfile(profile);
-                }
-                else if (Profile is not null)
-                {
-                    LoadDefaults();
-                }
-            });
+            Task.Run(async () => await LoadAddress(currAddress));
+        }
+    }
+
+    public async Task LoadAddress(Address address)
+    {
+        var profile = await GetAddressProfile(address);
+        if (profile is not null)
+        {
+            LoadProfile(profile);
+        }
+        else if (Profile is not null)
+        {
+            LoadDefaults();
         }
     }
     
-    public static void SaveProfile(Profile profile)
+    public static void SaveProfile(Profile profile) => Task.Run(async () => await SaveProfileAsync(profile));
+
+    public static async Task SaveProfileAsync(Profile profile)
     {
-        Task.Run(async () =>
+        try
         {
-            try
-            {
-                await Serializer.SaveFile(Serializer.GetFileInfo("Profiles", profile.Name).FullName, profile);
-            }
-            catch (Exception e)
-            {
-                Service.Log.Error(e, $"Error while saving {profile.Name}");
-            }
-        });
+            await Serializer.SaveFile(Serializer.GetFileInfo("Profiles", profile.Name).FullName, profile);
+        }
+        catch (Exception e)
+        {
+            Service.Log.Error(e, $"Error while saving {profile.Name}");
+        }
     }
 
     public void Save()
@@ -70,7 +85,7 @@ public class ProfileManager : IDisposable
     public void LoadDefaults()
     {
         Profile = null;
-        Plugin.Configuration = Service.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        Plugin.Configuration = Plugin.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Plugin.TweakManager.ReloadTweaks();
     }
 
@@ -102,8 +117,14 @@ public class ProfileManager : IDisposable
         return profiles;
     }
 
-    public void Dispose()
+    public async ValueTask DisposeAsync()
     {
         HousingService.OnEnterHousingArea -= OnEnterHousingArea;
+        
+        if (Profile is not null)
+        {
+            Profile.Config = Plugin.Configuration;
+            await SaveProfileAsync(Profile);
+        }
     }
 }

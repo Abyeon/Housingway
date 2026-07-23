@@ -1,8 +1,9 @@
-﻿using Dalamud.Game.Command;
+﻿using System.Threading;
+using System.Threading.Tasks;
+using Dalamud.Game.Command;
 using Dalamud.IoC;
 using Dalamud.Plugin;
 using Dalamud.Interface.Windowing;
-using Dalamud.Plugin.Services;
 using Housingway.Config;
 using Housingway.Interface.Windows;
 using Housingway.Profiles;
@@ -11,10 +12,12 @@ using Pictomancy;
 
 namespace Housingway;
 
-public sealed class Plugin : IDalamudPlugin
+public sealed class Plugin : IAsyncDalamudPlugin
 {
-    internal Scene Scene { get; init; }
-    internal HousingService HousingService { get; init; }
+    [PluginService] internal static IDalamudPluginInterface PluginInterface { get; set; } = null!;
+
+    internal static Scene Scene { get; set; } = null!;
+    internal static HousingService HousingService { get; set; } = null!;
     
     public static Configuration Configuration { get; set; } = null!;
     public static TweakManager TweakManager { get; set; } = null!;
@@ -23,18 +26,20 @@ public sealed class Plugin : IDalamudPlugin
     private const string CommandName = "/housingway";
 
     public readonly WindowSystem WindowSystem = new("Housingway");
-    private ConfigWindow ConfigWindow { get; init; }
+    internal static ConfigWindow ConfigWindow { get; set; } = null!;
     internal static Overlay Overlay { get; private set; } = null!;
 
-    public readonly PctContext PctContext;
+    public PctContext PctContext { get; private set; } = null!;
     
-    public Plugin(IDalamudPluginInterface pluginInterface)
+    public async Task LoadAsync(CancellationToken cancellationToken)
     {
-        pluginInterface.Create<Service>();
+        PluginInterface.Create<Service>();
         
-        Configuration = Service.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        Configuration = PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
+        
+        ProfileManager = new ProfileManager();
 
-        PctContext = PctService.Initialize(Service.PluginInterface, new PctOptions()
+        PctContext = PctService.Initialize(PluginInterface, new PctOptions()
         {
             EnableDxRenderer = true,
             EnableKtkOutput = false,
@@ -46,12 +51,13 @@ public sealed class Plugin : IDalamudPlugin
         Overlay = new Overlay();
         
         WindowSystem.AddWindow(Overlay);
-
+        
         TweakManager = new TweakManager();
         HousingService = new HousingService();
-        Overlay.IsOpen = HousingService.InHousingArea;
         
-        ProfileManager = new ProfileManager();
+        await ProfileManager.LoadAsync();
+        
+        Overlay.IsOpen = HousingService.InHousingArea;
         
         ConfigWindow = new ConfigWindow();
         WindowSystem.AddWindow(ConfigWindow);
@@ -61,14 +67,18 @@ public sealed class Plugin : IDalamudPlugin
             HelpMessage = "Show the Housingway config window."
         });
         
-        Service.PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
-        Service.PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
+        PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
+        PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
     }
 
-    public void Dispose()
+    private static void OnCommand(string command, string args) => ConfigWindow.Toggle();
+
+    public static void ToggleConfigUi() => ConfigWindow.Toggle();
+
+    public async ValueTask DisposeAsync()
     {
-        Service.PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
-        Service.PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
+        PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
+        PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
         
         WindowSystem.RemoveAllWindows();
 
@@ -76,6 +86,8 @@ public sealed class Plugin : IDalamudPlugin
         Overlay.Dispose();
 
         Service.CommandManager.RemoveHandler(CommandName);
+        
+        await ProfileManager.DisposeAsync();
 
         TweakManager.Dispose();
         
@@ -84,8 +96,4 @@ public sealed class Plugin : IDalamudPlugin
         
         PctContext.Dispose();
     }
-
-    private void OnCommand(string command, string args) => ConfigWindow.Toggle();
-
-    public void ToggleConfigUi() => ConfigWindow.Toggle();
 }

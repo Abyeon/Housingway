@@ -35,7 +35,7 @@ public class ConfigWindow : CustomWindow, IDisposable
     public static void TitleRendering()
     {
         const string title = "Housingway";
-        const string profile = "[Mario]";
+        var profile = $"[{Plugin.ProfileManager.Profile?.Name}]";
         ImGuiHelpers.CenterCursorForText(title + " " + profile);
         ImGui.Text(title);
         ImGui.SameLine();
@@ -243,8 +243,8 @@ public class ConfigWindow : CustomWindow, IDisposable
         }
 
         // Version + Last Updated display
-        var version = $"v{Service.PluginInterface.Manifest.AssemblyVersion.ToString()}";
-        var author = $"made by {Service.PluginInterface.Manifest.Author}";
+        var version = $"v{Plugin.PluginInterface.Manifest.AssemblyVersion.ToString()}";
+        var author = $"made by {Plugin.PluginInterface.Manifest.Author}";
         ImGuiHelpers.CenterCursorForText(version + author);
         ImGui.Text(version);
         ImGui.SameLine();
