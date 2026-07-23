@@ -4,18 +4,19 @@ using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 
 namespace Housingway.Utils;
 
 /// <summary>
-/// Helper tools for compressing and decompressing data from or to the clipboard.
+/// Helper tools for handling saving/loading data.
 /// </summary>
 public static class Serializer
 {
     private static readonly JsonSerializerOptions Options = new()
     {
-        DefaultIgnoreCondition = JsonIgnoreCondition.Never,
+        WriteIndented = true,
         IncludeFields = true
     };
     
@@ -109,5 +110,107 @@ public static class Serializer
         using var stream = new StreamReader(brotli, Encoding.UTF8);
         
         return stream.ReadToEnd();
+    }
+
+    /// <summary>
+    /// Load a file from the given path
+    /// </summary>
+    /// <param name="path">The path to get the file from</param>
+    /// <typeparam name="T">Type to interpret file as</typeparam>
+    /// <returns>Instance of T</returns>
+    public static async Task<T> LoadFile<T>(string path)
+    {
+        var file = new FileInfo(path);
+        var defaultData = Activator.CreateInstance<T>();
+        
+        if (file.Exists)
+        {
+            try
+            {
+                var text = await Service.ReliableFileStorage.ReadAllTextAsync(file.FullName);
+                var data = JsonSerializer.Deserialize<T>(text, Options);
+
+                if (data is null)
+                {
+                    data = defaultData;
+                    await SaveFile(file.FullName, data);
+                }
+                
+                return data;
+            } catch (Exception e)
+            {
+                Service.Log.Error(e, $"Error while loading file {file.FullName}.");
+            }
+        }
+        
+        await SaveFile(path, defaultData);
+        return defaultData;
+    }
+
+    /// <summary>
+    /// Save a file at the given path
+    /// </summary>
+    /// <param name="path">Path to save the file at</param>
+    /// <param name="data">Data to save</param>
+    /// <typeparam name="T">Type of Data</typeparam>
+    /// <exception cref="NullReferenceException">Throws if data is null</exception>
+    public static async Task SaveFile<T>(string path, T data)
+    {
+        try
+        {
+            if (data is null)
+            {
+                throw new NullReferenceException("Data is null");
+            }
+
+            var text = JsonSerializer.Serialize(data, data.GetType(), Options);
+            await Service.ReliableFileStorage.WriteAllTextAsync(path, text);
+        }
+        catch (Exception e)
+        {
+            Service.Log.Error(e, $"Error while trying to save file {path}");
+        }
+    }
+    
+    /// <summary>
+    /// Get the files at the given path
+    /// </summary>
+    /// <param name="path">Path to fetch files in</param>
+    /// <returns>Array of files</returns>
+    public static FileInfo[] GetDirectoryFiles(params string[] path)
+    {
+        var dir = GetDirectory(path);
+        return dir.GetFiles();
+    }
+    
+    /// <summary>
+    /// Get the info of the file at the provided path
+    /// </summary>
+    /// <param name="path">Path to fetch the file from</param>
+    /// <returns>FileInfo</returns>
+    public static FileInfo GetFileInfo(params string[] path)
+    {
+        var dir = GetDirectory(path[..^1]);
+        return new FileInfo(Path.Combine(dir.FullName, path[^1]));
+    }
+
+    /// <summary>
+    /// Get the directory object from a given path, creates one if it does not exist
+    /// </summary>
+    /// <param name="path">Path to form the directory from</param>
+    /// <returns>DirectoryInfo</returns>
+    public static DirectoryInfo GetDirectory(params string[] path)
+    {
+        var directory = Service.PluginInterface.ConfigDirectory;
+        foreach (var dir in path)
+        {
+            directory = new DirectoryInfo(Path.Combine(directory.FullName, dir));
+            if (!directory.Exists)
+            {
+                directory.Create();
+            }
+        }
+
+        return directory;
     }
 }

@@ -28,6 +28,21 @@ public class TweakManager : IDisposable
             }
         }
     }
+
+    public void ReloadTweaks()
+    {
+        foreach (var tweak in Tweaks)
+        {
+            if (Plugin.Configuration.EnabledTweaks.Contains(tweak.GetType().Name))
+            {
+                EnableTweak(tweak);
+            }
+            else
+            {
+                DisableTweak(tweak);
+            }
+        }
+    }
     
     public static void EnableTweak(ITweak tweak)
     {

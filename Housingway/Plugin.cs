@@ -5,6 +5,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Plugin.Services;
 using Housingway.Config;
 using Housingway.Interface.Windows;
+using Housingway.Profiles;
 using Housingway.Utils;
 using Pictomancy;
 
@@ -17,7 +18,8 @@ public sealed class Plugin : IDalamudPlugin
     
     public static Configuration Configuration { get; set; } = null!;
     public static TweakManager TweakManager { get; set; } = null!;
-    
+    public static ProfileManager ProfileManager { get; set; } = null!;
+
     private const string CommandName = "/housingway";
 
     public readonly WindowSystem WindowSystem = new("Housingway");
@@ -48,6 +50,8 @@ public sealed class Plugin : IDalamudPlugin
         TweakManager = new TweakManager();
         HousingService = new HousingService();
         Overlay.IsOpen = HousingService.InHousingArea;
+        
+        ProfileManager = new ProfileManager();
         
         ConfigWindow = new ConfigWindow();
         WindowSystem.AddWindow(ConfigWindow);

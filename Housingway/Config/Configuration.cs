@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Reflection;
 using Dalamud.Configuration;
+using Housingway.Profiles;
 using Housingway.Tweaks;
 using Housingway.Tweaks.OverrideSkybox;
 
@@ -16,6 +17,12 @@ public class Configuration : IPluginConfiguration
 
     public void Save()
     {
+        if (Plugin.ProfileManager.Profile is not null)
+        {
+            Plugin.ProfileManager.Save();
+            return;
+        }
+        
         Service.PluginInterface.SavePluginConfig(this);
     }
 }

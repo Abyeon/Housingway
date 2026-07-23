@@ -20,4 +20,5 @@ public class Service
     [PluginService] internal static IGameGui GameGui { get; private set; } = null!;
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static ITextureProvider TextureProvider { get; private set; } = null!;
+    [PluginService] internal static IReliableFileStorage ReliableFileStorage { get; private set; } = null!;
 }
