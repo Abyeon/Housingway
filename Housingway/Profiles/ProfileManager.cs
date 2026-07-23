@@ -71,6 +71,10 @@ public class ProfileManager : IAsyncDisposable
             Profile.Config = Plugin.Configuration;
             SaveProfile(Profile);
         }
+        else
+        {
+            Plugin.Configuration.Save();
+        }
     }
 
     public void LoadProfile(Profile profile)
