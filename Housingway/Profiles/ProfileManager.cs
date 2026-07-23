@@ -71,6 +71,10 @@ public class ProfileManager : IAsyncDisposable
             Profile.Config = Plugin.Configuration;
             SaveProfile(Profile);
         }
+        else
+        {
+            Plugin.Configuration.Save();
+        }
     }
 
     public void LoadProfile(Profile profile)
@@ -84,6 +88,8 @@ public class ProfileManager : IAsyncDisposable
 
     public void LoadDefaults()
     {
+        Save();
+        
         Profile = null;
         Plugin.Configuration = Plugin.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Plugin.TweakManager.ReloadTweaks();
