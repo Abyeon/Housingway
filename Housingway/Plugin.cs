@@ -18,8 +18,20 @@ public sealed class Plugin : IAsyncDalamudPlugin
 
     internal static Scene Scene { get; set; } = null!;
     internal static HousingService HousingService { get; set; } = null!;
-    
-    public static Configuration Configuration { get; set; } = null!;
+
+    public static Configuration Configuration
+    {
+        get
+        {
+            if (ProfileManager.Profile is { } profile)
+            {
+                return profile.Config;
+            }
+
+            return field;
+        } set;
+    } = null!;
+
     public static TweakManager TweakManager { get; set; } = null!;
     public static ProfileManager ProfileManager { get; set; } = null!;
 
@@ -27,6 +39,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
 
     public readonly WindowSystem WindowSystem = new("Housingway");
     internal static ConfigWindow ConfigWindow { get; set; } = null!;
+    internal static ProfileWindow ProfileWindow { get; set; } = null!;
     internal static Overlay Overlay { get; private set; } = null!;
 
     public PctContext PctContext { get; private set; } = null!;
@@ -55,12 +68,14 @@ public sealed class Plugin : IAsyncDalamudPlugin
         TweakManager = new TweakManager();
         HousingService = new HousingService();
         
-        await ProfileManager.LoadAsync();
-        
         Overlay.IsOpen = HousingService.InHousingArea;
         
         ConfigWindow = new ConfigWindow();
+        ProfileWindow = new ProfileWindow();
         WindowSystem.AddWindow(ConfigWindow);
+        WindowSystem.AddWindow(ProfileWindow);
+        
+        await ProfileManager.LoadAsync();
         
         Service.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {

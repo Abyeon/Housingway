@@ -37,18 +37,16 @@ public class OverrideSkyboxConfig
 // Ktisis stuff <3
 public partial class OverrideSkybox
 {
-    private SetTextureSelect texSky;
-    private SetTextureSelect texCloudTop;
-    private SetTextureSelect texCloudSide;
+    private SetTextureSelect texSky = new(Service.TextureProvider);
+    private SetTextureSelect texCloudTop = new(Service.TextureProvider);
+    private SetTextureSelect texCloudSide = new(Service.TextureProvider);
     
     public override unsafe void DrawConfig()
     {
-        if (!Enabled) return;
-        
         var env = EnvManagerEx.Instance();
         if (env is null) return;
 
-        using var _ = ImRaii.Disabled(!HousingService.IsInside);
+        using var _ = ImRaii.Disabled(!HousingService.IsInside || !Enabled);
 
         if (DrawSkyEditor(ref Config.State))
         {

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using Housingway.Profiles;
 
 namespace Housingway.Utils;
 
@@ -25,6 +26,8 @@ public unsafe class HousingService : IDisposable
     internal static bool IsInside => Manager != null && Manager->IsInside();
     internal static bool IsOutside => Manager != null && Manager->IsOutside();
     internal static bool InHousingArea => IsInside || IsOutside;
+
+    internal static Address? CurrentAddress = null;
     
     internal delegate void FurnitureAdded(Furniture furniture);
     internal delegate void FurnitureUpdate(Furniture furniture);
@@ -38,15 +41,18 @@ public unsafe class HousingService : IDisposable
 
     public HousingService()
     {
-        Service.ClientState.ZoneInit += OnZoneInit;
-        
-        CheckForHousing();
+        Scene.OnZoneLoaded += OnZoneLoaded;
 
-        if (InHousingArea)
-            Service.Framework.RunOnFrameworkThread(UpdateFurniture);
+        Service.Framework.Run(() =>
+        {
+            CheckForHousing();
+            
+            if (InHousingArea)
+                Service.Framework.RunOnFrameworkThread(UpdateFurniture);
+        });
     }
 
-    private void OnZoneInit(ZoneInitEventArgs obj)
+    private void OnZoneLoaded()
     {
         CurrentFurniture.Clear();
         CheckForHousing();
@@ -57,10 +63,21 @@ public unsafe class HousingService : IDisposable
         if (InHousingArea)
         {
             Service.Framework.Update += OnUpdate;
+            
+            if (Address.TryGetAddress(out var address))
+            {
+                CurrentAddress = address;
+            }
+            else
+            {
+                CurrentAddress = null;
+            }
+            
             OnEnterHousingArea?.Invoke(IsInside);
         }
         else
         {
+            CurrentAddress = null;
             Service.Framework.Update -= OnUpdate;
         }
     }
@@ -103,7 +120,7 @@ public unsafe class HousingService : IDisposable
     public void Dispose()
     {
         Service.Framework.Update -= OnUpdate;
-        Service.ClientState.ZoneInit -= OnZoneInit;
+        Scene.OnZoneLoaded -= OnZoneLoaded;
         CurrentFurniture.Clear();
         GC.SuppressFinalize(this);
     }

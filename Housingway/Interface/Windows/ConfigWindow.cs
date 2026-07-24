@@ -10,6 +10,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
+using Housingway.Profiles;
 using Housingway.Tweaks.Base;
 
 namespace Housingway.Interface.Windows;
@@ -35,12 +36,20 @@ public class ConfigWindow : CustomWindow, IDisposable
     public static void TitleRendering()
     {
         const string title = "Housingway";
-        var profile = $"[{Plugin.ProfileManager.Profile?.Name}]";
+        
+        var profileName = ProfileManager.Profile != null ? ProfileManager.Profile.Name : "Default";
+        var profile = $"[{profileName}]";
         ImGuiHelpers.CenterCursorForText(title + " " + profile);
         ImGui.Text(title);
         ImGui.SameLine();
+        
+        var size = ImGui.CalcTextSize(profile);
 
-        ImGui.TextColored(ImGuiColors.DalamudOrange, profile);
+        using var orange = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
+        if (ImGui.Selectable(profile, flags: ImGuiSelectableFlags.None, size: size with { Y = 0 }))
+        {
+            Plugin.ProfileWindow.Toggle();
+        }
     }
 
     public void Dispose() { }

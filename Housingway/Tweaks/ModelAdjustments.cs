@@ -17,10 +17,11 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
 
     public override string Description { get; init; } = "Some toggleable adjustments geared towards void builders. " +
                                                         "No more house shell or shame cube.";
-
-    public ModelAdjustments()
+    
+    protected override ModelAdjustmentsConfig Config
     {
-        Config = Plugin.Configuration.Tweaks.ModelAdjustments;
+        get => Plugin.Configuration.Tweaks.ModelAdjustments;
+        set => Plugin.Configuration.Tweaks.ModelAdjustments = value;
     }
     
     public override void Enable()

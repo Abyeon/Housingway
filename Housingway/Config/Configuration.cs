@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Reflection;
 using Dalamud.Configuration;
 using Housingway.Profiles;
 using Housingway.Tweaks;
@@ -17,9 +16,9 @@ public class Configuration : IPluginConfiguration
 
     public void Save()
     {
-        if (Plugin.ProfileManager.Profile is not null)
+        if (ProfileManager.Profile is { } profile)
         {
-            Plugin.ProfileManager.Save();
+            profile.Save();
             return;
         }
         
@@ -29,10 +28,10 @@ public class Configuration : IPluginConfiguration
 
 public class TweakConfigs
 {
-    public readonly OverrideInteriorLightingConfig OverrideInteriorLighting = new();
-    public readonly ModelAdjustmentsConfig ModelAdjustments = new();
-    public readonly HighlightPhasedObjectsConfig HighlightPhasedObjects = new();
-    public readonly FurnitureInfoConfig FurnitureInfo = new();
-    public readonly DisplayPopRangeConfig DisplayPopRange = new();
-    public readonly OverrideSkyboxConfig OverrideSkybox = new();
+    public OverrideInteriorLightingConfig OverrideInteriorLighting { get; set; } = new();
+    public ModelAdjustmentsConfig ModelAdjustments { get; set; } = new();
+    public HighlightPhasedObjectsConfig HighlightPhasedObjects { get; set; } = new();
+    public FurnitureInfoConfig FurnitureInfo { get; set; } = new();
+    public DisplayPopRangeConfig DisplayPopRange { get; set; } = new();
+    public OverrideSkyboxConfig OverrideSkybox { get; set; } = new();
 }

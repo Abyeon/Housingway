@@ -7,7 +7,7 @@ namespace Housingway.Tweaks.Base;
 
 public abstract class ConfigurableTweak<T> : BaseTweak, IConfigurableTweak
 {
-    protected T Config = default!;
+    protected abstract T Config { get; set; }
     public ImGuiWindowFlags Flags { get; set; }
     
     public abstract void DrawConfig();
@@ -16,11 +16,7 @@ public abstract class ConfigurableTweak<T> : BaseTweak, IConfigurableTweak
     {
         Task.Run(() =>
         {
-            if (Config is null) return;
-        
-            var defaultInstance = Activator.CreateInstance<T>();
-            Config = defaultInstance;
-        
+            Config = Activator.CreateInstance<T>();
             Plugin.Configuration.Save();
         });
     }

@@ -12,9 +12,14 @@ public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfi
     public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Less of a tweak, more of a tool for learning about different furniture.";
 
+    protected override FurnitureInfoConfig Config
+    {
+        get => Plugin.Configuration.Tweaks.FurnitureInfo;
+        set => Plugin.Configuration.Tweaks.FurnitureInfo = value;
+    }
+    
     public FurnitureInfo()
     {
-        Config = Plugin.Configuration.Tweaks.FurnitureInfo;
         Flags |= ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
     }
 

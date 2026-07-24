@@ -33,13 +33,15 @@ public class TweakManager : IDisposable
     {
         foreach (var tweak in Tweaks)
         {
+            if (tweak.Enabled)
+            {
+                tweak.Disable();
+                tweak.Enabled = false;
+            }
+            
             if (Plugin.Configuration.EnabledTweaks.Contains(tweak.GetType().Name))
             {
                 EnableTweak(tweak);
-            }
-            else
-            {
-                DisableTweak(tweak);
             }
         }
     }

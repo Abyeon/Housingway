@@ -6,6 +6,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
+using Housingway.Utils.Converters;
 
 namespace Housingway.Utils;
 
@@ -16,6 +17,7 @@ public static class Serializer
 {
     private static readonly JsonSerializerOptions Options = new()
     {
+        Converters = { new AddressConverter() },
         WriteIndented = true,
         IncludeFields = true
     };
@@ -113,7 +115,7 @@ public static class Serializer
     }
 
     /// <summary>
-    /// Load a file from the given path
+    /// Load a file from the given path, provides defaults if the file does not exist
     /// </summary>
     /// <param name="path">The path to get the file from</param>
     /// <typeparam name="T">Type to interpret file as</typeparam>
@@ -128,6 +130,9 @@ public static class Serializer
             try
             {
                 var text = await Service.ReliableFileStorage.ReadAllTextAsync(file.FullName);
+                
+                Service.Log.Verbose($"Loading {path}: \n{text}");
+                
                 var data = JsonSerializer.Deserialize<T>(text, Options);
 
                 if (data is null)
@@ -163,12 +168,39 @@ public static class Serializer
                 throw new NullReferenceException("Data is null");
             }
 
-            var text = JsonSerializer.Serialize(data, data.GetType(), Options);
+            var text = JsonSerializer.Serialize(data, Options);
+            Service.Log.Verbose($"Saving {path}\n{text}");
             await Service.ReliableFileStorage.WriteAllTextAsync(path, text);
         }
         catch (Exception e)
         {
             Service.Log.Error(e, $"Error while trying to save file {path}");
+        }
+    }
+
+    /// <summary>
+    /// Delete the file at the given path
+    /// </summary>
+    /// <param name="path">Path to delete file from</param>
+    public static async Task DeleteFile(string path)
+    {
+        var file = new FileInfo(path);
+        try
+        {
+            if (file.Exists)
+            {
+                await using var stream = new FileStream(file.FullName, FileMode.Truncate, FileAccess.Write, FileShare.Delete, 4096, true);
+                await stream.FlushAsync();
+                File.Delete(file.FullName);
+            }
+            else
+            {
+                Service.Log.Verbose($"File {path} does not exist");
+            }
+        }
+        catch (Exception e)
+        {
+            Service.Log.Error(e, $"Error while trying to delete file {path}");
         }
     }
     

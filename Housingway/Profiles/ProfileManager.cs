@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,11 +10,13 @@ namespace Housingway.Profiles;
 
 public class ProfileManager : IAsyncDisposable
 {
-    public Profile? Profile { get; set; }
+    public static AddressSettings AddressSettings { get; set; } = null!;
+    public static Profile? Profile { get; set; }
 
     public async Task LoadAsync()
     {
-        HousingService.OnEnterHousingArea += OnEnterHousingArea;
+        AddressSettings = await Serializer.LoadFile<AddressSettings>(Serializer.GetFileInfo("AddressSettings").FullName + ".json");
+        
         Address? currAddress = null;
         await Service.Framework.Run(() =>
         {
@@ -22,94 +25,59 @@ public class ProfileManager : IAsyncDisposable
                 currAddress = address;
             }
         });
-
+        
         if (currAddress is not null)
         {
-            await LoadAddress((Address)currAddress);
+            if (AddressSettings.Profiles.ContainsKey((Address)currAddress))
+            {
+                var profile = await AddressSettings.GetProfile((Address)currAddress);
+                if (profile is not null)
+                    LoadProfile(profile);
+            }
         }
+        
+        HousingService.OnEnterHousingArea += OnEnterHousingArea;
     }
 
     private void OnEnterHousingArea(bool indoors)
     {
         if (Address.TryGetAddress(out var currAddress))
         {
-            Task.Run(async () => await LoadAddress(currAddress));
+            if (AddressSettings.Profiles.ContainsKey(currAddress))
+            {
+                Task.Run(async () =>
+                {
+                    var profile = await AddressSettings.GetProfile(currAddress);
+                    if (profile is not null)
+                        LoadProfile(profile);
+                });
+
+                return;
+            }
         }
+        
+        LoadDefaults();
     }
 
-    public async Task LoadAddress(Address address)
+    public static void LoadProfile(Profile profile)
     {
-        var profile = await GetAddressProfile(address);
-        if (profile is not null)
-        {
-            LoadProfile(profile);
-        }
-        else if (Profile is not null)
-        {
-            LoadDefaults();
-        }
-    }
-    
-    public static void SaveProfile(Profile profile) => Task.Run(async () => await SaveProfileAsync(profile));
-
-    public static async Task SaveProfileAsync(Profile profile)
-    {
-        try
-        {
-            await Serializer.SaveFile(Serializer.GetFileInfo("Profiles", profile.Name).FullName, profile);
-        }
-        catch (Exception e)
-        {
-            Service.Log.Error(e, $"Error while saving {profile.Name}");
-        }
-    }
-
-    public void Save()
-    {
-        if (Profile is not null)
-        {
-            Profile.Config = Plugin.Configuration;
-            SaveProfile(Profile);
-        }
-        else
-        {
-            Plugin.Configuration.Save();
-        }
-    }
-
-    public void LoadProfile(Profile profile)
-    {
-        Save();
+        Plugin.Configuration.Save();
         
         Profile = profile;
-        Plugin.Configuration = Profile.Config;
         Plugin.TweakManager.ReloadTweaks();
     }
 
-    public void LoadDefaults()
+    public static void LoadDefaults()
     {
-        Save();
+        if (Profile is null) return; // already using default config
+        
+        Plugin.Configuration.Save();
         
         Profile = null;
-        Plugin.Configuration = Plugin.PluginInterface.GetPluginConfig() as Configuration ?? new Configuration();
         Plugin.TweakManager.ReloadTweaks();
     }
 
-    private static async Task<Profile?> GetAddressProfile(Address address)
-    {
-        var all = await GetAllProfiles();
-        var contains = all.Where(x => x.Addresses.Contains(address)).ToArray();
-
-        if (contains.Length == 0) return null;
-        if (contains.Length > 1)
-        {
-            Service.ChatGui.PrintError("There are multiple profiles for this address. Loading the first one, please correct this yourself.");
-        }
-
-        return contains[0];
-    }
-
-    private static async Task<Profile[]> GetAllProfiles()
+    public static async Task<Profile[]> GetAllProfiles()
     {
         var files = Serializer.GetDirectoryFiles("Profiles");
         var profiles = new Profile[files.Length];
@@ -126,11 +94,11 @@ public class ProfileManager : IAsyncDisposable
     public async ValueTask DisposeAsync()
     {
         HousingService.OnEnterHousingArea -= OnEnterHousingArea;
+        await AddressSettings.SaveAsync();
         
         if (Profile is not null)
         {
-            Profile.Config = Plugin.Configuration;
-            await SaveProfileAsync(Profile);
+            await Profile.SaveAsync();
         }
     }
 }
