@@ -130,9 +130,6 @@ public static class Serializer
             try
             {
                 var text = await Service.ReliableFileStorage.ReadAllTextAsync(file.FullName);
-                
-                Service.Log.Verbose($"Loading {path}: \n{text}");
-                
                 var data = JsonSerializer.Deserialize<T>(text, Options);
 
                 if (data is null)
@@ -169,7 +166,6 @@ public static class Serializer
             }
 
             var text = JsonSerializer.Serialize(data, Options);
-            Service.Log.Verbose($"Saving {path}\n{text}");
             await Service.ReliableFileStorage.WriteAllTextAsync(path, text);
         }
         catch (Exception e)
