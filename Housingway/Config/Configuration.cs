@@ -82,6 +82,6 @@ public class TweakConfigs
             return;
         }
         
-        throw new KeyNotFoundException($"No configuration found for type {typeof(T)}");
+        throw new KeyNotFoundException($"No setter found for type {typeof(T)}");
     }
 }
