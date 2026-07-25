@@ -86,7 +86,7 @@ public partial class OverrideSkybox
         result |= ImGui.ColorEdit3("Cloud Color", ref state.Clouds.CloudColor);
         result |= ImGui.ColorEdit3("Shadow Color", ref state.Clouds.Color2);
         result |= ImGui.SliderFloat("Shadows", ref state.Clouds.Gradient, 0.0f, 2.0f);
-        result |= ImGui.SliderFloat("Side Height", ref state.Clouds.SideHeight, 0.0f, 2.0f);
+        result |= ImGui.SliderFloat("Side Height", ref state.Clouds.SideHeight, 0.0f, 4.0f);
         
         return result;
     }
