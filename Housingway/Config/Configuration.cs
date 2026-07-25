@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using Dalamud.Configuration;
 using Housingway.Profiles;
@@ -44,21 +42,23 @@ public class TweakConfigs
     public TweakConfigs()
     {
         var properties = GetType().GetProperties(BindingFlags.Public | BindingFlags.Instance);
-        var instance = Expression.Parameter(typeof(TweakConfigs), "instance");
+        var instance = typeof(TweakConfigs);
         
         foreach (var property in properties)
         {
             var type = property.PropertyType;
-            var access = Expression.Property(instance, property);
-            
-            var getter = Expression.Lambda(access, instance);
-            getters[type] = getter.Compile();
 
-            var valueParam = Expression.Parameter(type, "value");
-            var assign = Expression.Assign(access, valueParam);
-            
-            var setter = Expression.Lambda(assign, instance, valueParam);
-            setters[type] = setter.Compile();
+            if (property is { CanRead: true, GetMethod: not null })
+            {
+                var funcType = typeof(Func<,>).MakeGenericType(instance, type);
+                getters[type] = property.GetMethod.CreateDelegate(funcType);
+            }
+
+            if (property is { CanWrite: true, SetMethod: not null })
+            {
+                var actionType = typeof(Action<,>).MakeGenericType(instance, type);
+                setters[type] = property.SetMethod.CreateDelegate(actionType);
+            }
         }
     }
 
