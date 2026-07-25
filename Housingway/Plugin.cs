@@ -84,6 +84,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         
         PluginInterface.UiBuilder.Draw += WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi += ToggleConfigUi;
+        PluginInterface.UiBuilder.OpenMainUi += ToggleConfigUi;
     }
 
     private static void OnCommand(string command, string args) => ConfigWindow.Toggle();
@@ -94,6 +95,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
     {
         PluginInterface.UiBuilder.Draw -= WindowSystem.Draw;
         PluginInterface.UiBuilder.OpenConfigUi -= ToggleConfigUi;
+        PluginInterface.UiBuilder.OpenMainUi -= ToggleConfigUi;
         
         WindowSystem.RemoveAllWindows();
 

@@ -1,5 +1,6 @@
 ﻿namespace Housingway.Tweaks._Templates;
 
+// Add an instance of this to Plugin.Configuration
 public class TemplateConfig
 {
     // Some values you'd like to save

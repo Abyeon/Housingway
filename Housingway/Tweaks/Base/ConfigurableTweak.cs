@@ -7,7 +7,12 @@ namespace Housingway.Tweaks.Base;
 
 public abstract class ConfigurableTweak<T> : BaseTweak, IConfigurableTweak
 {
-    protected abstract T Config { get; set; }
+    protected T Config
+    {
+        get => Plugin.Configuration.Tweaks.Get<T>();
+        set => Plugin.Configuration.Tweaks.Set(value);
+    }
+    
     public ImGuiWindowFlags Flags { get; set; }
     
     public abstract void DrawConfig();

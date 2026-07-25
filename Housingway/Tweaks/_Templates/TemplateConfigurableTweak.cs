@@ -8,11 +8,6 @@ public partial class TemplateConfigurableTweak : ConfigurableTweak<TemplateConfi
     public override string Author { get; init; } = "Your Name Here";
     public override string Description { get; init; } = "Some Description";
     
-    public TemplateConfigurableTweak()
-    {
-        // Config = Plugin.Configuration.Tweaks.ADD-YOUR-CONFIG-INSTANCE-HERE
-    }
-    
     public override void Enable()
     {
         // Subscribe to events, run some logic, etc.

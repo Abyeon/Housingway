@@ -17,12 +17,6 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
     public override string Description { get; init; } = "Overlays the area in which you may spawn in.";
     
     private PopRange[] ranges = [];
-
-    protected override DisplayPopRangeConfig Config
-    {
-        get => Plugin.Configuration.Tweaks.DisplayPopRange;
-        set => Plugin.Configuration.Tweaks.DisplayPopRange = value;
-    }
     
     public override void Enable()
     {

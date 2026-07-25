@@ -12,12 +12,6 @@ public partial class OverrideSkybox : ConfigurableTweak<OverrideSkyboxConfig>
 
     private EnvService? envService;
 
-    protected override OverrideSkyboxConfig Config
-    {
-        get => Plugin.Configuration.Tweaks.OverrideSkybox;
-        set => Plugin.Configuration.Tweaks.OverrideSkybox = value;
-    }
-
     private void OnZoneLoaded() => UpdateEnvironment();
 
     private unsafe void UpdateEnvironment()

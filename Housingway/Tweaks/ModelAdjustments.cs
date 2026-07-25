@@ -18,12 +18,6 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     public override string Description { get; init; } = "Some toggleable adjustments geared towards void builders. " +
                                                         "No more house shell or shame cube.";
     
-    protected override ModelAdjustmentsConfig Config
-    {
-        get => Plugin.Configuration.Tweaks.ModelAdjustments;
-        set => Plugin.Configuration.Tweaks.ModelAdjustments = value;
-    }
-    
     public override void Enable()
     {
         Service.ClientState.ZoneInit += OnZoneInit;
