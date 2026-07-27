@@ -1,9 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
-using Housingway.Config;
 using Housingway.Utils;
 
 namespace Housingway.Profiles;
@@ -11,9 +7,25 @@ namespace Housingway.Profiles;
 public class ProfileManager : IAsyncDisposable
 {
     public static AddressSettings AddressSettings { get; set; } = null!;
-    public static Profile? Profile { get; set; }
+    
+    public delegate void ProfileChanged(Profile? profile);
+    public static event ProfileChanged? OnProfileChanged;
 
-    public async Task LoadAsync()
+    public static Profile? Profile
+    {
+        get;
+        set
+        {
+            if (field != value)
+            {
+                OnProfileChanged?.Invoke(value);
+            }
+            
+            field = value;
+        }
+    }
+
+    public static async Task LoadAsync()
     {
         AddressSettings = await Serializer.LoadFile<AddressSettings>(Serializer.GetFileInfo("AddressSettings").FullName + ".json");
         
@@ -39,7 +51,7 @@ public class ProfileManager : IAsyncDisposable
         HousingService.OnEnterHousingArea += OnEnterHousingArea;
     }
 
-    private void OnEnterHousingArea(bool indoors)
+    private static void OnEnterHousingArea(bool indoors)
     {
         if (Address.TryGetAddress(out var currAddress))
         {

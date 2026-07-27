@@ -21,7 +21,7 @@ public class ConfigWindow : CustomWindow, IDisposable
     private ITweak[] tweaks = [];
     private ITweak? selectedTweak;
     
-    public ConfigWindow() : base("###HousingwayConfigWindow")
+    public ConfigWindow() : base("Housingway###HousingwayConfigWindow")
     {
         SizeConstraints = new WindowSizeConstraints
         {
@@ -30,29 +30,27 @@ public class ConfigWindow : CustomWindow, IDisposable
         };
         
         FilterTweaks();
-        CustomTitleDrawing = TitleRendering;
-    }
-
-    public static void TitleRendering()
-    {
-        const string title = "Housingway";
         
-        var profileName = ProfileManager.Profile != null ? ProfileManager.Profile.Name : "Default";
-        var profile = $"[{profileName}]";
-        ImGuiHelpers.CenterCursorForText(title + " " + profile);
-        ImGui.Text(title);
-        ImGui.SameLine();
-        
-        var size = ImGui.CalcTextSize(profile);
-
-        using var orange = ImRaii.PushColor(ImGuiCol.Text, ImGuiColors.DalamudOrange);
-        if (ImGui.Selectable(profile, flags: ImGuiSelectableFlags.None, size: size with { Y = 0 }))
+        TitleBarButtons.Add(new TitleBarButton()
         {
-            Plugin.ProfileWindow.Toggle();
-        }
+            Icon = FontAwesomeIcon.User,
+            IconColor = ImGuiColors.DalamudOrange,
+            Click = (_) =>
+            {
+                Plugin.ProfileWindow.Toggle();
+            },
+            ShowTooltip = () => ImGui.SetTooltip("Change Profile")
+        });
+        
+        ProfileManager.OnProfileChanged += OnProfileChanged;
     }
 
-    public void Dispose() { }
+    private void OnProfileChanged(Profile? profile)
+    {
+        WindowName = $"Housingway{(profile != null ? $" [{profile.Name}]" : "")}###HousingwayConfigWindow";
+    }
+
+    public void Dispose() => ProfileManager.OnProfileChanged -= OnProfileChanged;
 
     protected override void Render()
     {
@@ -160,11 +158,9 @@ public class ConfigWindow : CustomWindow, IDisposable
 
     private static void Tweak(ITweak tweak)
     {
-        using var _ = ImRaii.Disabled(!tweak.Enabled);
-        
         ImGui.Spacing();
 
-        var color = ImGui.GetColorU32(ImGuiCol.Separator);
+        var color = ImGui.GetColorU32(ImGuiCol.TabActive);
         
         Ui.CenteredTextWithLine(tweak.Name, color);
         
@@ -179,6 +175,8 @@ public class ConfigWindow : CustomWindow, IDisposable
 
     private static void TweakConfig(IConfigurableTweak tweak)
     { 
+        using var _ = ImRaii.Disabled(!tweak.Enabled);
+        
         ImGui.Spacing();
         tweak.DrawConfig();
     }
@@ -270,6 +268,7 @@ public class ConfigWindow : CustomWindow, IDisposable
         
         group.Add("Github", () => Util.OpenLink("https://github.com/Abyeon/Housingway"));
         group.Add("Donate", () => Util.OpenLink("https://ko-fi.com/abyeon"));
+        group.Add("Profiles", () => Plugin.ProfileWindow.Toggle());
         group.Draw();
     }
 }

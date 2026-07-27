@@ -134,7 +134,7 @@ public unsafe partial class FurnitureInfo
         
         var name = furn.Object->NameString;
         ImGui.InputText("Name", ref name, flags: ImGuiInputTextFlags.ReadOnly);
-
+        
         var addr = (IntPtr)furn.Group;
         var addrString = addr.ToString("X8");
         ImGui.InputText("Address", ref addrString, flags: ImGuiInputTextFlags.ReadOnly);

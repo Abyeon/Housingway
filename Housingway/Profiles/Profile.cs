@@ -14,6 +14,9 @@ public class Profile
     public string Name { get; set; }
     public Configuration Config { get; set; }
 
+    [JsonIgnore]
+    public bool AddedByIpc { get; set; } = false;
+
     public Profile(string name)
     {
         Id = Guid.NewGuid();
@@ -23,7 +26,7 @@ public class Profile
     
     public Profile()
     {
-        Id = Guid.NewGuid();
+        Id = Guid.Empty;
         Name = "";
         Config = null!;
     }
@@ -32,6 +35,8 @@ public class Profile
     
     public async Task SaveAsync()
     {
+        if (AddedByIpc) return; // return early if somebody else added this profile
+        
         try
         {
             await Serializer.SaveFile(GetPath(), this);
@@ -50,4 +55,9 @@ public class Profile
     }
 
     private string GetPath() => Serializer.GetFileInfo("Profiles", Name).FullName + ".json";
+
+    public bool IsValid()
+    {
+        return Id != Guid.Empty && !string.IsNullOrEmpty(Name);
+    }
 }

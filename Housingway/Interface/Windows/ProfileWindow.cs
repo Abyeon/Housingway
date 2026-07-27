@@ -1,10 +1,13 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
+using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
@@ -19,6 +22,8 @@ public class ProfileWindow : CustomWindow, IDisposable
     public Profile[] LoadedProfiles { get; private set; }
     public bool IsBuilding;
     
+    private readonly FileDialogManager fileDialogManager;
+    
     public ProfileWindow() : base("Profile Editor###HousingwayProfileWindow")
     {
         SizeConstraints = new WindowSizeConstraints
@@ -28,6 +33,9 @@ public class ProfileWindow : CustomWindow, IDisposable
         };
 
         LoadedProfiles = [];
+        
+        fileDialogManager = new FileDialogManager();
+        
         HousingService.OnEnterHousingArea += OnEnterHousingArea;
     }
 
@@ -35,7 +43,7 @@ public class ProfileWindow : CustomWindow, IDisposable
     {
         if (IsOpen)
         {
-            Task.Run(async () => await BuildProfiles());
+            Task.Run(async () => await BuildProfileList());
         }
         else
         {
@@ -43,9 +51,10 @@ public class ProfileWindow : CustomWindow, IDisposable
         }
     }
 
-    public override void OnOpen() => Task.Run(async () => await BuildProfiles());
+    public override void OnOpen() => Task.Run(async () => await BuildProfileList());
+    public override void OnClose() => LoadedProfiles = [];
 
-    public async Task BuildProfiles()
+    public async Task BuildProfileList()
     {
         IsBuilding = true;
         LoadedProfiles = await ProfileManager.GetAllProfiles();
@@ -66,44 +75,75 @@ public class ProfileWindow : CustomWindow, IDisposable
             return;
         }
         
+        fileDialogManager.Draw();
+        
         if (IsBuilding)
         {
             var spinner = "|/-\\"[(int)(ImGui.GetTime() / 0.05f) & 3];
             ImGui.Text($"Loading {spinner}");
             return;
         }
-
-        if (ImGui.Button("Create Profile"))
+        
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.Plus))
         {
             ImGui.OpenPopup("CreateProfile");
         }
+
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Create a new profile.");
+        }
+
+        ImGui.SameLine();
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.FileImport))
+        {
+            fileDialogManager.OpenFileDialog("Import Profile", ".json", (success, pathToFile) =>
+            {
+                if (!success) return;
+
+                Task.Run(async () =>
+                {
+                    var profile = await Serializer.LoadFile<Profile>(pathToFile);
+                    await AddProfile(profile);
+                });
+            });
+        }
+        
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Import a profile from file.");
+        }
         
         ImGui.SameLine();
-        if (ImGui.Button("Load Default Profile"))
+        if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowsSpin))
         {
             ProfileManager.LoadDefaults();
             ProfileManager.AddressSettings.Profiles.Remove(currentAddress);
             ProfileManager.AddressSettings.Save();
         }
         
+        if (ImGui.IsItemHovered())
+        {
+            ImGui.SetTooltip("Load the default profile.");
+        }
+        
         var name = "";
         if (Ui.AddTextConfirmationPopup("CreateProfile", "Create a new profile with the name: ", ref name))
         {
-            if (string.IsNullOrEmpty(name) || name.Equals("default", StringComparison.InvariantCultureIgnoreCase))
-            {
-                Service.ChatGui.PrintError("Cannot create a new profile without a name!");
-                return; // one frame of POO, I DO NOT CARE!
-            }
-            
-            var profile = new Profile(name)
-            {
-                Config = new Configuration(),
-            };
-            
             Task.Run(async () =>
             {
-                await profile.SaveAsync();
-                await BuildProfiles();
+                if (string.IsNullOrEmpty(name) || name.Equals("default", StringComparison.InvariantCultureIgnoreCase))
+                {
+                    Service.ChatGui.PrintError("Cannot create a new profile without a name!");
+                    return; // one frame of POO, I DO NOT CARE!
+                }
+            
+                var profile = new Profile(name)
+                {
+                    Config = new Configuration(),
+                };
+                
+                await AddProfile(profile);
             });
         }
         
@@ -111,7 +151,7 @@ public class ProfileWindow : CustomWindow, IDisposable
         foreach (var profile in LoadedProfiles)
         {
             using var _ = ImRaii.PushId(id++);
-            var currentlySelected = ProfileManager.Profile == profile;
+            var currentlySelected = ProfileManager.Profile != null && ProfileManager.Profile.Id == profile.Id;
             
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
             {
@@ -128,7 +168,7 @@ public class ProfileWindow : CustomWindow, IDisposable
                 Task.Run(async () =>
                 {
                     await profile.DeleteAsync();
-                    await BuildProfiles();
+                    await BuildProfileList();
                 });
             }
             
@@ -150,6 +190,29 @@ public class ProfileWindow : CustomWindow, IDisposable
                 }
             }
         }
+    }
+
+    public async Task AddProfile(Profile profile)
+    {
+        if (!profile.IsValid())
+        {
+            Service.ChatGui.PrintError("Profile is not valid!");
+            return;
+        }
+
+        if (profile.Name.Equals("default", StringComparison.InvariantCultureIgnoreCase))
+        {
+            Service.ChatGui.PrintError("Cannot create profile with the name \"default\"");
+            return;
+        }
+
+        if (LoadedProfiles.Any(x => x.Name.Equals(profile.Name, StringComparison.InvariantCultureIgnoreCase)))
+        {
+            Service.ChatGui.PrintError($"Profile with the name {profile.Name} already exists!");
+        }
+                    
+        await profile.SaveAsync();
+        await BuildProfileList();
     }
 
     public void Dispose()
