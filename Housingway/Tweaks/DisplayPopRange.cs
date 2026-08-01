@@ -14,7 +14,7 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
 {
     public override string Name { get; init; } = "Display Pop Range";
     public override string Author { get; init; } = "Abyeon";
-    public override string Description { get; init; } = "Overlays the area in which you may spawn in.";
+    public override string Description { get; init; } = "Overlays the points in which you may spawn in.";
     
     private PopRange[] ranges = [];
     

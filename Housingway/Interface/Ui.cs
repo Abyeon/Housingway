@@ -201,6 +201,41 @@ public static class Ui
         CenteredTextWithLine(textColor, text, lineColor, padding);
     }
 
+    public static void CenteredTextWrapped(ImU8String text)
+    {
+        var wrapWidth = ImGui.GetContentRegionAvail().X;
+        
+        var span = text.Span;
+
+        var start = 0;
+        var end = span.Length;
+
+        var font = ImGui.GetFont();
+        var scale = ImGui.GetFontSize() / font.FontSize;
+
+        while (start < end)
+        {
+            var remaining = span.Slice(start, end - start);
+            var wrapPos = ImGui.CalcWordWrapPositionA(font, scale, remaining, wrapWidth);
+            var length = wrapPos <= 0 || wrapPos >= remaining.Length ? remaining.Length : wrapPos;
+
+            var currLine = remaining[..length];
+            var size = ImGui.CalcTextSize(currLine);
+            
+            var indent = (wrapWidth - size.X) * 0.5f;
+            if (indent > 0)
+                ImGui.SetCursorPosX(ImGui.GetCursorPosX() + indent);
+            
+            ImGui.TextUnformatted(currLine);
+
+            start += length;
+            while (start < end && (span[start] == ' ' || span[start] == '\n'))
+            {
+                start++;
+            }
+        }
+    }
+
     // Straight yoinked from Chat2
     // https://github.com/Infiziert90/ChatTwo/blob/c54efe542012ec8891f71b87083a658c3aad9df9/ChatTwo/Util/ImGuiUtil.cs#L275
     public static SingleFontChooserDialog? FontChooser( string label, SingleFontSpec font, Predicate<IFontFamilyId>? exclusion = null, string? preview = null)

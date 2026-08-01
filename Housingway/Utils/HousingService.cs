@@ -10,24 +10,13 @@ namespace Housingway.Utils;
 public unsafe class HousingService : IDisposable
 {
     public static HousingManager*   Manager  => HousingManager.Instance();
-    public static IndoorTerritory*  Indoors  => Manager != null ? Manager->IndoorTerritory  : null;
-    public static OutdoorTerritory* Outdoors => Manager != null ? Manager->OutdoorTerritory : null;
+    public static HousingFurnitureManager* FurnitureManager => Manager->GetFurnitureManager();
 
-    public static HousingFurnitureManager* FurnitureManager
-    {
-        get
-        {
-            if (IsInside) return &Indoors->FurnitureManager;
-            if (IsOutside) return &Outdoors->FurnitureManager;
-            return null;
-        }
-    }
-
-    internal static bool IsInside => Manager != null && Manager->IsInside();
-    internal static bool IsOutside => Manager != null && Manager->IsOutside();
+    internal static bool IsInside;
+    internal static bool IsOutside;
     internal static bool InHousingArea => IsInside || IsOutside;
 
-    internal static Address? CurrentAddress = null;
+    internal static Address? CurrentAddress;
     
     internal delegate void FurnitureAdded(Furniture furniture);
     internal delegate void FurnitureUpdate(Furniture furniture);
@@ -46,9 +35,8 @@ public unsafe class HousingService : IDisposable
         Service.Framework.Run(() =>
         {
             CheckForHousing();
-            
-            if (InHousingArea)
-                Service.Framework.RunOnFrameworkThread(UpdateFurniture);
+
+            if (InHousingArea) UpdateFurniture();
         });
     }
 
@@ -60,6 +48,9 @@ public unsafe class HousingService : IDisposable
 
     private void CheckForHousing()
     {
+        IsInside = Manager != null && Manager->IsInside();
+        IsOutside = Manager != null && Manager->IsOutside();
+        
         if (InHousingArea)
         {
             Service.Framework.Update += OnUpdate;

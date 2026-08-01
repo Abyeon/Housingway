@@ -48,7 +48,7 @@ public unsafe partial class FurnitureInfo
     {
         var height = ImGui.GetContentRegionAvail().Y;
         
-        if (selectedFurniture != null)
+        if (selectedFurniture is { IsValid: true })
         {
             height -= InfoHeight;
         }
@@ -144,9 +144,12 @@ public unsafe partial class FurnitureInfo
         
         var housingType = furn.Object->HousingObjectId.Type.ToString();
         ImGui.InputText("Type", ref housingType, flags: ImGuiInputTextFlags.ReadOnly);
-        
-        var collType = furn.Collider->GetColliderType().ToString();
-        ImGui.InputText("Collision Type", ref collType, flags: ImGuiInputTextFlags.ReadOnly);
+
+        if (furn.Collider != null)
+        {
+            var collType = furn.Collider->GetColliderType().ToString();
+            ImGui.InputText("Collision Type", ref collType, flags: ImGuiInputTextFlags.ReadOnly);
+        }
 
         var id = furn.Object->HousingObjectId.Id.ToString();
         ImGui.InputText("ID", ref id, flags: ImGuiInputTextFlags.ReadOnly);
@@ -202,7 +205,7 @@ public unsafe partial class FurnitureInfo
         switch (Config.DebugView)
         {
             case DebugView.Collision:
-                if (furn.Collider->GetColliderType() == ColliderType.Mesh)
+                if (furn.Collider != null && furn.Collider->GetColliderType() == ColliderType.Mesh)
                     DrawCollision(pos, (ColliderMesh*)furn.Collider);
                 break;
             case DebugView.PhaseRange: 

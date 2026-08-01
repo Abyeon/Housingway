@@ -169,8 +169,8 @@ public class ConfigWindow : CustomWindow, IDisposable
         ImGui.SameLine();
         ImGui.TextColored(ImGui.GetColorU32(ImGuiCol.Text), tweak.Author);
         ImGui.Spacing();
-        
-        ImGui.TextWrapped(tweak.Description);
+
+        Ui.CenteredTextWrapped(tweak.Description);
     }
 
     private static void TweakConfig(IConfigurableTweak tweak)

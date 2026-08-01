@@ -53,6 +53,9 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
 
     private void OnZoneInit(ZoneInitEventArgs obj)
     {
+        lightguard = null;
+        shameCube = null;
+        
         // Only check if we're in a house.
         if (obj.TerritoryType.Value.Bg.ToString().Contains("/ind/"))
         {
@@ -63,8 +66,6 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         {
             Service.Framework.Update -= OnUpdate;
             Plugin.Overlay.OnDraw -= OnOverlay;
-            lightguard = null;
-            shameCube = null;
         }
     }
     
@@ -85,26 +86,21 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         var man = HousingManager.Instance();
         if (man == null || !man->IsInside()) return;
         
-        lightguard = FindByPath("lightgard.mdl");
-        shameCube = FindByPath("env_room.mdl");
-    }
-
-    private static BgObject* FindByPath(string contains)
-    {
         var world = World.Instance();
         foreach (var obj in world->ChildObjects)
         {
-            if (obj->GetObjectType() == ObjectType.BgObject)
+            if (obj->GetObjectType() != ObjectType.BgObject) continue;
+            var bgObject = (BgObject*)obj;
+            var name = bgObject->ModelResourceHandle->FileName.ToString();
+            
+            if (name.Contains("lightgard.mdl", StringComparison.InvariantCultureIgnoreCase))
             {
-                var bgObject = (BgObject*)obj;
-                if (bgObject->ModelResourceHandle->FileName.ToString().Contains(contains, StringComparison.InvariantCultureIgnoreCase))
-                {
-                    return bgObject;
-                }
+                lightguard = bgObject;
+            } else if (name.Contains("env_room.mdl", StringComparison.InvariantCultureIgnoreCase))
+            {
+                shameCube = bgObject;
             }
         }
-
-        return null;
     }
 
     private void ToggleModels(bool enable = false)

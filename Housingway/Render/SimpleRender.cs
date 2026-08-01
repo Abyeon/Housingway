@@ -21,14 +21,12 @@ public class SimpleRender(PctDrawList? draw) : IDisposable
     private readonly Queue<Tri> triangles = new();
 
     private Matrix4x3 world;
-    private Matrix4x4 inverseWorld;
 
     public void AddVertex(Vector3 vertex) => vertices.Add(vertex);
     public void AddTriangle(int v1, int v2, int v3) => triangles.Enqueue(new Tri(v1, v2, v3));
     public void AddInstance(Matrix4x3 worldMat)
     {
         world = worldMat;
-        Matrix4x4.Invert(world.FullMatrix(), out inverseWorld);
     }
     
     public void Dispose()

@@ -31,7 +31,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         if (index >= 0 && index < arr.Objects.Length && index < arr.ObjectCount)
         {
             var obj = (HousingObject*)arr.Objects[index].Value;
-            Id = obj == null ? 0 : Object->GetGameObjectId().Id;
+            Id = obj == null ? 0 : obj->GetGameObjectId().Id;
         }
         else
         {
@@ -245,7 +245,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         return false;
     }
 
-    public bool IsValid => HasGraphics() && Collider != null;
+    public bool IsValid => HasGraphics() && Object != null;
 
     public bool Equals(Furniture other) => Id == other.Id;
     public override bool Equals(object? obj) => obj is Furniture other && Equals(other);
