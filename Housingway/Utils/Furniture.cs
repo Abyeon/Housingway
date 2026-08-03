@@ -1,13 +1,16 @@
 ﻿using System;
 using System.Collections.Generic;
-using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
+using FFXIVClientStructs.FFXIV.Common.Component.Excel;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using Housingway.Structs;
+using Lumina.Excel;
+using Lumina.Excel.Sheets;
+using HousingFurniture = FFXIVClientStructs.FFXIV.Client.Game.HousingFurniture;
 
 namespace Housingway.Utils;
 
@@ -15,6 +18,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
 {
     public readonly HousingFurniture* HousingFurniture;
     public readonly ulong Id;
+    public readonly HousingObjectId HousingObjectId;
 
     public Furniture(HousingFurniture* ptr)
     {
@@ -32,6 +36,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         {
             var obj = (HousingObject*)arr.Objects[index].Value;
             Id = obj == null ? 0 : obj->GetGameObjectId().Id;
+            HousingObjectId = obj->HousingObjectId;
         }
         else
         {
@@ -154,17 +159,38 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
     }
 
-
-    public Lumina.Excel.Sheets.HousingFurniture? Sheet
+    public Lumina.Excel.Sheets.HousingFurniture? FurnitureSheet
     {
         get
         {
-            var mask = Object->HousingObjectId.Type == HousingObjectType.Furniture ? 0x20000u : 0x30000u;
-            var row = mask | HousingFurniture->Id;
             var sheet = Service.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.HousingFurniture>();
-            return sheet.GetRowOrDefault(row);
+            // var mask = Object->HousingObjectId.Type == HousingObjectType.Furniture ? 0x20000 : 0x30000;
+            // var row = (uint)mask | HousingFurniture->Id;
+            return sheet.GetRowOrDefault(Object->HousingObjectId.Id);
         }
     }
+    
+    public HousingYardObject? YardSheet
+    {
+        get
+        {
+            var sheet = Service.DataManager.Excel.GetSheet<HousingYardObject>();
+            // var mask = Object->HousingObjectId.Type == HousingObjectType.Furniture ? 0x20000 : 0x30000;
+            // var row = (uint)mask | HousingFurniture->Id;
+            return sheet.GetRowOrDefault(Object->HousingObjectId.Id);
+        }
+    }
+
+    // public Lumina.Excel.Sheets.HousingFurniture? Sheet
+    // {
+    //     get
+    //     {
+    //         var mask = Object->HousingObjectId.Type == HousingObjectType.Furniture ? 0x20000 : 0x30000;
+    //         var row = (uint)mask | HousingFurniture->Id;
+    //         var sheet = Service.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.HousingFurniture>();
+    //         return sheet.GetRowOrDefault(row);
+    //     }
+    // }
     
     public float GetSnapDistance()
     {
@@ -176,7 +202,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
 
         // Object is a wall item
-        if (Sheet?.HousingItemCategory == 15)
+        if (FurnitureSheet?.HousingItemCategory == 15)
         {
             return GetTargetMarkerOffset();
         }

@@ -49,7 +49,9 @@ public class TweakManager : IDisposable
     public static void EnableTweak(ITweak tweak)
     {
         if (tweak.Enabled) return;
-
+        
+        Service.Log.Verbose($"Trying to enable Tweak {tweak.Name}");
+        
         try
         {
             tweak.Enable();
@@ -68,6 +70,8 @@ public class TweakManager : IDisposable
     public static void DisableTweak(ITweak tweak)
     {
         if (!tweak.Enabled) return;
+        
+        Service.Log.Verbose($"Trying to disable Tweak {tweak.Name}");
         
         try
         {

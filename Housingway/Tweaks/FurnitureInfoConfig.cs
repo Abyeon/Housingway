@@ -6,6 +6,7 @@ using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
+using Dalamud.Utility;
 using Dalamud.Utility.Numerics;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
@@ -95,7 +96,9 @@ public unsafe partial class FurnitureInfo
             using var _ = ImRaii.PushId(id++);
 
             var dist = Vector3.Distance(playerPos, furn.Object->Position);
-            if (ImGui.Selectable($"[{dist:F}] {furn.Object->NameString}"))
+
+            var selected = selectedFurniture.HasValue && selectedFurniture.Value.Id == furn.Id;
+            if (ImGui.Selectable($"[{dist:F}] {furn.Object->NameString}", selected))
             {
                 if (selectedFurniture is { IsValid: true })
                     furn.Object->Highlight(ObjectHighlightColor.None);
@@ -132,18 +135,33 @@ public unsafe partial class FurnitureInfo
 
         var furn = selectedFurniture.Value;
         
+        if (ImGui.Button("Open In EXDViewer", new Vector2(ImGui.GetContentRegionAvail().X, 0)))
+        {
+            switch (furn.HousingObjectId.Type)
+            {
+                case HousingObjectType.YardObject:
+                    Util.OpenLink($"https://exd.camora.dev/sheet/HousingYardObject#R{furn.YardSheet!.Value.RowId}");
+                    break;
+                case HousingObjectType.Furniture:
+                    Util.OpenLink($"https://exd.camora.dev/sheet/HousingFurniture#R{furn.FurnitureSheet!.Value.RowId}");
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
         var name = furn.Object->NameString;
         ImGui.InputText("Name", ref name, flags: ImGuiInputTextFlags.ReadOnly);
-        
-        var addr = (IntPtr)furn.Group;
-        var addrString = addr.ToString("X8");
-        ImGui.InputText("Address", ref addrString, flags: ImGuiInputTextFlags.ReadOnly);
+
+        // var addr = (IntPtr)furn.Group;
+        // var addrString = addr.ToString("X8");
+        // ImGui.InputText("Address", ref addrString, flags: ImGuiInputTextFlags.ReadOnly);
         
         var path = furn.Group->ResourceHandle->FileName.ToString();
         ImGui.InputText("Path", ref path, flags: ImGuiInputTextFlags.ReadOnly);
         
-        var housingType = furn.Object->HousingObjectId.Type.ToString();
-        ImGui.InputText("Type", ref housingType, flags: ImGuiInputTextFlags.ReadOnly);
+        // var housingType = furn.Object->HousingObjectId.Type.ToString();
+        // ImGui.InputText("Type", ref housingType, flags: ImGuiInputTextFlags.ReadOnly);
 
         if (furn.Collider != null)
         {
@@ -151,11 +169,14 @@ public unsafe partial class FurnitureInfo
             ImGui.InputText("Collision Type", ref collType, flags: ImGuiInputTextFlags.ReadOnly);
         }
 
-        var id = furn.Object->HousingObjectId.Id.ToString();
-        ImGui.InputText("ID", ref id, flags: ImGuiInputTextFlags.ReadOnly);
+        var furnitureType = furn.Object->HousingObjectId.Type.ToString();
+        ImGui.InputText("Object Type", ref furnitureType, flags: ImGuiInputTextFlags.ReadOnly);
 
-        var entry = furn.Object->HousingObjectId.EntryId.ToString();
-        ImGui.InputText("Entry", ref entry, flags: ImGuiInputTextFlags.ReadOnly);
+        // var id = furn.Object->HousingObjectId.Id.ToString();
+        // ImGui.InputText("ID", ref id, flags: ImGuiInputTextFlags.ReadOnly);
+
+        // var entry = furn.Object->HousingObjectId.EntryId.ToString();
+        // ImGui.InputText("Entry", ref entry, flags: ImGuiInputTextFlags.ReadOnly);
             
         Vector3 pos = furn.Object->Position;
         ImGui.InputFloat3($"Position", ref pos);
@@ -163,7 +184,7 @@ public unsafe partial class FurnitureInfo
         Vector4 boundSphere = new Vector4();
         furn.Group->GetBoundingSphereImpl(&boundSphere);
 
-        ImGui.InputFloat4($"Bounding Sphere", ref boundSphere);
+        // ImGui.InputFloat4($"Bounding Sphere", ref boundSphere);
 
         // var loadState = furn.Graphics->LoadState;
         // ImGui.InputByte("Load State", ref loadState, flags: ImGuiInputTextFlags.ReadOnly);
@@ -185,13 +206,13 @@ public unsafe partial class FurnitureInfo
             ImGui.ColorEdit4($"Default Stain [{defaultStain.Name.ToString()}]", ref defaultColor, ImGuiColorEditFlags.NoInputs);
         }
 
-        ImGui.Text("Properties:");
-        var props = ((StainInfoEx*)furn.Group->StainInfo)->Properties;
-        for (var i = 0; i < 8; i++)
-        {
-            var prop = props[i].ToString();
-            ImGui.InputText($"x{i}", ref prop, flags: ImGuiInputTextFlags.ReadOnly);
-        }
+        // ImGui.Text("Properties:");
+        // var props = ((StainInfoEx*)furn.Group->StainInfo)->Properties;
+        // for (var i = 0; i < 8; i++)
+        // {
+        //     var prop = props[i].ToString();
+        //     ImGui.InputText($"x{i}", ref prop, flags: ImGuiInputTextFlags.ReadOnly);
+        // }
         
         var names = Enum.GetNames<DebugView>();
         var curr = (int)Config.DebugView;

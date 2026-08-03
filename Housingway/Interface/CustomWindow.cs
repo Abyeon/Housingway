@@ -85,7 +85,14 @@ public abstract class CustomWindow : Window
             {
                 if (child.Success)
                 {
-                    Render(); // <-- Main rendering code here
+                    try
+                    {
+                        Render(); // <-- Main rendering code here
+                    }
+                    catch (Exception ex)
+                    {
+                        Service.Log.Error(ex, $"Error while trying to draw {WindowName}");
+                    }
                 }
             }
             

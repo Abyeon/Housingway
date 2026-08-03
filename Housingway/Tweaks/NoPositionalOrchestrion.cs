@@ -1,7 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Housingway.Tweaks.Base;
+using Housingway.Utils;
+using Lumina.Extensions;
+using Vector4 = FFXIVClientStructs.FFXIV.Common.Math.Vector4;
 
 namespace Housingway.Tweaks;
 
@@ -14,15 +18,54 @@ public class NoPositionalOrchestrion : BaseTweak
     public override void Enable()
     {
         Service.Framework.Update += OnUpdate;
+        HousingService.OnEnterHousingArea += OnEnterHousingArea;
+
+        if (HousingService.IsInside)
+        {
+            FindOrchestrion();
+        }
     }
 
-    private static unsafe void OnUpdate(IFramework framework)
+    private Vector3 orchestrionPosition = Vector3.Zero;
+
+    private void OnEnterHousingArea(bool indoors)
+    {
+        if (!indoors) return;
+        FindOrchestrion();
+    }
+
+    private unsafe void FindOrchestrion()
+    {
+        orchestrionPosition = Vector3.Zero;
+        
+        Service.Log.Verbose($"Searching for orchestrion.");
+        foreach (var furn in HousingService.CurrentFurniture)
+        {
+            if (furn.Object is null) continue;
+            
+            var sheet = furn.FurnitureSheet;
+            if (!sheet.HasValue) continue;
+            
+            if (sheet.Value.CustomTalk.TryGetValue(out var customTalk))
+            {
+                if (customTalk.Name.Equals("HouFurOrchestrion_00330"))
+                {
+                    orchestrionPosition = furn.Object->Position;
+                    Service.Log.Verbose($"Found orchestrion at {orchestrionPosition}");
+                    return;
+                }
+            }
+        }
+        
+        Service.Log.Verbose("Found no orchestrion.");
+    }
+
+    private unsafe void OnUpdate(IFramework framework)
     {
         SetPositional(false);
     }
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe void SetPositional(bool isPositional)
+    
+    private unsafe void SetPositional(bool isPositional)
     {
         var man = OrchestrionManager.Instance();
         if (man is null) return;
@@ -34,12 +77,22 @@ public class NoPositionalOrchestrion : BaseTweak
         
         sound->IsPositional = isPositional;
         sound->SoundController.SetIsNonPositional(!isPositional);
+
+        // Need to update the position in case we entered the house with the tweak on.
+        var position = new Vector4(orchestrionPosition.X, orchestrionPosition.Y, orchestrionPosition.Z, 1);
+        sound->SoundController.SetPosition(&position);
     }
 
     public override void Disable()
     {
         Service.Framework.Update -= OnUpdate;
-        SetPositional(true);
+        HousingService.OnEnterHousingArea -= OnEnterHousingArea;
+
+        if (HousingService.IsInside)
+        {
+            FindOrchestrion();
+            SetPositional(true);
+        }
     }
 
     public override void Dispose() { }

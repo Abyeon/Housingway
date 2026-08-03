@@ -54,6 +54,7 @@ public unsafe class HousingService : IDisposable
         if (InHousingArea)
         {
             Service.Framework.Update += OnUpdate;
+            UpdateFurniture();
             
             if (Address.TryGetAddress(out var address))
             {

@@ -55,6 +55,6 @@ public class Overlay : Window, IDisposable
         
         if (drawList == null) return;
         
-        OnDraw.Invoke(drawList);
+        OnDraw?.Invoke(drawList);
     }
 }
