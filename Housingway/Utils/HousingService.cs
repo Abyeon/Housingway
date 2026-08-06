@@ -87,16 +87,16 @@ public unsafe class HousingService : IDisposable
 
             var furniture = new Furniture(furn);
             if (furniture.Id == 0) continue;
-
-            bool exists = CurrentFurniture.Contains(furniture);
+            
+            bool exists = CurrentFurniture.Remove(furniture);
             
             if (!exists && !furniture.IsValid) continue;
 
             touched.Add(furniture.Id);
-
+            CurrentFurniture.Add(furniture);
+            
             if (exists) continue;
             
-            CurrentFurniture.Add(furniture);
             OnFurnitureAdded?.Invoke(furniture);
         }
 

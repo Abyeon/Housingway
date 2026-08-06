@@ -87,6 +87,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
     {
         foreach (Pointer<BgObject> obj in AllGraphics)
         {
+            if (obj.IsNull) continue;
             obj.Value->SetTransparency(transparency);
         }
     }
@@ -95,6 +96,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
     {
         foreach (Pointer<BgObject> obj in AllGraphics)
         {
+            if (obj.IsNull) continue;
             obj.Value->OutlineColor = color;
         }
     }
@@ -149,7 +151,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
 
             if (obj != null || obj->LoadState == 7)
             {
-                graphics.Add((BgObject*)instance->GetGraphics());
+                graphics.Add(obj);
             }
         }
 

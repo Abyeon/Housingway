@@ -8,10 +8,6 @@ namespace Housingway.Utils.Extensions;
 public enum MaterialFlag : ushort
 {
     None = 0,
-    InHousingArea = 1 << 0,
-    Unk1 = 1 << 1,
-    Unk2 = 1 << 2,
-    Unk3 = 1 << 3,
     Unk4 = 1 << 4,
     Unwalkable = 1 << 5,
     Swimmable = 1 << 6,
@@ -30,7 +26,7 @@ public enum MaterialFlag : ushort
 public enum MaterialType : sbyte
 {
     None = 0,
-    Dirt = 0x01,
+    Dirt = 0x01, // "dart" in the scd path
     Grass = 0x02,
     Sand = 0x03,
     Stone = 0x04,
@@ -38,10 +34,10 @@ public enum MaterialType : sbyte
     Metal = 0x06,
     Gravel = 0x07,
     Leaf = 0x08,
-    Sand2 = 0x09,
+    Powder = 0x09, //tentatively named until can be confirmed
     Carpet = 0x0A,
     Snow = 0x0B,
-    Unk12 = 0x0C,
+    Space = 0x0C, //tentatively named
     Water = 0x0D,
     Mesh = 0x0E,
     Sticky = 0x0F
@@ -83,12 +79,12 @@ public static unsafe class ColliderExtensions
             }
         }
         
-        public MaterialFlag GetMaterialValue()
+        public MaterialFlag GetMaterialFlag()
         {
             if (collider.IsNull) return MaterialFlag.None;
 
             ulong value = collider.GetAllMaterialValue();
-            return (MaterialFlag)((value & 0x0000FFFF));
+            return (MaterialFlag)((value & 0x0000FFF0));
         }
 
         public MaterialFlag GetMaterialMask()

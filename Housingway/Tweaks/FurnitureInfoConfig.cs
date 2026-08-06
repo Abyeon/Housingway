@@ -169,7 +169,7 @@ public unsafe partial class FurnitureInfo
             string mask = furn.Collider.GetMaterialMask().ToString();
             ImGui.InputText("Material Mask", ref mask, flags: ImGuiInputTextFlags.ReadOnly);
 
-            string value = furn.Collider.GetMaterialValue().ToString();
+            string value = furn.Collider.GetMaterialFlag().ToString();
             ImGui.InputText("Material Value", ref value, flags: ImGuiInputTextFlags.ReadOnly);
 
             string type = furn.Collider.GetMaterialType().ToString();
