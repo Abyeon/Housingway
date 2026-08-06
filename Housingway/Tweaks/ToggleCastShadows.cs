@@ -42,7 +42,7 @@ public unsafe class ToggleCastShadows : BaseTweak
         }
         else
         {
-            if (Service.GameConfig.System.TryGetUInt("ShadowLightValidType", out var maxShadows))
+            if (Service.GameConfig.System.TryGetUInt("ShadowLightValidType", out uint maxShadows))
             {
                 config->ShadowLightValidType = maxShadows switch
                 {

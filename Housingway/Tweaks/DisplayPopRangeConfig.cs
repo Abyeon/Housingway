@@ -1,12 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Numerics;
 using System.Text.Json;
 using Dalamud.Bindings.ImGui;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
-using Housingway.Structs;
 
 namespace Housingway.Tweaks;
 
@@ -35,7 +31,7 @@ public partial class DisplayPopRange
 {
     public override void DrawConfig()
     {
-        var size = Config.Size;
+        float size = Config.Size;
         if (ImGui.DragFloat("Size", ref size, 0.1f, 0.5f, 10f))
         {
             Config.Size = size;
@@ -57,8 +53,8 @@ public partial class DisplayPopRange
             Plugin.Configuration.Save();
         }
         
-        var names = Enum.GetNames<DisplayLocation>();
-        var curr = (int)Config.Display;
+        string[] names = Enum.GetNames<DisplayLocation>();
+        int curr = (int)Config.Display;
         
         if (ImGui.Combo("Display Location", ref curr, names, names.Length))
         {
@@ -66,8 +62,8 @@ public partial class DisplayPopRange
             Plugin.Configuration.Save();
         }
         
-        var typeNames = Enum.GetNames<DisplayType>();
-        var currType = (int)Config.Type;
+        string[] typeNames = Enum.GetNames<DisplayType>();
+        int currType = (int)Config.Type;
 
         if (ImGui.Combo("Display Type", ref currType, typeNames, typeNames.Length))
         {
@@ -84,7 +80,7 @@ public partial class DisplayPopRange
         if (ImGui.Button("Copy PopRanges"))
         {
             var ranges = GetPopRanges();
-            var json = JsonSerializer.Serialize(ranges, new JsonSerializerOptions { WriteIndented = true, IncludeFields = true });
+            string json = JsonSerializer.Serialize(ranges, new JsonSerializerOptions { WriteIndented = true, IncludeFields = true });
             Service.Log.Debug(json);
             ImGui.SetClipboardText(json);
         }

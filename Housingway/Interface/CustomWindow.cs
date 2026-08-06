@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
-using Dalamud.Interface;
-using Dalamud.Interface.Style;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 
@@ -44,13 +41,13 @@ public abstract class CustomWindow : Window
         
         var vec4 = Ui.GetColorVec4(!IsFocused && IsPinned ? ImGuiCol.TitleBgActive : index);
         if (IsFocused || IsPinned) vec4.W = 1; // Make titlebar opaque if the window is focused.
-        var titleCol = ImGui.ColorConvertFloat4ToU32(vec4);
+        uint titleCol = ImGui.ColorConvertFloat4ToU32(vec4);
         
         // Re-assign title bar color
         color.Push(index, titleCol);
         
         // Push custom border style
-        var borderSize = IsFocused || IsPinned ? 2f : ImGui.GetStyle().WindowBorderSize;
+        float borderSize = IsFocused || IsPinned ? 2f : ImGui.GetStyle().WindowBorderSize;
         style.Push(ImGuiStyleVar.WindowBorderSize, borderSize);
         color.Push(ImGuiCol.Border, titleCol);
         
@@ -101,8 +98,8 @@ public abstract class CustomWindow : Window
         
             if (IsFocused || IsPinned)
             {
-                var titleColor = ImGui.GetColorU32(ImGuiCol.TitleBgActive);
-                var windowBg = ImGui.GetColorU32(ImGuiCol.WindowBg, 0U);
+                uint titleColor = ImGui.GetColorU32(ImGuiCol.TitleBgActive);
+                uint windowBg = ImGui.GetColorU32(ImGuiCol.WindowBg, 0U);
             
                 var size = new Vector2
                 {
@@ -110,7 +107,7 @@ public abstract class CustomWindow : Window
                     Y = SizeConstraints.HasValue ? SizeConstraints.Value.MinimumSize.Y * GradientPercent : ImGui.GetWindowSize().Y * GradientPercent
                 };
 
-                var noDeco = (Flags & ImGuiWindowFlags.NoDecoration) == ImGuiWindowFlags.NoDecoration;
+                bool noDeco = (Flags & ImGuiWindowFlags.NoDecoration) == ImGuiWindowFlags.NoDecoration;
             
                 var position = new Vector2
                 {

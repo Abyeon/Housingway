@@ -69,7 +69,7 @@ public partial class OverrideSkybox
 
     private bool DrawSkyEditor(ref EnvState state)
     {
-        var result = false;
+        bool result = false;
         result |= DrawToggleCheckbox("Edit Sky", EnvOverride.SkyId);
         
         using (ImRaii.Disabled(!Config.Override.HasFlag(EnvOverride.SkyId)))
@@ -93,7 +93,7 @@ public partial class OverrideSkybox
 
     private bool DrawStarsEditor(ref EnvState state)
     {
-        var result = false;
+        bool result = false;
         result |= DrawToggleCheckbox("Edit Stars", EnvOverride.Stars);
 
         using var _ = ImRaii.Disabled(!Config.Override.HasFlag(EnvOverride.Stars));
@@ -113,8 +113,8 @@ public partial class OverrideSkybox
     }
     
     private bool DrawToggleCheckbox(string label, EnvOverride flag) {
-        var active = Config.Override.HasFlag(flag);
-        var toggled = ImGui.Checkbox(label, ref active);
+        bool active = Config.Override.HasFlag(flag);
+        bool toggled = ImGui.Checkbox(label, ref active);
         if (toggled)
         {
             Config.Override ^= flag;

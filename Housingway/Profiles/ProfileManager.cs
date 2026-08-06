@@ -94,7 +94,7 @@ public class ProfileManager : IAsyncDisposable
         var files = Serializer.GetDirectoryFiles("Profiles");
         var profiles = new Profile[files.Length];
 
-        for (var i = 0; i < files.Length; i++)
+        for (int i = 0; i < files.Length; i++)
         {
             var profile = await Serializer.LoadFile<Profile>(files[i].FullName);
             profiles[i] = profile;

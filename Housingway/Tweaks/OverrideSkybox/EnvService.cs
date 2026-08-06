@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using Dalamud.Hooking;
 using Dalamud.Utility.Signatures;
-using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using Housingway.Structs.Env;
 using Housingway.Utils;
 
@@ -97,7 +96,7 @@ public class EnvService : IDisposable {
 		EnvState? original = null;
 		if (HousingService.IsInside && Override != 0)
 			original = *dest;
-		var exec = envStateCopyHook.Original(dest, src);
+		IntPtr exec = envStateCopyHook.Original(dest, src);
 		if (original != null)
 			ApplyState(dest, original.Value);
 		return exec;

@@ -12,7 +12,6 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
 using Housingway.Render;
-using Housingway.Structs;
 using Housingway.Utils;
 using Pictomancy;
 
@@ -47,7 +46,7 @@ public unsafe partial class FurnitureInfo
 
     public override void DrawConfig()
     {
-        var height = ImGui.GetContentRegionAvail().Y;
+        float height = ImGui.GetContentRegionAvail().Y;
         
         if (selectedFurniture is { IsValid: true })
         {
@@ -88,16 +87,16 @@ public unsafe partial class FurnitureInfo
         if (Service.ObjectTable.LocalPlayer == null) return;
         var playerPos = Service.ObjectTable.LocalPlayer.Position;
         
-        var id = 0;
+        int id = 0;
         foreach (var furn in FilteredFurniture)
         {
             if (!furn.IsValid) continue;
 
             using var _ = ImRaii.PushId(id++);
 
-            var dist = Vector3.Distance(playerPos, furn.Object->Position);
+            float dist = Vector3.Distance(playerPos, furn.Object->Position);
 
-            var selected = selectedFurniture.HasValue && selectedFurniture.Value.Id == furn.Id;
+            bool selected = selectedFurniture.HasValue && selectedFurniture.Value.Id == furn.Id;
             if (ImGui.Selectable($"[{dist:F}] {furn.Object->NameString}", selected))
             {
                 if (selectedFurniture is { IsValid: true })
@@ -150,14 +149,14 @@ public unsafe partial class FurnitureInfo
             }
         }
 
-        var name = furn.Object->NameString;
+        string? name = furn.Object->NameString;
         ImGui.InputText("Name", ref name, flags: ImGuiInputTextFlags.ReadOnly);
 
         // var addr = (IntPtr)furn.Group;
         // var addrString = addr.ToString("X8");
         // ImGui.InputText("Address", ref addrString, flags: ImGuiInputTextFlags.ReadOnly);
         
-        var path = furn.Group->ResourceHandle->FileName.ToString();
+        string path = furn.Group->ResourceHandle->FileName.ToString();
         ImGui.InputText("Path", ref path, flags: ImGuiInputTextFlags.ReadOnly);
         
         // var housingType = furn.Object->HousingObjectId.Type.ToString();
@@ -165,11 +164,11 @@ public unsafe partial class FurnitureInfo
 
         if (furn.Collider != null)
         {
-            var collType = furn.Collider->GetColliderType().ToString();
+            string collType = furn.Collider->GetColliderType().ToString();
             ImGui.InputText("Collision Type", ref collType, flags: ImGuiInputTextFlags.ReadOnly);
         }
 
-        var furnitureType = furn.Object->HousingObjectId.Type.ToString();
+        string furnitureType = furn.Object->HousingObjectId.Type.ToString();
         ImGui.InputText("Object Type", ref furnitureType, flags: ImGuiInputTextFlags.ReadOnly);
 
         // var id = furn.Object->HousingObjectId.Id.ToString();
@@ -181,7 +180,7 @@ public unsafe partial class FurnitureInfo
         Vector3 pos = furn.Object->Position;
         ImGui.InputFloat3($"Position", ref pos);
         
-        Vector4 boundSphere = new Vector4();
+        var boundSphere = new Vector4();
         furn.Group->GetBoundingSphereImpl(&boundSphere);
 
         // ImGui.InputFloat4($"Bounding Sphere", ref boundSphere);
@@ -190,8 +189,8 @@ public unsafe partial class FurnitureInfo
         // ImGui.InputByte("Load State", ref loadState, flags: ImGuiInputTextFlags.ReadOnly);
         
         var stain = furn.Group->StainInfo;
-        var chosenIndex = stain->ChosenStainIndex;
-        var defaultIndex = stain->DefaultStainIndex;
+        byte chosenIndex = stain->ChosenStainIndex;
+        byte defaultIndex = stain->DefaultStainIndex;
 
         var stains = Service.DataManager.GetExcelSheet<Stains>();
         if (stains.TryGetRow(chosenIndex, out var chosenStain))
@@ -214,8 +213,8 @@ public unsafe partial class FurnitureInfo
         //     ImGui.InputText($"x{i}", ref prop, flags: ImGuiInputTextFlags.ReadOnly);
         // }
         
-        var names = Enum.GetNames<DebugView>();
-        var curr = (int)Config.DebugView;
+        string[] names = Enum.GetNames<DebugView>();
+        int curr = (int)Config.DebugView;
         
         if (ImGui.Combo("Debug Drawing", ref curr, names, names.Length))
         {
@@ -295,7 +294,7 @@ public unsafe partial class FurnitureInfo
 
         if (drawList is null) return;
         
-        var radius = furn.GetSnapDistance();
+        float radius = furn.GetSnapDistance();
         Service.Log.Debug(radius.ToString(CultureInfo.InvariantCulture));
         
         drawList.AddSphere(pos, radius, 0x0C5CFF5C);
@@ -337,7 +336,7 @@ public unsafe partial class FurnitureInfo
                     using var render = new SimpleRender(drawList);
                     render.AddInstance(world);
 
-                    for (var i = 0; i < node->NumVertsRaw + node->NumVertsCompressed; ++i)
+                    for (int i = 0; i < node->NumVertsRaw + node->NumVertsCompressed; ++i)
                         render.AddVertex(node->Vertex(i));
 
                     foreach (ref var prim in node->Primitives)
@@ -374,7 +373,7 @@ public unsafe partial class FurnitureInfo
         if (drawList is null) return;
         
         var pos = new Vector3(boundSphere.X, boundSphere.Y, boundSphere.Z);
-        var radius = boundSphere.W + Service.ObjectTable.LocalPlayer.HitboxRadius;
+        float radius = boundSphere.W + Service.ObjectTable.LocalPlayer.HitboxRadius;
 
         Vector4 fillColor = new(0.4f, 0.1f, 1f, 0.35f);
         drawList.AddSphere(pos, radius, ImGui.ColorConvertFloat4ToU32(fillColor));

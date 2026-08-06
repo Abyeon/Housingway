@@ -1,7 +1,6 @@
 ﻿using System;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Windowing;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using Housingway.Utils;
 using Pictomancy;
 

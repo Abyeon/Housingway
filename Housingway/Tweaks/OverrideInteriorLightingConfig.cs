@@ -1,7 +1,4 @@
 ﻿using Dalamud.Bindings.ImGui;
-using Dalamud.Interface.Colors;
-using Dalamud.Interface.Components;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Housingway.Interface;
 using Housingway.Utils;
@@ -17,7 +14,7 @@ public partial class OverrideInteriorLighting
 {
     public override void DrawConfig()
     {
-        var light = Config.Light;
+        float light = Config.Light;
         if (Ui.SliderWithDefault("Light", ref light, 0, 1, InitialValue))
         {
             Config.Light = light;

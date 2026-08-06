@@ -21,9 +21,9 @@ public class SetTextureSelect(ITextureProvider texture)
     {
         using var id = ImRaii.PushId($"##TexSelect_{name}");
 
-        var result = false;
+        bool result = false;
 
-        var path = resolve.Invoke(value);
+        string path = resolve.Invoke(value);
         var img = texture.GetFromGame(path);
         if (DrawButton(value, img, ButtonSize))
             OpenPopup(name, resolve);
@@ -40,8 +40,8 @@ public class SetTextureSelect(ITextureProvider texture)
 
     public static bool InputUint(string label, ref uint value)
     {
-        var intValue = (int)value;
-        var result = ImGui.InputInt(label, ref intValue, 1);
+        int intValue = (int)value;
+        bool result = ImGui.InputInt(label, ref intValue, 1);
         if (result) value = (uint)intValue;
         return result;
     }
@@ -103,8 +103,8 @@ public class SetTextureSelect(ITextureProvider texture)
 
         _opening = false;
 
-        var i = 0;
-        var result = false;
+        int i = 0;
+        bool result = false;
         foreach (var option in Options.Get())
         {
             if (i++ % 6 != 0 && i > 1) ImGui.SameLine();
@@ -139,7 +139,7 @@ public class SetTextureSelect(ITextureProvider texture)
                                    .Select(i => (uint)i)
                                    .Select(i =>
                                    {
-                                       var path = resolve.Invoke(i);
+                                       string path = resolve.Invoke(i);
                                        var icon = tex.GetFromGame(path);
                                        if (icon == null && i > 0) return null;
                                        return new Option
@@ -170,7 +170,7 @@ public class SetTextureSelect(ITextureProvider texture)
             t.Start();
             foreach (var chunk in values.Chunk(5))
             {
-                var time = t.Elapsed.TotalMilliseconds;
+                double time = t.Elapsed.TotalMilliseconds;
                 lock (List)
                 {
                     if (token.IsCancellationRequested) break;

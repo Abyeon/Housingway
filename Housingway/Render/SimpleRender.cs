@@ -45,7 +45,7 @@ public class SimpleRender(PctDrawList? draw) : IDisposable
             var edge2 = v3 - v1;
             var normal = Vector3.Normalize(Vector3.Cross(edge1, edge2));
                         
-            var incline = Vector3.Dot(normal, Vector3.UnitY);
+            float incline = Vector3.Dot(normal, Vector3.UnitY);
 
             var inclineColor = incline switch
             {
@@ -55,7 +55,7 @@ public class SimpleRender(PctDrawList? draw) : IDisposable
             };
             
             // A bit expensive to do every frame, need to actually build and save meshes with their colors.
-            var diffuseFactor = Math.Max(0.5f, Vector3.Dot(normal, -Vector3.UnitX with { Y = 0.5f })) + 0.3f;
+            float diffuseFactor = Math.Max(0.5f, Vector3.Dot(normal, -Vector3.UnitX with { Y = 0.5f })) + 0.3f;
             inclineColor = (inclineColor * Vector4.One * diffuseFactor) with { W = 1f };
 
             draw.AddTriangleFilled(v1, v3, v2, ImGui.ColorConvertFloat4ToU32(inclineColor));

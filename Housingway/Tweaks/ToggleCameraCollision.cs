@@ -1,9 +1,6 @@
 ﻿using System;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
-using Scene = Housingway.Utils.Scene;
-using Vector3 = System.Numerics.Vector3;
-using Vector4 = System.Numerics.Vector4;
 
 namespace Housingway.Tweaks;
 
@@ -81,12 +78,12 @@ public unsafe partial class ToggleCameraCollision : BaseTweak
     //     return perpDistSq <= (thicknessRadius * thicknessRadius);
     // }
 
-    private void OnFurnitureAdded(Furniture furniture)
+    private static void OnFurnitureAdded(Furniture furniture)
     {
         DisableCameraCollision(furniture);
     }
     
-    private void UpdateFurniture(bool enabled = false)
+    private static void UpdateFurniture(bool enabled = false)
     {
         if (!HousingService.IsInside) return;
 

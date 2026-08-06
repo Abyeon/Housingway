@@ -5,10 +5,8 @@ using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
-using FFXIVClientStructs.FFXIV.Common.Component.Excel;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using Housingway.Structs;
-using Lumina.Excel;
 using Lumina.Excel.Sheets;
 using HousingFurniture = FFXIVClientStructs.FFXIV.Client.Game.HousingFurniture;
 
@@ -31,7 +29,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
 
         var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-        var index = HousingFurniture->Index;
+        int index = HousingFurniture->Index;
         if (index >= 0 && index < arr.Objects.Length && index < arr.ObjectCount)
         {
             var obj = (HousingObject*)arr.Objects[index].Value;
@@ -50,7 +48,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         {
             // if (!HousingService.InHousingArea) return null;
             var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-            var index = HousingFurniture->Index;
+            int index = HousingFurniture->Index;
             if (index < 0) return null;
             if (index >= arr.Objects.Length || index >= arr.ObjectCount) return null;
             return (HousingObject*)arr.Objects[HousingFurniture->Index].Value;
@@ -123,7 +121,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
 
             if (all.Count == 0) return null;
 
-            foreach (var obj in all)
+            foreach (IntPtr obj in all)
             {
                 var graphics = (BgObject*)obj;
                 if (graphics == null || graphics->LoadState == 7) continue;
@@ -214,7 +212,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         Graphics->ComputeAxisAlignedBounds(&aabb);
             
         var size = aabb.Max - aabb.Min;
-        var min = MathF.Min(MathF.Abs(size.X), MathF.Abs(size.Z));
+        float min = MathF.Min(MathF.Abs(size.X), MathF.Abs(size.Z));
         return min / 2;
     }
 
@@ -222,8 +220,8 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
     {
         if (Group == null || Group->Instances.Instances.Count == 0) return 0;
 
-        var max = float.MinValue;
-        var found = false;
+        float max = float.MinValue;
+        bool found = false;
 
         var pos = Object->Position;
         
@@ -239,7 +237,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
                 found = true;
 
                 var transform = *instance->GetTransformImpl();
-                var distance = Vector2.Distance(
+                float distance = Vector2.Distance(
                     new Vector2(pos.X, pos.Z),
                     new Vector2(transform.Translation.X, transform.Translation.Z));
                 

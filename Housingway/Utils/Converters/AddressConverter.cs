@@ -9,13 +9,13 @@ public class AddressConverter : JsonConverter<Address>
 {
     public override Address Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var propertyName = reader.GetString();
+        string? propertyName = reader.GetString();
         if (propertyName is null)
         {
             throw new JsonException("Ran into null value when trying to read property name.");
         }
         
-        var parts = propertyName.Split('_');
+        string[] parts = propertyName.Split('_');
         return new Address(uint.Parse(parts[0]), uint.Parse(parts[1]), sbyte.Parse(parts[2]), sbyte.Parse(parts[3]), short.Parse(parts[4]));
     }
 

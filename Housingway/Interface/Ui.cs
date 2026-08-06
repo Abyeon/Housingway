@@ -25,8 +25,8 @@ public static class Ui
         
         var rectMin = ImGui.GetItemRectMin();
         var rectMax = ImGui.GetItemRectMax();
-        var sliderWidth = rectMax.X - rectMin.X;
-        var defaultValuePos = rectMin.X + (sliderWidth * ((defaultValue - min) / (max - min)));
+        float sliderWidth = rectMax.X - rectMin.X;
+        float defaultValuePos = rectMin.X + (sliderWidth * ((defaultValue - min) / (max - min)));
 
         var draw = ImGui.GetWindowDrawList();
         draw.AddLine(
@@ -126,7 +126,7 @@ public static class Ui
     public static void RightAlignCursorForButton(ImU8String label)
     {
         var buttonSize = ImGui.CalcTextSize(label) + (ImGui.GetStyle().FramePadding * 2) + (ImGui.GetStyle().ItemSpacing * 2);
-        var space = ImGui.GetContentRegionAvail().X - buttonSize.X;
+        float space = ImGui.GetContentRegionAvail().X - buttonSize.X;
         ImGui.Dummy(new Vector2(space, 0));
         ImGui.SameLine();
     }
@@ -139,7 +139,7 @@ public static class Ui
 
     public static bool CtrlButton(ImU8String label, string hoverLabel = "Hold Ctrl to enable.", Vector2 size = default)
     {
-        var ctrl = ImGui.GetIO().KeyCtrl;
+        bool ctrl = ImGui.GetIO().KeyCtrl;
         using var _ = ImRaii.Disabled(!ctrl);
         if (ImGui.Button(label, size))
         {
@@ -156,7 +156,7 @@ public static class Ui
     
     public static bool CtrlSelectable(ImU8String label, string hoverLabel = "Hold Ctrl to enable.")
     {
-        var ctrl = ImGui.GetIO().KeyCtrl;
+        bool ctrl = ImGui.GetIO().KeyCtrl;
         using var _ = ImRaii.Disabled(!ctrl);
         if (ImGui.Selectable(label))
         {
@@ -189,7 +189,7 @@ public static class Ui
             X = leftOfText.X + ImGui.CalcTextSize(text).X + (padding * 2)
         };
         
-        var width = ImGui.GetWindowWidth();
+        float width = ImGui.GetWindowWidth();
         
         draw.AddLine(leftOfText, leftOfText with { X = leftOfText.X - width }, lineColor);
         draw.AddLine(rightOfText, rightOfText with { X = rightOfText.X + width }, lineColor);
@@ -197,32 +197,32 @@ public static class Ui
     
     public static void CenteredTextWithLine(ImU8String text, uint lineColor, float padding = 5f)
     {
-        var textColor = ImGui.GetColorU32(ImGuiCol.Text);
+        uint textColor = ImGui.GetColorU32(ImGuiCol.Text);
         CenteredTextWithLine(textColor, text, lineColor, padding);
     }
 
     public static void CenteredTextWrapped(ImU8String text)
     {
-        var wrapWidth = ImGui.GetContentRegionAvail().X;
+        float wrapWidth = ImGui.GetContentRegionAvail().X;
         
         var span = text.Span;
 
-        var start = 0;
-        var end = span.Length;
+        int start = 0;
+        int end = span.Length;
 
         var font = ImGui.GetFont();
-        var scale = ImGui.GetFontSize() / font.FontSize;
+        float scale = ImGui.GetFontSize() / font.FontSize;
 
         while (start < end)
         {
             var remaining = span.Slice(start, end - start);
-            var wrapPos = ImGui.CalcWordWrapPositionA(font, scale, remaining, wrapWidth);
-            var length = wrapPos <= 0 || wrapPos >= remaining.Length ? remaining.Length : wrapPos;
+            int wrapPos = ImGui.CalcWordWrapPositionA(font, scale, remaining, wrapWidth);
+            int length = wrapPos <= 0 || wrapPos >= remaining.Length ? remaining.Length : wrapPos;
 
             var currLine = remaining[..length];
             var size = ImGui.CalcTextSize(currLine);
             
-            var indent = (wrapWidth - size.X) * 0.5f;
+            float indent = (wrapWidth - size.X) * 0.5f;
             if (indent > 0)
                 ImGui.SetCursorPosX(ImGui.GetCursorPosX() + indent);
             
@@ -242,12 +242,12 @@ public static class Ui
     {
         using var id = ImRaii.PushId(label);
 
-        var locale = Service.ClientState.ClientLanguage.ToCode();
-        var fontFamily = font.FontId.Family.GetLocalizedName(locale);
-        var fontStyle = font.FontId.GetLocalizedName(locale);
+        string locale = Service.ClientState.ClientLanguage.ToCode();
+        string fontFamily = font.FontId.Family.GetLocalizedName(locale);
+        string fontStyle = font.FontId.GetLocalizedName(locale);
         fontStyle = fontStyle.Equals(fontFamily) ? "" : $" - {fontStyle}";
 
-        var buttonText = $"{fontFamily}{fontStyle} ({font.SizePt}pt)";
+        string buttonText = $"{fontFamily}{fontStyle} ({font.SizePt}pt)";
         if (!ImGui.Button($"{buttonText}##{label}"))
             return null;
 
@@ -264,14 +264,14 @@ public static class Ui
     private static unsafe void SetHovered(string id, bool hovered)
     {
         var storage = ImGuiNative.GetStateStorage();
-        var key = ImGui.GetID(id);
+        uint key = ImGui.GetID(id);
         ImGuiNative.SetBool(storage, key, Convert.ToByte(hovered));
     }
 
     public static unsafe bool Hovered(string id)
     {
         var storage = ImGuiNative.GetStateStorage();
-        var key = ImGui.GetID(id);
+        uint key = ImGui.GetID(id);
         return Convert.ToBoolean(ImGuiNative.GetBool(storage, key, Convert.ToByte(false)));
     }
 
@@ -331,7 +331,7 @@ public static class Ui
             var storage = ImGui.GetStateStorage();
             key = ImGui.GetID($"{Id}Dropdown");
             
-            ref var open = ref storage.GetBoolRef(key);
+            ref bool open = ref storage.GetBoolRef(key);
             
             draw = ImGui.GetWindowDrawList();
             draw.Splitter.Split(draw, 3);
@@ -347,7 +347,7 @@ public static class Ui
         public void Dispose()
         {
             var storage = ImGui.GetStateStorage();
-            ref var open = ref storage.GetBoolRef(key);
+            ref bool open = ref storage.GetBoolRef(key);
             
             draw.Splitter.SetCurrentChannel(draw, 1);
             
@@ -364,8 +364,8 @@ public static class Ui
             var icon = open ? FontAwesomeIcon.ArrowUp : FontAwesomeIcon.ArrowDown;
             
             var iconSize = ImGui.CalcTextSize(icon.ToIconString());
-            var width = iconSize.X + (ImGui.GetStyle().FramePadding.X * 2);
-            var height = ImGui.GetFrameHeightWithSpacing();
+            float width = iconSize.X + (ImGui.GetStyle().FramePadding.X * 2);
+            float height = ImGui.GetFrameHeightWithSpacing();
             
             ImGuiHelpers.CenterCursorFor(width);
             var buttonPos = ImGui.GetCursorScreenPos();
@@ -457,9 +457,9 @@ public static class Ui
 
             var min = StartPos + Margin with { Y = Margin.X };
             var max = EndPos + Margin with { X = Margin.Y + ImGui.GetContentRegionAvail().X };
-            var color = ImGui.GetColorU32(ImGuiCol.FrameBg, 0.25f);
-            var color1 = ImGui.GetColorU32(ImGuiCol.FrameBg, 0f); // Used for gradient
-            var lineColor = ImGui.GetColorU32(ImGuiCol.Tab);
+            uint color = ImGui.GetColorU32(ImGuiCol.FrameBg, 0.25f);
+            uint color1 = ImGui.GetColorU32(ImGuiCol.FrameBg, 0f); // Used for gradient
+            uint lineColor = ImGui.GetColorU32(ImGuiCol.Tab);
             
             if (ImGui.IsMouseHoveringRect(min, max) && ImGui.IsItemHovered(ImGuiHoveredFlags.AllowWhenDisabled))
             {

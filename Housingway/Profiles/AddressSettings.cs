@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Housingway.Utils;
 
@@ -17,15 +18,7 @@ public class AddressSettings
         }
 
         var allProfiles = await ProfileManager.GetAllProfiles();
-        foreach (var item in allProfiles)
-        {
-            if (item.Id == guid)
-            {
-                return item;
-            }
-        }
-
-        return null;
+        return allProfiles.FirstOrDefault(item => item.Id == guid);
     }
 
     public void Save() => Task.Run(async () => await SaveAsync());

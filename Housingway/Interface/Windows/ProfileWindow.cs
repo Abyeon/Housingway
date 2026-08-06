@@ -1,5 +1,4 @@
 ﻿using System;
-using System.IO;
 using System.Linq;
 using System.Numerics;
 using System.Threading.Tasks;
@@ -8,7 +7,6 @@ using Dalamud.Interface;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Components;
 using Dalamud.Interface.ImGuiFileDialog;
-using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Housingway.Config;
@@ -54,7 +52,7 @@ public class ProfileWindow : CustomWindow, IDisposable
     public override void OnOpen() => Task.Run(async () => await BuildProfileList());
     public override void OnClose() => LoadedProfiles = [];
 
-    public async Task BuildProfileList()
+    private async Task BuildProfileList()
     {
         IsBuilding = true;
         LoadedProfiles = await ProfileManager.GetAllProfiles();
@@ -79,7 +77,7 @@ public class ProfileWindow : CustomWindow, IDisposable
         
         if (IsBuilding)
         {
-            var spinner = "|/-\\"[(int)(ImGui.GetTime() / 0.05f) & 3];
+            char spinner = "|/-\\"[(int)(ImGui.GetTime() / 0.05f) & 3];
             ImGui.Text($"Loading {spinner}");
             return;
         }
@@ -127,7 +125,7 @@ public class ProfileWindow : CustomWindow, IDisposable
             ImGui.SetTooltip("Load the default profile.");
         }
         
-        var name = "";
+        string name = "";
         if (Ui.AddTextConfirmationPopup("CreateProfile", "Create a new profile with the name: ", ref name))
         {
             Task.Run(async () =>
@@ -147,11 +145,11 @@ public class ProfileWindow : CustomWindow, IDisposable
             });
         }
         
-        var id = 0;
+        int id = 0;
         foreach (var profile in LoadedProfiles)
         {
             using var _ = ImRaii.PushId(id++);
-            var currentlySelected = ProfileManager.Profile != null && ProfileManager.Profile.Id == profile.Id;
+            bool currentlySelected = ProfileManager.Profile != null && ProfileManager.Profile.Id == profile.Id;
             
             if (ImGuiComponents.IconButton(FontAwesomeIcon.Trash))
             {

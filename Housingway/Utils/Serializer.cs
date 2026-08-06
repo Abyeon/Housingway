@@ -3,7 +3,6 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 using Housingway.Utils.Converters;
@@ -29,9 +28,9 @@ public static class Serializer
     /// <typeparam name="T">Type to compress</typeparam>
     public static void CompressToClipboard<T>(T data)
     {
-        var json = JsonSerializer.Serialize(data, Options);
-        var compressed = Compress(json);
-        var base64 = Convert.ToBase64String(compressed);
+        string json = JsonSerializer.Serialize(data, Options);
+        byte[] compressed = Compress(json);
+        string base64 = Convert.ToBase64String(compressed);
         
         Service.ChatGui.Print($"Copied {compressed.Length} bytes to clipboard.");
         
@@ -73,11 +72,11 @@ public static class Serializer
     /// <exception cref="NullReferenceException">Throws if clipboard is empty</exception>
     public static T? DecompressFromClipboard<T>()
     {
-        var data = ImGui.GetClipboardText();
+        string data = ImGui.GetClipboardText();
         if (string.IsNullOrEmpty(data)) throw new NullReferenceException("Clipboard text is empty");
         
-        var bytes = Convert.FromBase64String(data);
-        var decompressed = Decompress(bytes);
+        byte[] bytes = Convert.FromBase64String(data);
+        string decompressed = Decompress(bytes);
         
         return JsonSerializer.Deserialize<T>(decompressed, Options);
     }
@@ -89,7 +88,7 @@ public static class Serializer
     /// <returns></returns>
     public static byte[] Compress(string text)
     {
-        var buffer = Encoding.UTF8.GetBytes(text);
+        byte[] buffer = Encoding.UTF8.GetBytes(text);
         
         using var memory = new MemoryStream();
         using (var brotli = new BrotliStream(memory, CompressionLevel.SmallestSize))
@@ -129,7 +128,7 @@ public static class Serializer
         {
             try
             {
-                var text = await Service.ReliableFileStorage.ReadAllTextAsync(file.FullName);
+                string text = await Service.ReliableFileStorage.ReadAllTextAsync(file.FullName);
                 var data = JsonSerializer.Deserialize<T>(text, Options);
 
                 if (data is null)
@@ -165,7 +164,7 @@ public static class Serializer
                 throw new NullReferenceException("Data is null");
             }
 
-            var text = JsonSerializer.Serialize(data, Options);
+            string text = JsonSerializer.Serialize(data, Options);
             await Service.ReliableFileStorage.WriteAllTextAsync(path, text);
         }
         catch (Exception e)
@@ -230,7 +229,7 @@ public static class Serializer
     public static DirectoryInfo GetDirectory(params string[] path)
     {
         var directory = Plugin.PluginInterface.ConfigDirectory;
-        foreach (var dir in path)
+        foreach (string dir in path)
         {
             directory = new DirectoryInfo(Path.Combine(directory.FullName, dir));
             if (!directory.Exists)

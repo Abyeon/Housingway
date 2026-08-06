@@ -14,8 +14,8 @@ public partial class HighlightPhasedObjects
 {
     public override void DrawConfig()
     {
-        var names = Enum.GetNames<ObjectHighlightColor>();
-        var curr = (int)Config.HighlightColor;
+        string[] names = Enum.GetNames<ObjectHighlightColor>();
+        int curr = (int)Config.HighlightColor;
 
         if (ImGui.Combo("Highlight Color", ref curr, names, names.Length))
         {

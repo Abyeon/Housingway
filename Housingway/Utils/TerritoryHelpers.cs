@@ -20,7 +20,7 @@ public static class TerritoryHelpers
             var character = Service.ObjectTable.LocalPlayer;
             if (character != null && manager->CurrentTerritory != null)
             {
-                var territoryType = manager->IndoorTerritory != null
+                uint territoryType = manager->IndoorTerritory != null
                                         ? manager->IndoorTerritory->HouseId.TerritoryTypeId
                                         : Service.ClientState.TerritoryType;
 

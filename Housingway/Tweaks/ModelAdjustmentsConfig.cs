@@ -1,8 +1,5 @@
 ﻿using System.Diagnostics;
-using System.Numerics;
 using Dalamud.Bindings.ImGui;
-using FFXIVClientStructs.FFXIV.Client.Game.Control;
-using Pictomancy;
 
 namespace Housingway.Tweaks;
 
@@ -17,7 +14,7 @@ public unsafe partial class ModelAdjustments
 {
     public override void DrawConfig()
     {
-        var guard = Config.DisableLightguard;
+        bool guard = Config.DisableLightguard;
         if (ImGui.Checkbox("Disable Lightguard", ref guard))
         {
             Config.DisableLightguard = guard;
@@ -25,7 +22,7 @@ public unsafe partial class ModelAdjustments
             Plugin.Configuration.Save();
         }
         
-        var cube = Config.DisableShameCube;
+        bool cube = Config.DisableShameCube;
         if (ImGui.Checkbox("Disable ShameCube", ref cube))
         {
             Config.DisableShameCube = cube;
@@ -33,7 +30,7 @@ public unsafe partial class ModelAdjustments
             Plugin.Configuration.Save();
         }
 
-        var limit = Config.ShowBuildLimit;
+        bool limit = Config.ShowBuildLimit;
         if (ImGui.Checkbox("Show Build Limit When Camera Near", ref limit))
         {
             Config.ShowBuildLimit = limit;
@@ -46,8 +43,8 @@ public unsafe partial class ModelAdjustments
     [Conditional("DEBUG")]
     private void Debug()
     {
-        var guard = lightguard is null ? "Null" : lightguard->ModelResourceHandle->FileName.ToString();
-        var cube = shameCube is null ? "Null" : shameCube->ModelResourceHandle->FileName.ToString();
+        string guard = lightguard is null ? "Null" : lightguard->ModelResourceHandle->FileName.ToString();
+        string cube = shameCube is null ? "Null" : shameCube->ModelResourceHandle->FileName.ToString();
         
         ImGui.InputText("Lightguard", ref guard, flags: ImGuiInputTextFlags.ReadOnly);
         ImGui.InputText("ShameCube", ref cube, flags: ImGuiInputTextFlags.ReadOnly);

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Housingway.Profiles;
@@ -91,7 +90,7 @@ public unsafe class HousingService : IDisposable
             var furniture = new Furniture(ptr);
             if (furniture.Id == 0) continue;
 
-            var exists = CurrentFurniture.Contains(furniture);
+            bool exists = CurrentFurniture.Contains(furniture);
             
             if (!exists && !furniture.IsValid) continue;
 

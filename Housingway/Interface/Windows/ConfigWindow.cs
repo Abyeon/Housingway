@@ -138,7 +138,7 @@ public class ConfigWindow : CustomWindow, IDisposable
         {
             ImGui.PushID(id++);
 
-            var enabled = tweak.Enabled;
+            bool enabled = tweak.Enabled;
             if (ImGui.Checkbox($"###{nameof(tweak)}", ref enabled))
             {
                 if (enabled) TweakManager.EnableTweak(tweak);
@@ -160,7 +160,7 @@ public class ConfigWindow : CustomWindow, IDisposable
     {
         ImGui.Spacing();
 
-        var color = ImGui.GetColorU32(ImGuiCol.TabActive);
+        uint color = ImGui.GetColorU32(ImGuiCol.TabActive);
         
         Ui.CenteredTextWithLine(tweak.Name, color);
         
@@ -250,8 +250,8 @@ public class ConfigWindow : CustomWindow, IDisposable
         }
 
         // Version + Last Updated display
-        var version = $"v{Plugin.PluginInterface.Manifest.AssemblyVersion.ToString()}";
-        var author = $"made by {Plugin.PluginInterface.Manifest.Author}";
+        string version = $"v{Plugin.PluginInterface.Manifest.AssemblyVersion.ToString()}";
+        string author = $"made by {Plugin.PluginInterface.Manifest.Author}";
         ImGuiHelpers.CenterCursorForText(version + author);
         ImGui.Text(version);
         ImGui.SameLine();

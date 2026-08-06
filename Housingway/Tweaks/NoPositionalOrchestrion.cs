@@ -1,10 +1,8 @@
 ﻿using System.Numerics;
-using System.Runtime.CompilerServices;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
-using Lumina.Extensions;
 using Vector4 = FFXIVClientStructs.FFXIV.Common.Math.Vector4;
 
 namespace Housingway.Tweaks;

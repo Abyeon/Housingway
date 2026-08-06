@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
-using Housingway.Structs;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
 using Pictomancy;
+using PopRangeLayoutInstance = Housingway.Structs.PopRangeLayoutInstance;
 
 namespace Housingway.Tweaks;
 
@@ -51,7 +51,7 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
             OccludedAlpha = 0.1f
         };
 
-        var color = ImGui.ColorConvertFloat4ToU32(Config.Color);
+        uint color = ImGui.ColorConvertFloat4ToU32(Config.Color);
         foreach (var range in ranges)
         {
             switch (Config.Type)
@@ -80,11 +80,11 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
 
         List<PopRange> ranges = [];
         
-        foreach (var (_, layerPtr) in active->Layers)
+        foreach ((ushort _, var layerPtr) in active->Layers)
         {
             var layer = layerPtr.Value;
             if (layer == null) continue;
-            foreach (var (_, instancePtr) in layer->Instances)
+            foreach ((uint _, var instancePtr) in layer->Instances)
             {
                 var instance = instancePtr.Value;
                 if (instance == null) continue;
@@ -119,10 +119,10 @@ public readonly unsafe struct PopRange
         Translation = *((ILayoutInstance*)instance)->GetTranslationImpl();
         RelativePositions = instance->RelativePositions.ToArray();
         
-        var largestDistance = float.MinValue;
+        float largestDistance = float.MinValue;
         foreach (var pos in RelativePositions)
         {
-            var distSq = pos.LengthSquared();
+            float distSq = pos.LengthSquared();
             if (distSq > largestDistance)
             {
                 largestDistance = distSq;

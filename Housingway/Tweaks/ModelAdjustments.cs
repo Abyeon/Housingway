@@ -91,7 +91,7 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         {
             if (obj->GetObjectType() != ObjectType.BgObject) continue;
             var bgObject = (BgObject*)obj;
-            var name = bgObject->ModelResourceHandle->FileName.ToString();
+            string name = bgObject->ModelResourceHandle->FileName.ToString();
             
             if (name.Contains("lightgard.mdl", StringComparison.InvariantCultureIgnoreCase))
             {
