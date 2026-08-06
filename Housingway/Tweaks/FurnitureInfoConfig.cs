@@ -46,6 +46,11 @@ public unsafe partial class FurnitureInfo
     public override void DrawConfig()
     {
         float height = ImGui.GetContentRegionAvail().Y;
+
+        if (selectedFurniture.HasValue && !HousingService.CurrentFurniture.Contains(selectedFurniture.Value))
+        {
+            selectedFurniture = null;
+        }
         
         if (selectedFurniture is { IsValid: true })
         {
@@ -200,22 +205,25 @@ public unsafe partial class FurnitureInfo
         // ImGui.InputByte("Load State", ref loadState, flags: ImGuiInputTextFlags.ReadOnly);
         
         var stain = furn.Group.Value->StainInfo;
-        byte chosenIndex = stain->ChosenStainIndex;
-        byte defaultIndex = stain->DefaultStainIndex;
-
-        var stains = Service.DataManager.GetExcelSheet<Stains>();
-        if (stains.TryGetRow(chosenIndex, out var chosenStain))
+        if (stain != null)
         {
-            var chosenColor = UintToVector4(chosenStain.Color);
-            ImGui.ColorEdit4($"Chosen Stain [{chosenStain.Name.ToString()}]", ref chosenColor, ImGuiColorEditFlags.NoInputs);
-        }
+            byte chosenIndex = stain->ChosenStainIndex;
+            byte defaultIndex = stain->DefaultStainIndex;
 
-        if (stains.TryGetRow(defaultIndex, out var defaultStain))
-        {
-            var defaultColor = UintToVector4(defaultStain.Color);
-            ImGui.ColorEdit4($"Default Stain [{defaultStain.Name.ToString()}]", ref defaultColor, ImGuiColorEditFlags.NoInputs);
-        }
+            var stains = Service.DataManager.GetExcelSheet<Stains>();
+            if (stains.TryGetRow(chosenIndex, out var chosenStain))
+            {
+                var chosenColor = UintToVector4(chosenStain.Color);
+                ImGui.ColorEdit4($"Chosen Stain [{chosenStain.Name.ToString()}]", ref chosenColor, ImGuiColorEditFlags.NoInputs);
+            }
 
+            if (stains.TryGetRow(defaultIndex, out var defaultStain))
+            {
+                var defaultColor = UintToVector4(defaultStain.Color);
+                ImGui.ColorEdit4($"Default Stain [{defaultStain.Name.ToString()}]", ref defaultColor, ImGuiColorEditFlags.NoInputs);
+            }
+        }
+        
         // ImGui.Text("Properties:");
         // var props = ((StainInfoEx*)furn.Group->StainInfo)->Properties;
         // for (var i = 0; i < 8; i++)
@@ -252,10 +260,9 @@ public unsafe partial class FurnitureInfo
             
         foreach (var child in furn.Group.Value->Instances.Instances)
         {
-            var ptr = child.Value;
-            if (ptr == null) continue;
+            if (child.IsNull) continue;
 
-            var instance = ptr->Instance;
+            var instance = child.Value->Instance;
             if (instance == null) continue;
 
             var type = instance->Id.Type;
