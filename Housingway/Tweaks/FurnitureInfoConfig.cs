@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Colors;
 using Dalamud.Interface.Utility;
@@ -13,12 +14,10 @@ using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision.Math;
 using Housingway.Render;
 using Housingway.Utils;
+using Housingway.Utils.Extensions;
 using Pictomancy;
 
 using Stains = Lumina.Excel.Sheets.Stain;
-using Vector2 = System.Numerics.Vector2;
-using Vector3 = System.Numerics.Vector3;
-using Vector4 = System.Numerics.Vector4;
 
 namespace Housingway.Tweaks;
 
@@ -42,7 +41,7 @@ public unsafe partial class FurnitureInfo
 
     private string search = string.Empty;
 
-    private IEnumerable<Furniture> FilteredFurniture => HousingService.CurrentFurniture.Where(x => x.Object is not null && x.Object->NameString.Contains(search, StringComparison.InvariantCultureIgnoreCase));
+    private IEnumerable<Furniture> FilteredFurniture => HousingService.CurrentFurniture.Where(x => !x.Object.IsNull && x.Object.Value->NameString.Contains(search, StringComparison.InvariantCultureIgnoreCase));
 
     public override void DrawConfig()
     {
@@ -94,32 +93,32 @@ public unsafe partial class FurnitureInfo
 
             using var _ = ImRaii.PushId(id++);
 
-            float dist = Vector3.Distance(playerPos, furn.Object->Position);
+            float dist = Vector3.Distance(playerPos, furn.Object.Value->Position);
 
             bool selected = selectedFurniture.HasValue && selectedFurniture.Value.Id == furn.Id;
-            if (ImGui.Selectable($"[{dist:F}] {furn.Object->NameString}", selected))
+            if (ImGui.Selectable($"[{dist:F}] {furn.Object.Value->NameString}", selected))
             {
                 if (selectedFurniture is { IsValid: true })
-                    furn.Object->Highlight(ObjectHighlightColor.None);
+                    furn.Object.Value->Highlight(ObjectHighlightColor.None);
                 
                 selectedFurniture = furn;
-                furn.Object->Highlight(ObjectHighlightColor.Magenta);
+                furn.Object.Value->Highlight(ObjectHighlightColor.Magenta);
             }
 
             bool hovered = ImGui.IsItemHovered();
             if (hovered)
             {
-                DrawLineToGamePos(furn.Object->Position, ImGuiColors.DalamudViolet.ToByteColor().RGBA);
+                DrawLineToGamePos(furn.Object.Value->Position, ImGuiColors.DalamudViolet.ToByteColor().RGBA);
             }
 
             if (selectedFurniture != null && selectedFurniture.Equals(furn)) continue;
             if (hovered)
             {
-                furn.Object->Highlight(ObjectHighlightColor.Green);
+                furn.Object.Value->Highlight(ObjectHighlightColor.Green);
             }
             else
             {
-                furn.Object->Highlight(ObjectHighlightColor.None);
+                furn.Object.Value->Highlight(ObjectHighlightColor.None);
             }
         }
     }
@@ -149,14 +148,14 @@ public unsafe partial class FurnitureInfo
             }
         }
 
-        string? name = furn.Object->NameString;
+        string? name = furn.Object.Value->NameString;
         ImGui.InputText("Name", ref name, flags: ImGuiInputTextFlags.ReadOnly);
 
         // var addr = (IntPtr)furn.Group;
         // var addrString = addr.ToString("X8");
         // ImGui.InputText("Address", ref addrString, flags: ImGuiInputTextFlags.ReadOnly);
         
-        string path = furn.Group->ResourceHandle->FileName.ToString();
+        string path = furn.Group.Value->ResourceHandle->FileName.ToString();
         ImGui.InputText("Path", ref path, flags: ImGuiInputTextFlags.ReadOnly);
         
         // var housingType = furn.Object->HousingObjectId.Type.ToString();
@@ -164,11 +163,20 @@ public unsafe partial class FurnitureInfo
 
         if (furn.Collider != null)
         {
-            string collType = furn.Collider->GetColliderType().ToString();
+            string collType = furn.Collider.Value->GetColliderType().ToString();
             ImGui.InputText("Collision Type", ref collType, flags: ImGuiInputTextFlags.ReadOnly);
+            
+            string mask = furn.Collider.GetMaterialMask().ToString();
+            ImGui.InputText("Material Mask", ref mask, flags: ImGuiInputTextFlags.ReadOnly);
+
+            string value = furn.Collider.GetMaterialValue().ToString();
+            ImGui.InputText("Material Value", ref value, flags: ImGuiInputTextFlags.ReadOnly);
+
+            string type = furn.Collider.GetMaterialType().ToString();
+            ImGui.InputText("Material Type", ref type, flags: ImGuiInputTextFlags.ReadOnly);
         }
 
-        string furnitureType = furn.Object->HousingObjectId.Type.ToString();
+        string furnitureType = furn.Object.Value->HousingObjectId.Type.ToString();
         ImGui.InputText("Object Type", ref furnitureType, flags: ImGuiInputTextFlags.ReadOnly);
 
         // var id = furn.Object->HousingObjectId.Id.ToString();
@@ -177,18 +185,18 @@ public unsafe partial class FurnitureInfo
         // var entry = furn.Object->HousingObjectId.EntryId.ToString();
         // ImGui.InputText("Entry", ref entry, flags: ImGuiInputTextFlags.ReadOnly);
             
-        Vector3 pos = furn.Object->Position;
+        Vector3 pos = furn.Object.Value->Position;
         ImGui.InputFloat3($"Position", ref pos);
         
         var boundSphere = new Vector4();
-        furn.Group->GetBoundingSphereImpl(&boundSphere);
+        furn.Group.Value->GetBoundingSphereImpl(&boundSphere);
 
         // ImGui.InputFloat4($"Bounding Sphere", ref boundSphere);
 
         // var loadState = furn.Graphics->LoadState;
         // ImGui.InputByte("Load State", ref loadState, flags: ImGuiInputTextFlags.ReadOnly);
         
-        var stain = furn.Group->StainInfo;
+        var stain = furn.Group.Value->StainInfo;
         byte chosenIndex = stain->ChosenStainIndex;
         byte defaultIndex = stain->DefaultStainIndex;
 
@@ -225,8 +233,8 @@ public unsafe partial class FurnitureInfo
         switch (Config.DebugView)
         {
             case DebugView.Collision:
-                if (furn.Collider != null && furn.Collider->GetColliderType() == ColliderType.Mesh)
-                    DrawCollision(pos, (ColliderMesh*)furn.Collider);
+                if (furn.Collider != null && furn.Collider.Value->GetColliderType() == ColliderType.Mesh)
+                    DrawCollision(pos, (ColliderMesh*)furn.Collider.Value);
                 break;
             case DebugView.PhaseRange: 
                 DrawBoundingSphere(boundSphere);
@@ -239,7 +247,7 @@ public unsafe partial class FurnitureInfo
         using var header = ImRaii.Header("Instances", ImGuiTreeNodeFlags.Framed);
         if (!header.Success) return;
             
-        foreach (var child in furn.Group->Instances.Instances)
+        foreach (var child in furn.Group.Value->Instances.Instances)
         {
             var ptr = child.Value;
             if (ptr == null) continue;

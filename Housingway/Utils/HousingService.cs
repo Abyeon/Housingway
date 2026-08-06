@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.Interop;
 using Housingway.Profiles;
 
 namespace Housingway.Utils;
@@ -18,11 +19,9 @@ public unsafe class HousingService : IDisposable
     internal static Address? CurrentAddress;
     
     internal delegate void FurnitureAdded(Furniture furniture);
-    internal delegate void FurnitureUpdate(Furniture furniture);
     internal delegate void EnterHousingArea(bool indoors);
     
     internal static event FurnitureAdded? OnFurnitureAdded;
-    internal static event FurnitureUpdate? OnFurnitureUpdate;
     internal static event EnterHousingArea? OnEnterHousingArea;
 
     internal static HashSet<Furniture> CurrentFurniture = [];
@@ -52,8 +51,8 @@ public unsafe class HousingService : IDisposable
         
         if (InHousingArea)
         {
-            Service.Framework.Update += OnUpdate;
             UpdateFurniture();
+            Service.Framework.Update += OnUpdate;
             
             if (Address.TryGetAddress(out var address))
             {
@@ -75,37 +74,33 @@ public unsafe class HousingService : IDisposable
 
     private void OnUpdate(IFramework framework) => UpdateFurniture();
 
-    private readonly HashSet<Furniture> touched = [];
+    private readonly HashSet<ulong> touched = [];
 
     private void UpdateFurniture()
     {
         touched.Clear();
         if (FurnitureManager == null) return;
 
-        foreach (var furn in FurnitureManager->FurnitureVector)
+        foreach (Pointer<HousingFurniture> furn in FurnitureManager->FurnitureVector)
         {
-            var ptr = furn.Value;
-            if (ptr == null) continue;
+            if (furn.IsNull) continue;
 
-            var furniture = new Furniture(ptr);
+            var furniture = new Furniture(furn);
             if (furniture.Id == 0) continue;
 
             bool exists = CurrentFurniture.Contains(furniture);
             
             if (!exists && !furniture.IsValid) continue;
 
-            touched.Add(furniture);
+            touched.Add(furniture.Id);
+
+            if (exists) continue;
             
-            if (!exists)
-            {
-                CurrentFurniture.Add(furniture);
-                OnFurnitureAdded?.Invoke(furniture);
-            }
-            
-            OnFurnitureUpdate?.Invoke(furniture);
+            CurrentFurniture.Add(furniture);
+            OnFurnitureAdded?.Invoke(furniture);
         }
 
-        CurrentFurniture.RemoveWhere(x => !touched.Contains(x));
+        CurrentFurniture.RemoveWhere(x => !touched.Contains(x.Id));
     }
 
     public void Dispose()

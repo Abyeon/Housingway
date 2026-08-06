@@ -39,7 +39,7 @@ public class NoPositionalOrchestrion : BaseTweak
         Service.Log.Verbose($"Searching for orchestrion.");
         foreach (var furn in HousingService.CurrentFurniture)
         {
-            if (furn.Object is null) continue;
+            if (furn.Object.IsNull) continue;
             
             var sheet = furn.FurnitureSheet;
             if (!sheet.HasValue) continue;
@@ -48,7 +48,7 @@ public class NoPositionalOrchestrion : BaseTweak
             {
                 if (customTalk.Name.Equals("HouFurOrchestrion_00330"))
                 {
-                    orchestrionPosition = furn.Object->Position;
+                    orchestrionPosition = furn.Object.Value->Position;
                     Service.Log.Verbose($"Found orchestrion at {orchestrionPosition}");
                     return;
                 }

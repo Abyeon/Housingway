@@ -4,21 +4,33 @@ using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
+using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Node;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Math;
+using FFXIVClientStructs.Interop;
 using Housingway.Structs;
 using Lumina.Excel.Sheets;
-using HousingFurniture = FFXIVClientStructs.FFXIV.Client.Game.HousingFurniture;
+using HousingFurnitureObj = FFXIVClientStructs.FFXIV.Client.Game.HousingFurniture;
 
 namespace Housingway.Utils;
 
 public readonly unsafe struct Furniture : IEquatable<Furniture>
 {
-    public readonly HousingFurniture* HousingFurniture;
     public readonly ulong Id;
     public readonly HousingObjectId HousingObjectId;
+    
+    public readonly Pointer<HousingFurnitureObj> HousingFurniture;
+    public readonly Pointer<HousingObject> Object;
+    public readonly Pointer<SharedGroupLayoutInstance> Group;
+    public readonly Pointer<Collider> Collider;
+    public readonly Pointer<BgObject> Graphics;
+    
+    public readonly List<Pointer<BgObject>> AllGraphics = [];
+    
+    public readonly HousingFurniture? FurnitureSheet;
+    public readonly HousingYardObject? YardSheet;
 
-    public Furniture(HousingFurniture* ptr)
+    public Furniture(Pointer<HousingFurnitureObj> ptr)
     {
         HousingFurniture = ptr;
 
@@ -29,7 +41,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
 
         var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-        int index = HousingFurniture->Index;
+        int index = ptr.Value->Index;
         if (index >= 0 && index < arr.Objects.Length && index < arr.ObjectCount)
         {
             var obj = (HousingObject*)arr.Objects[index].Value;
@@ -40,105 +52,132 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         {
             Id = 0;
         }
-    }
 
-    public HousingObject* Object
-    {
-        get
+        Object = GetObject();
+
+        if (Object.IsNull) return;
+
+        switch (HousingObjectId.Type)
         {
-            // if (!HousingService.InHousingArea) return null;
-            var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-            int index = HousingFurniture->Index;
-            if (index < 0) return null;
-            if (index >= arr.Objects.Length || index >= arr.ObjectCount) return null;
-            return (HousingObject*)arr.Objects[HousingFurniture->Index].Value;
-        }
-    }
-
-    public SharedGroupLayoutInstance* Group => Object == null ? null : Object->SharedGroupLayoutInstance;
-
-    public Collider* Collider
-    {
-        get
-        {
-            if (Group == null) return null;
-
-            Collider* foundCollider = null;
-            foreach (var instance in Group->Instances.Instances)
+            case HousingObjectType.YardObject:
             {
-                var ptr = instance.Value;
-                if (ptr == null) continue;
-
-                if (ptr->Instance->GetCollider() == null) continue;
-
-                var coll = ptr->Instance->GetCollider();
-
-                // Prefer mesh collision
-                if (coll->GetColliderType() == ColliderType.Mesh) return coll;
-                foundCollider = coll;
+                var sheet = Service.DataManager.Excel.GetSheet<HousingYardObject>();
+                YardSheet = sheet.GetRowOrDefault(Object.Value->HousingObjectId.Id);
+                break;
             }
-
-            return foundCollider;
-        }
-    }
-
-    public List<IntPtr> AllGraphics
-    {
-        get
-        {
-            if (Group == null || Group->Instances.Instances.Count == 0) return [];
-
-            List<IntPtr> graphics = [];
-
-            foreach (var child in Group->Instances.Instances)
+            case HousingObjectType.Furniture:
             {
-                var ptr = child.Value;
-                if (ptr == null) continue;
-
-                var instance = ptr->Instance;
-                if (instance == null) continue;
-
-                if (instance->Id.Type != InstanceType.BgPart) continue;
-
-                if (instance->GetGraphics() != null)
-                {
-                    graphics.Add((IntPtr)instance->GetGraphics());
-                }
+                var sheet = Service.DataManager.Excel.GetSheet<HousingFurniture>();
+                FurnitureSheet = sheet.GetRowOrDefault(Object.Value->HousingObjectId.Id);
+                break;
             }
+            default:
+                throw new ArgumentOutOfRangeException($"New, mysterious Housing Object Type found! {HousingObjectId.Type}");
+        }
 
-            return graphics;
+        Group = Object.Value->SharedGroupLayoutInstance;
+
+        if (Group.IsNull) return;
+        Collider = GetCollider();
+        AllGraphics = GetAllGraphics();
+        Graphics = GetGraphics();
+    }
+
+    public void SetTransparency(float transparency)
+    {
+        foreach (Pointer<BgObject> obj in AllGraphics)
+        {
+            obj.Value->SetTransparency(transparency);
         }
     }
 
-    public BgObject* Graphics
+    public void Highlight(ObjectHighlightColor color)
     {
-        get
+        foreach (Pointer<BgObject> obj in AllGraphics)
         {
-            if (Group == null) return null;
-            if (Group->Instances.Instances.Count == 0) return null;
+            obj.Value->OutlineColor = color;
+        }
+    }
 
-            var all = AllGraphics;
+    private HousingObject* GetObject()
+    {
+        var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
+        int index = HousingFurniture.Value->Index;
+        if (index < 0) return null;
+        if (index >= arr.Objects.Length || index >= arr.ObjectCount) return null;
+        return (HousingObject*)arr.Objects[HousingFurniture.Value->Index].Value;
+    }
 
-            if (all.Count == 0) return null;
+    private Collider* GetCollider()
+    {
+        if (Group.IsNull) return null;
 
-            foreach (IntPtr obj in all)
+        Collider* foundCollider = null;
+        foreach (Pointer<ChildNodeInstance> instance in Group.Value->Instances.Instances)
+        {
+            var ptr = instance.Value;
+            if (ptr == null) continue;
+
+            if (ptr->Instance->GetCollider() == null) continue;
+
+            var coll = ptr->Instance->GetCollider();
+
+            // Prefer mesh collision
+            if (coll->GetColliderType() == ColliderType.Mesh) return coll;
+            foundCollider = coll;
+        }
+
+        return foundCollider;
+    }
+
+    private List<Pointer<BgObject>> GetAllGraphics()
+    {
+        if (Group.IsNull || Group.Value->Instances.Instances.Count == 0) return [];
+
+        List<Pointer<BgObject>> graphics = [];
+
+        foreach (Pointer<ChildNodeInstance> child in Group.Value->Instances.Instances)
+        {
+            var ptr = child.Value;
+            if (ptr == null) continue;
+
+            var instance = ptr->Instance;
+            if (instance == null) continue;
+
+            if (instance->Id.Type != InstanceType.BgPart) continue;
+            var obj = (BgObject*)instance->GetGraphics();
+
+            if (obj != null || obj->LoadState == 7)
             {
-                var graphics = (BgObject*)obj;
-                if (graphics == null || graphics->LoadState == 7) continue;
-                return graphics;
+                graphics.Add((BgObject*)instance->GetGraphics());
             }
-
-            return null;
         }
+
+        return graphics;
     }
 
-    public SphereCastRange* SphereCastRange
+    private Pointer<BgObject> GetGraphics()
+    {
+        var all = AllGraphics;
+
+        if (all.Count == 0) return null;
+
+        foreach (Pointer<BgObject> obj in all)
+        {
+            if (obj.IsNull || obj.Value->LoadState == 7) continue;
+            return obj;
+        }
+
+        return null;
+    }
+
+    private SphereCastRange* SphereCastRange
     {
         get
         {
-            if (Group == null) return null;
+            if (Group.IsNull) return null;
             
-            foreach (var child in Group->Instances.Instances)
+            foreach (Pointer<ChildNodeInstance> child in Group.Value->Instances.Instances)
             {
                 var ptr = child.Value;
                 if (ptr == null) continue;
@@ -156,39 +195,6 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
             return null;
         }
     }
-
-    public Lumina.Excel.Sheets.HousingFurniture? FurnitureSheet
-    {
-        get
-        {
-            var sheet = Service.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.HousingFurniture>();
-            // var mask = Object->HousingObjectId.Type == HousingObjectType.Furniture ? 0x20000 : 0x30000;
-            // var row = (uint)mask | HousingFurniture->Id;
-            return sheet.GetRowOrDefault(Object->HousingObjectId.Id);
-        }
-    }
-    
-    public HousingYardObject? YardSheet
-    {
-        get
-        {
-            var sheet = Service.DataManager.Excel.GetSheet<HousingYardObject>();
-            // var mask = Object->HousingObjectId.Type == HousingObjectType.Furniture ? 0x20000 : 0x30000;
-            // var row = (uint)mask | HousingFurniture->Id;
-            return sheet.GetRowOrDefault(Object->HousingObjectId.Id);
-        }
-    }
-
-    // public Lumina.Excel.Sheets.HousingFurniture? Sheet
-    // {
-    //     get
-    //     {
-    //         var mask = Object->HousingObjectId.Type == HousingObjectType.Furniture ? 0x20000 : 0x30000;
-    //         var row = (uint)mask | HousingFurniture->Id;
-    //         var sheet = Service.DataManager.Excel.GetSheet<Lumina.Excel.Sheets.HousingFurniture>();
-    //         return sheet.GetRowOrDefault(row);
-    //     }
-    // }
     
     public float GetSnapDistance()
     {
@@ -205,11 +211,11 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
             return GetTargetMarkerOffset();
         }
         
-        if (Graphics is null) return 0;
+        if (Graphics.IsNull) return 0;
         
         // Calculate via AABB
         var aabb = new AxisAlignedBounds();
-        Graphics->ComputeAxisAlignedBounds(&aabb);
+        Graphics.Value->ComputeAxisAlignedBounds(&aabb);
             
         var size = aabb.Max - aabb.Min;
         float min = MathF.Min(MathF.Abs(size.X), MathF.Abs(size.Z));
@@ -218,58 +224,40 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
 
     private float GetTargetMarkerOffset()
     {
-        if (Group == null || Group->Instances.Instances.Count == 0) return 0;
+        if (Group.IsNull || Group.Value->Instances.Instances.Count == 0) return 0;
 
         float max = float.MinValue;
         bool found = false;
 
-        var pos = Object->Position;
+        var pos = Object.Value->Position;
         
-        foreach (var child in Group->Instances.Instances)
+        foreach (Pointer<ChildNodeInstance> child in Group.Value->Instances.Instances)
         {
             var ptr = child.Value;
             if (ptr == null) continue;
                 
             var instance = ptr->Instance;
-            if (instance->Id.Type == InstanceType.TargetMarker)
-            {
-                //if (1 != index++) continue;
-                found = true;
+            if (instance->Id.Type != InstanceType.TargetMarker) continue;
+            
+            found = true;
 
-                var transform = *instance->GetTransformImpl();
-                float distance = Vector2.Distance(
-                    new Vector2(pos.X, pos.Z),
-                    new Vector2(transform.Translation.X, transform.Translation.Z));
+            var transform = *instance->GetTransformImpl();
+            float distance = Vector2.Distance(
+                new Vector2(pos.X, pos.Z),
+                new Vector2(transform.Translation.X, transform.Translation.Z));
                 
-                if (distance > max)
-                {
-                    max = distance;
-                }
+            if (distance > max)
+            {
+                max = distance;
             }
         }
 
         if (!found) return 0;
         return MathF.Abs(MathF.Round(max, 2)) * 0.5f;
     }
-    
-    public bool HasGraphics()
-    {
-        if (Group == null || Group->Instances.Instances.Count == 0) return false;
 
-        foreach (var child in Group->Instances.Instances)
-        {
-            var ptr = child.Value;
-            if (ptr == null || ptr->Instance == null) continue;
 
-            if (ptr->Instance->Id.Type == InstanceType.BgPart && ptr->Instance->GetGraphics() != null)
-            {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public bool IsValid => HasGraphics() && Object != null;
+    public bool IsValid => !HousingFurniture.IsNull && !Object.IsNull && !Group.IsNull && !Graphics.IsNull;
 
     public bool Equals(Furniture other) => Id == other.Id;
     public override bool Equals(object? obj) => obj is Furniture other && Equals(other);

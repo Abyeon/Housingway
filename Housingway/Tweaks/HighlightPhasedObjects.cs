@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
+using Housingway.Utils.Extensions;
 
 namespace Housingway.Tweaks;
 
@@ -14,23 +16,35 @@ public unsafe partial class HighlightPhasedObjects : ConfigurableTweak<Highlight
     
     public override void Enable()
     {
-        HousingService.OnFurnitureUpdate += OnFurnitureUpdate;
+        Service.Framework.Update += OnUpdate;
+        HousingService.OnEnterHousingArea += OnEnterHousingArea;
     }
 
-    private void OnFurnitureUpdate(Furniture furn)
+    private void OnEnterHousingArea(bool indoors)
     {
-        if (furn.Collider == null) return;
-        if (furn.Graphics == null) return;
+        highlightedObjects.Clear();
+    }
+
+    private void OnUpdate(IFramework framework)
+    {
+        foreach (Furniture furn in HousingService.CurrentFurniture)
+        {
+            if (furn.Graphics.IsNull || furn.Collider.IsNull) continue;
             
-        bool phased = (furn.Collider->ObjectMaterialMask & (1UL << 13)) != 0;
-        if (phased)
-        {
-            furn.Object->Highlight(Config.HighlightColor);
-            highlightedObjects.Add(furn.Id);
-        } else if (highlightedObjects.Contains(furn.Id))
-        {
-            furn.Object->Highlight(ObjectHighlightColor.None);
-            highlightedObjects.Remove(furn.Id);
+            bool phased = furn.Collider.GetMaterialMask() == MaterialFlag.PlayerCollision;
+            bool contains = highlightedObjects.Contains(furn.Id);
+            
+            if (phased && !contains)
+            {
+                furn.SetTransparency(0.25f);
+                furn.Highlight(Config.HighlightColor);
+                highlightedObjects.Add(furn.Id);
+            } else if (!phased && contains)
+            {
+                furn.SetTransparency(0f);
+                furn.Highlight(ObjectHighlightColor.None);
+                highlightedObjects.Remove(furn.Id);
+            }
         }
     }
 
@@ -38,7 +52,8 @@ public unsafe partial class HighlightPhasedObjects : ConfigurableTweak<Highlight
 
     public override void Disable()
     {
-        HousingService.OnFurnitureUpdate -= OnFurnitureUpdate;
+        Service.Framework.Update -= OnUpdate;
+        HousingService.OnEnterHousingArea -= OnEnterHousingArea;
         
         foreach (var furn in HousingService.CurrentFurniture.Where(x => highlightedObjects.Contains(x.Id)))
         {
@@ -46,7 +61,7 @@ public unsafe partial class HighlightPhasedObjects : ConfigurableTweak<Highlight
             if (collider == null) continue;
 
             var obj = furn.Object;
-            obj->Highlight(ObjectHighlightColor.None);
+            obj.Value->Highlight(ObjectHighlightColor.None);
         }
         
         highlightedObjects.Clear();

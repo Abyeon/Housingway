@@ -7,12 +7,12 @@ namespace Housingway.Tweaks;
 
 public class HighlightPhasedObjectsConfig
 {
-    public ObjectHighlightColor HighlightColor = ObjectHighlightColor.Black;
+    public ObjectHighlightColor HighlightColor = ObjectHighlightColor.Green;
 }
 
 public partial class HighlightPhasedObjects
 {
-    public override void DrawConfig()
+    public override unsafe void DrawConfig()
     {
         string[] names = Enum.GetNames<ObjectHighlightColor>();
         int curr = (int)Config.HighlightColor;
@@ -23,6 +23,6 @@ public partial class HighlightPhasedObjects
             Plugin.Configuration.Save();
         }
         
-        ImGuiComponents.HelpMarker($"Black causes a fun graphical glitch that makes seeing phased objects very easy.");
+        ImGuiComponents.HelpMarker($"Black can sometimes cause a fun graphical glitch that makes seeing phased objects very easy.");
     }
 }

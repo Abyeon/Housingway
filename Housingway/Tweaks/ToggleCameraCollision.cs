@@ -1,16 +1,10 @@
-﻿using System;
+﻿using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
+using FFXIVClientStructs.Interop;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
+using Housingway.Utils.Extensions;
 
 namespace Housingway.Tweaks;
-
-[Flags]
-public enum CollisionFlags : ulong
-{
-    None = 0,
-    CameraCollision = 1UL << 12, // Camera collides with this
-    PlayerCollision = 1UL << 13, // Player collides with this
-}
 
 public unsafe partial class ToggleCameraCollision : BaseTweak
 {
@@ -21,98 +15,29 @@ public unsafe partial class ToggleCameraCollision : BaseTweak
     public override void Enable()
     {
         HousingService.OnFurnitureAdded += OnFurnitureAdded;
-        // HousingService.OnFurnitureUpdate += OnFurnitureUpdate;
         UpdateFurniture();
     }
 
-    // private void OnFurnitureUpdate(Furniture furniture)
-    // {
-    //     var cam = Scene.CurrentCamera;
-    //     if (cam == null) return;
-    //     
-    //     var graphics = furniture.Graphics;
-    //     if (graphics == null) return;
-    //     
-    //     var group = furniture.Group;
-    //     
-    //     try
-    //     {
-    //         Vector4 bounds = new();
-    //         group->GetBoundingSphereImpl(&bounds);
-    //
-    //         if (IsBetween(cam->Position, Plugin.ObjectTable.LocalPlayer!.Position, new Vector3(bounds.X, bounds.Y, bounds.Z), bounds.W))
-    //         {
-    //             var alpha = Math.Clamp(graphics->GetTransparency() + 0.01f, 0f, 1f);
-    //             graphics->SetTransparency(alpha);
-    //         }
-    //         else
-    //         {
-    //             graphics->SetTransparency(0f);
-    //         }
-    //     }
-    //     catch (Exception e)
-    //     {
-    //         Plugin.Log.Error(e.ToString());
-    //     }
-    //     
-    // }
-    
-    // public static bool IsBetween(Vector3 camera, Vector3 player, Vector3 target, float thicknessRadius)
-    // {
-    //     var camToPlayer = player - camera;
-    //     var camToTarget = target - camera;
-    //
-    //     var distSq = Vector3.Dot(camToPlayer, camToPlayer);
-    //     var proj = Vector3.Dot(camToTarget, camToPlayer);
-    //     
-    //     if (proj < 0 || proj > distSq)
-    //     {
-    //         return false;
-    //     }
-    //
-    //     if (thicknessRadius <= 0f) return true;
-    //     
-    //     var targetDistSq = Vector3.Dot(camToTarget, camToTarget);
-    //     var perpDistSq = targetDistSq - ((proj * proj) / distSq);
-    //         
-    //     return perpDistSq <= (thicknessRadius * thicknessRadius);
-    // }
-
     private static void OnFurnitureAdded(Furniture furniture)
     {
-        DisableCameraCollision(furniture);
+        DisableCameraCollision(furniture.Collider);
     }
     
     private static void UpdateFurniture(bool enabled = false)
     {
-        if (!HousingService.IsInside) return;
+        if (!HousingService.InHousingArea) return;
 
         foreach (var furn in HousingService.CurrentFurniture)
         {
-            DisableCameraCollision(furn, enabled);
+            DisableCameraCollision(furn.Collider, enabled);
         }
     }
 
-    private static void DisableCameraCollision(Furniture furniture, bool enabled = false)
-    {
-        var collider = furniture.Collider;
-        
-        if (collider == null) return;
-            
-        if (enabled)
-        {
-            collider->ObjectMaterialMask &= ~(1UL << 12);
-        }
-        else
-        {
-            collider->ObjectMaterialMask |= (1UL << 12);
-        }
-    }
+    private static void DisableCameraCollision(Pointer<Collider> collider, bool enabled = false) => collider.SetMaterialMask(MaterialFlag.CameraCollision, !enabled);
 
     public override void Disable()
     {
         HousingService.OnFurnitureAdded -= OnFurnitureAdded;
-        // HousingService.OnFurnitureUpdate -= OnFurnitureUpdate;
         UpdateFurniture(true);
     }
 
