@@ -154,9 +154,12 @@ public unsafe partial class FurnitureInfo
         // var addr = (IntPtr)furn.Group;
         // var addrString = addr.ToString("X8");
         // ImGui.InputText("Address", ref addrString, flags: ImGuiInputTextFlags.ReadOnly);
-        
-        string path = furn.Group.Value->ResourceHandle->FileName.ToString();
-        ImGui.InputText("Path", ref path, flags: ImGuiInputTextFlags.ReadOnly);
+
+        if (furn.Group.Value->ResourceHandle != null)
+        {
+            string path = furn.Group.Value->ResourceHandle->FileName.ToString();
+            ImGui.InputText("Path", ref path, flags: ImGuiInputTextFlags.ReadOnly);
+        }
         
         // var housingType = furn.Object->HousingObjectId.Type.ToString();
         // ImGui.InputText("Type", ref housingType, flags: ImGuiInputTextFlags.ReadOnly);
