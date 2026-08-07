@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.Interop;
 
@@ -22,7 +23,6 @@ public enum MaterialFlag : ushort
     Unk15 = 1 << 15,
 }
 
-[Flags]
 public enum MaterialType : sbyte
 {
     None = 0,
@@ -34,10 +34,10 @@ public enum MaterialType : sbyte
     Metal = 0x06,
     Gravel = 0x07,
     Leaf = 0x08,
-    Powder = 0x09, //tentatively named until can be confirmed
+    Powder = 0x09, // could be wrong
     Carpet = 0x0A,
     Snow = 0x0B,
-    Space = 0x0C, //tentatively named
+    Space = 0x0C, // could be wrong
     Water = 0x0D,
     Mesh = 0x0E,
     Sticky = 0x0F
@@ -108,10 +108,34 @@ public static unsafe class ColliderExtensions
             }
         }
     
-        public MaterialType GetMaterialType()
+        public HashSet<MaterialType> GetMaterialTypes()
         {
-            ulong value = collider.GetAllMaterialValue();
-            return (MaterialType)(value & 0x7F);
+            if (collider.IsNull) return [];
+
+            HashSet<MaterialType> types = [];
+
+            if (collider.Value->GetColliderType() == ColliderType.Mesh)
+            {
+                var cast = (ColliderMesh*)collider.Value;
+                if (!cast->MeshIsSimple && cast->Mesh != null)
+                {
+                    var mesh = (MeshPCB*)cast->Mesh;
+                    GetNodeMaterials(mesh->RootNode);
+                }
+            }
+        
+            return types;
+        
+            void GetNodeMaterials(MeshPCB.FileNode* mesh)
+            {
+                if (mesh == null) return;
+                
+                foreach (var prim in mesh->Primitives)
+                    types.Add((MaterialType)(prim.Material & 0x7F));
+
+                GetNodeMaterials(mesh->Child1);
+                GetNodeMaterials(mesh->Child2);
+            }
         }
     }
 }

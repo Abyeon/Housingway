@@ -105,8 +105,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         Service.CommandManager.RemoveHandler(CommandName);
         
         await ProfileManager.DisposeAsync();
-
-        TweakManager.Dispose();
+        await TweakManager.DisposeAsync();
         
         HousingService.Dispose();
         Scene.Dispose();

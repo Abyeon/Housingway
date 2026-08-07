@@ -43,8 +43,8 @@ public unsafe partial class ModelAdjustments
     [Conditional("DEBUG")]
     private void Debug()
     {
-        string guard = lightguard is null ? "Null" : lightguard->ModelResourceHandle->FileName.ToString();
-        string cube = shameCube is null ? "Null" : shameCube->ModelResourceHandle->FileName.ToString();
+        string guard = lightguard.IsNull ? "Null" : lightguard.Value->ModelResourceHandle->FileName.ToString();
+        string cube = shameCube.IsNull ? "Null" : shameCube.Value->ModelResourceHandle->FileName.ToString();
         
         ImGui.InputText("Lightguard", ref guard, flags: ImGuiInputTextFlags.ReadOnly);
         ImGui.InputText("ShameCube", ref cube, flags: ImGuiInputTextFlags.ReadOnly);

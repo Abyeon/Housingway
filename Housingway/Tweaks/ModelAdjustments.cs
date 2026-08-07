@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Numerics;
-using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
+using FFXIVClientStructs.Interop;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
 using Pictomancy;
@@ -20,7 +20,7 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     
     public override void Enable()
     {
-        Service.ClientState.ZoneInit += OnZoneInit;
+        HousingService.OnEnterHousingArea += OnEnterHousingArea;
         FindModels();
         ToggleModels();
     }
@@ -48,16 +48,16 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         drawList.AddSphere(Vector3.Zero, 50, 0x0CFFFFFF, p: p);
     }
 
-    private BgObject* lightguard = null;
-    private BgObject* shameCube = null;
+    private Pointer<BgObject> lightguard = null;
+    private Pointer<BgObject> shameCube = null;
 
-    private void OnZoneInit(ZoneInitEventArgs obj)
+    private void OnEnterHousingArea(bool indoors)
     {
         lightguard = null;
         shameCube = null;
         
         // Only check if we're in a house.
-        if (obj.TerritoryType.Value.Bg.ToString().Contains("/ind/"))
+        if (indoors)
         {
             Service.Framework.Update += OnUpdate;
             Plugin.Overlay.OnDraw += OnOverlay;
@@ -74,7 +74,7 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     {
         FindModels();
 
-        if (lightguard != null && shameCube != null)
+        if (!lightguard.IsNull && !shameCube.IsNull)
         {
             ToggleModels();
             Service.Framework.Update -= OnUpdate;
@@ -109,16 +109,16 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         
         try
         {
-            if (lightguard != null)
+            if (!lightguard.IsNull)
             {
-                lightguard->IsVisible = !Config.DisableLightguard || enable;
-                lightguard->UpdateRender();
+                lightguard.Value->IsVisible = !Config.DisableLightguard || enable;
+                lightguard.Value->UpdateRender();
             }
 
-            if (shameCube != null)
+            if (!shameCube.IsNull)
             {
-                shameCube->IsVisible = !Config.DisableShameCube || enable;
-                shameCube->UpdateRender();
+                shameCube.Value->IsVisible = !Config.DisableShameCube || enable;
+                shameCube.Value->UpdateRender();
             }
         }
         catch (Exception e)
@@ -130,10 +130,11 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
 
     public override void Disable()
     {
-        Service.ClientState.ZoneInit -= OnZoneInit;
+        HousingService.OnEnterHousingArea -= OnEnterHousingArea;
         Service.Framework.Update -= OnUpdate; // in case this gets disabled while we still haven't found objs
         Plugin.Overlay.OnDraw -= OnOverlay;
         
+        FindModels();
         ToggleModels(true);
         
         lightguard = null;

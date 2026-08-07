@@ -180,7 +180,7 @@ public unsafe partial class FurnitureInfo
             string value = furn.Collider.GetMaterialFlag().ToString();
             ImGui.InputText("Material Value", ref value, flags: ImGuiInputTextFlags.ReadOnly);
 
-            string type = furn.Collider.GetMaterialType().ToString();
+            string type = string.Join(", ", furn.Collider.GetMaterialTypes());
             ImGui.InputText("Material Type", ref type, flags: ImGuiInputTextFlags.ReadOnly);
         }
 
@@ -245,7 +245,7 @@ public unsafe partial class FurnitureInfo
         {
             case DebugView.Collision:
                 if (furn.Collider != null && furn.Collider.Value->GetColliderType() == ColliderType.Mesh)
-                    DrawCollision(pos, (ColliderMesh*)furn.Collider.Value);
+                    DrawCollision((ColliderMesh*)furn.Collider.Value);
                 break;
             case DebugView.PhaseRange: 
                 DrawBoundingSphere(boundSphere);
@@ -318,7 +318,7 @@ public unsafe partial class FurnitureInfo
         drawList.AddSphere(pos, radius, 0x0C5CFF5C);
     }
 
-    private static void DrawCollision(Vector3 pos, ColliderMesh* coll)
+    private static void DrawCollision(ColliderMesh* coll)
     {
         using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
         {

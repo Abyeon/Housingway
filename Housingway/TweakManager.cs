@@ -2,11 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using Housingway.Tweaks.Base;
 
 namespace Housingway;
 
-public class TweakManager : IDisposable
+public class TweakManager : IAsyncDisposable
 {
     public List<ITweak> Tweaks { get; private set; } = [];
 
@@ -96,13 +97,16 @@ public class TweakManager : IDisposable
                 .Select(Activator.CreateInstance)
                 .OfType<ITweak>()
                 .ToList();
-
-    public void Dispose()
+    
+    public async ValueTask DisposeAsync()
     {
-        foreach (var tweak in Tweaks)
+        await Service.Framework.Run(() =>
         {
-            if (tweak.Enabled) tweak.Disable();
-            tweak.Dispose();
-        }
+            foreach (var tweak in Tweaks)
+            {
+                if (tweak.Enabled) tweak.Disable();
+                tweak.Dispose();
+            }
+        });
     }
 }
