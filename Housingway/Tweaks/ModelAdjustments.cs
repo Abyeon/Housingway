@@ -23,9 +23,12 @@ public partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig
     {
         HousingService.OnEnterHousingArea += OnEnterHousingArea;
         
-        FindModels();
 
-        await Service.Framework.Run(() => ToggleModels());
+        await Service.Framework.Run(() =>
+        {
+            FindModels();
+            ToggleModels();
+        });
     }
 
     private unsafe void OnOverlay(PctDrawList drawList)
@@ -112,13 +115,13 @@ public partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig
         
         try
         {
-            if (!lightguard.IsNull)
+            if (!lightguard.IsNull || shameCube.Value->LoadState != 7)
             {
                 lightguard.Value->IsVisible = !Config.DisableLightguard || enable;
                 lightguard.Value->UpdateRender();
             }
 
-            if (!shameCube.IsNull)
+            if (!shameCube.IsNull || shameCube.Value->LoadState != 7)
             {
                 shameCube.Value->IsVisible = !Config.DisableShameCube || enable;
                 shameCube.Value->UpdateRender();
@@ -137,9 +140,11 @@ public partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig
         Service.Framework.Update -= OnUpdate; // in case this gets disabled while we still haven't found objs
         Plugin.Overlay.OnDraw -= OnOverlay;
         
-        FindModels();
-        
-        await Service.Framework.Run(() => ToggleModels(true));
+        await Service.Framework.Run(() =>
+        {
+            FindModels();
+            ToggleModels(true);
+        });
         
         lightguard = null;
         shameCube = null;
