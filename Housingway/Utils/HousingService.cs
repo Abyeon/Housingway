@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
@@ -25,7 +26,7 @@ public unsafe class HousingService : IDisposable
     internal static event FurnitureAdded? OnFurnitureAdded;
     internal static event EnterHousingArea? OnEnterHousingArea;
 
-    internal static Dictionary<ulong, Furniture> CurrentFurniture = [];
+    internal static ConcurrentDictionary<ulong, Furniture> CurrentFurniture = [];
     
     private readonly HashSet<ulong> touched = [];
     private readonly List<ulong> toRemove = [];
@@ -84,7 +85,7 @@ public unsafe class HousingService : IDisposable
         if (FurnitureManager == null) return;
         
         var arr = FurnitureManager->ObjectManager.ObjectArray;
-
+        
         foreach (Pointer<HousingFurniture> furn in FurnitureManager->FurnitureVector)
         {
             if (furn.IsNull) continue;
@@ -101,6 +102,7 @@ public unsafe class HousingService : IDisposable
             if (id == 0) continue;
 
             touched.Add(id);
+            
             if (CurrentFurniture.ContainsKey(id)) continue;
 
             Furniture furniture = new Furniture(furn);
@@ -116,9 +118,9 @@ public unsafe class HousingService : IDisposable
         toRemove.Clear();
         foreach (ulong id in CurrentFurniture.Keys)
             if (!touched.Contains(id)) toRemove.Add(id);
-            
+
         foreach (ulong id in toRemove)
-            CurrentFurniture.Remove(id);
+            CurrentFurniture.Remove(id, out _);
     }
 
     public void Dispose()
