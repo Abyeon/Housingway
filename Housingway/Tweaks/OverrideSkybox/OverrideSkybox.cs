@@ -1,4 +1,5 @@
-﻿using Housingway.Structs.Env;
+﻿using System.Threading.Tasks;
+using Housingway.Structs.Env;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
 
@@ -30,29 +31,36 @@ public partial class OverrideSkybox : ConfigurableTweak<OverrideSkyboxConfig>
         }
     }
 
-    public override unsafe void Enable()
+    public override async Task Enable()
     {
-        envService = new EnvService();
-        envService.Override = Config.Override;
-        
-        Scene.OnZoneLoaded += OnZoneLoaded;
-        
-        var env = EnvManagerEx.Instance();
-        if (env is not null && HousingService.IsInside)
+        await Service.Framework.Run(() =>
         {
-            env->EnvState = Config.State;
-        }
-        
-        UpdateEnvironment();
+            envService = new EnvService();
+            envService.Override = Config.Override;
+
+            Scene.OnZoneLoaded += OnZoneLoaded;
+
+            unsafe
+            {
+                var env = EnvManagerEx.Instance();
+                if (env is not null && HousingService.IsInside)
+                {
+                    env->EnvState = Config.State;
+                }
+            }
+
+            UpdateEnvironment();
+        });
     }
 
-    public override void Disable()
+    public override async Task Disable()
     {
         Scene.OnZoneLoaded -= OnZoneLoaded;
-        
-        envService?.Dispose();
-        envService = null;
-    }
 
-    public override void Dispose() { }
+        await Service.Framework.Run(() =>
+        {
+            envService?.Dispose();
+            envService = null;
+        });
+    }
 }

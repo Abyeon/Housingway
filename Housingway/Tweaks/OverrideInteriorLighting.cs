@@ -1,11 +1,13 @@
-﻿using Dalamud.Game.ClientState;
+﻿using System.Threading.Tasks;
+using Dalamud.Game.ClientState;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Housingway.Tweaks.Base;
+using Housingway.Utils;
 
 namespace Housingway.Tweaks;
 
 // Heavily inspired by https://github.com/ktisis-tools/Ktisis/blob/v0.3/main/Ktisis/Services/Data/HousingDataService.cs
-public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteriorLightingConfig>
+public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteriorLightingConfig>
 {
     public override string Name { get; init; } = "Override Interior Lighting";
     public override string Author { get; init; } = "Abyeon";
@@ -13,10 +15,10 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
     
     public OverrideInteriorLighting()
     {
-        Service.ClientState.ZoneInit += OnZoneInit;
+        HousingService.OnEnterHousingArea += OnEnterHousingArea;
     }
-    
-    private static float InitialValue
+
+    private static unsafe float InitialValue
     {
         get
         {
@@ -26,7 +28,7 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
         }
     }
 
-    private static float IndoorLight
+    private static unsafe float IndoorLight
     {
         get
         {
@@ -51,10 +53,18 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
         }
     }
 
-    public override void Enable() => UpdateLight();
-    public override void Disable() => IndoorLight = InitialValue;
-
-    private void OnZoneInit(ZoneInitEventArgs obj) 
+    public override async Task Enable()
+    {
+        await Service.Framework.Run(UpdateLight);
+    }
+    
+    public override async Task Disable()
+    {
+        HousingService.OnEnterHousingArea -= OnEnterHousingArea;
+        await Service.Framework.Run(() => IndoorLight = InitialValue);
+    }
+    
+    private void OnEnterHousingArea(bool indoors)
     {
         if (Enabled)
         {
@@ -66,6 +76,4 @@ public unsafe partial class OverrideInteriorLighting : ConfigurableTweak<Overrid
     {
         IndoorLight = Config.Light;
     }
-
-    public override void Dispose() => Service.ClientState.ZoneInit -= OnZoneInit;
 }

@@ -1,4 +1,5 @@
 ﻿using System.Numerics;
+using System.Threading.Tasks;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Housingway.Tweaks.Base;
@@ -13,7 +14,7 @@ public class NoPositionalOrchestrion : BaseTweak
     public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Disables the IsPositional flag on orchestrions, so your music plays in your head!";
     
-    public override void Enable()
+    public override Task Enable()
     {
         Service.Framework.Update += OnUpdate;
         HousingService.OnEnterHousingArea += OnEnterHousingArea;
@@ -22,6 +23,8 @@ public class NoPositionalOrchestrion : BaseTweak
         {
             FindOrchestrion();
         }
+        
+        return Task.CompletedTask;
     }
 
     private Vector3 orchestrionPosition = Vector3.Zero;
@@ -58,7 +61,7 @@ public class NoPositionalOrchestrion : BaseTweak
         Service.Log.Verbose("Found no orchestrion.");
     }
 
-    private unsafe void OnUpdate(IFramework framework)
+    private void OnUpdate(IFramework framework)
     {
         SetPositional(false);
     }
@@ -81,7 +84,7 @@ public class NoPositionalOrchestrion : BaseTweak
         sound->SoundController.SetPosition(&position);
     }
 
-    public override void Disable()
+    public override async Task Disable()
     {
         Service.Framework.Update -= OnUpdate;
         HousingService.OnEnterHousingArea -= OnEnterHousingArea;
@@ -89,9 +92,8 @@ public class NoPositionalOrchestrion : BaseTweak
         if (HousingService.IsInside)
         {
             FindOrchestrion();
-            SetPositional(true);
+            
+            await Service.Framework.Run(() => SetPositional(true));
         }
     }
-
-    public override void Dispose() { }
 }

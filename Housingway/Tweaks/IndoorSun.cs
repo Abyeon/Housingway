@@ -1,4 +1,5 @@
-﻿using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
+﻿using System.Threading.Tasks;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
 
@@ -9,13 +10,13 @@ public class IndoorSun : BaseTweak
     public override string Name { get; init; } = "Indoor Sun";
     public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Enables the Sun when indoors!";
-    public override void Enable()
+    public override async Task Enable()
     {
         HousingService.OnEnterHousingArea += OnEnterHousingArea;
 
         if (HousingService.IsInside)
         {
-            ToggleSun();
+            await Service.Framework.Run(() => ToggleSun());
         }
     }
 
@@ -31,15 +32,13 @@ public class IndoorSun : BaseTweak
         graphics->IsIndoor = indoor;
     }
 
-    public override void Disable()
+    public override async Task Disable()
     {
         HousingService.OnEnterHousingArea -= OnEnterHousingArea;
         
         if (HousingService.IsInside)
         {
-            ToggleSun(true);
+            await Service.Framework.Run(() => ToggleSun(true));
         }
     }
-
-    public override void Dispose() { }
 }

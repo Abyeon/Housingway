@@ -1,4 +1,5 @@
-﻿using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
+﻿using System.Threading.Tasks;
+using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.Interop;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
@@ -6,16 +7,17 @@ using Housingway.Utils.Extensions;
 
 namespace Housingway.Tweaks;
 
-public unsafe partial class ToggleCameraCollision : BaseTweak
+public partial class ToggleCameraCollision : BaseTweak
 {
     public override string Name { get; init; } = "Disable Camera Collision";
     public override string Author { get; init; } = "Abyeon";
     public override string Description { get; init; } = "Allows the camera to clip through furnishings!";
     
-    public override void Enable()
+    public override async Task Enable()
     {
         HousingService.OnFurnitureAdded += OnFurnitureAdded;
-        UpdateFurniture();
+        
+        await Service.Framework.Run(() => UpdateFurniture());
     }
 
     private static void OnFurnitureAdded(Furniture furniture)
@@ -35,11 +37,10 @@ public unsafe partial class ToggleCameraCollision : BaseTweak
 
     private static void DisableCameraCollision(Pointer<Collider> collider, bool enabled = false) => collider.SetMaterialMask(MaterialFlag.CameraCollision, !enabled);
 
-    public override void Disable()
+    public override async Task Disable()
     {
         HousingService.OnFurnitureAdded -= OnFurnitureAdded;
-        UpdateFurniture(true);
+        
+        await Service.Framework.Run(() => UpdateFurniture(true));
     }
-
-    public override void Dispose() { }
 }

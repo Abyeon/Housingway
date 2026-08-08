@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Dalamud.Game.ClientState;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
@@ -6,7 +7,7 @@ using Housingway.Tweaks.Base;
 
 namespace Housingway.Tweaks;
 
-public unsafe class ToggleCastShadows : BaseTweak
+public class ToggleCastShadows : BaseTweak
 {
     public override string Name { get; init; } = "Disable Cast Shadows";
     public override string Author { get; init; } = "Abyeon";
@@ -14,21 +15,21 @@ public unsafe class ToggleCastShadows : BaseTweak
         "Disables the shadows casted by different light objects when within housing. " +
         "This may help with performance and some disgusting lighting pop-in.";
     
-    public override void Enable()
+    public override async Task Enable()
     {
-        SetCastShadows(false);
+        await Service.Framework.Run(() => SetCastShadows(false));
         Service.ClientState.ZoneInit += OnZoneInit;
     }
 
     private void OnZoneInit(ZoneInitEventArgs obj) => SetCastShadows(false);
 
-    public override void Disable()
+    public override async Task Disable()
     {
         Service.ClientState.ZoneInit -= OnZoneInit;
-        SetCastShadows(true);
+        await Service.Framework.Run(() => SetCastShadows(true));
     }
 
-    public static void SetCastShadows(bool enabled)
+    public static unsafe void SetCastShadows(bool enabled)
     {
         var config = GraphicsConfig.Instance();
         if (config == null) throw new NullReferenceException("GraphicsConfig.Instance() returned null");
@@ -58,6 +59,4 @@ public unsafe class ToggleCastShadows : BaseTweak
             }
         }
     }
-
-    public override void Dispose() { }
 }

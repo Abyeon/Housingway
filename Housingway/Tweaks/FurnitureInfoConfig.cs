@@ -34,14 +34,20 @@ public class FurnitureInfoConfig
     public DebugView DebugView { get; set; } = DebugView.Collision;
 }
 
-public unsafe partial class FurnitureInfo
+public partial class FurnitureInfo
 {
     private Furniture? selectedFurniture;
     private const int InfoHeight = 200;
 
     private string search = string.Empty;
-
-    private IEnumerable<Furniture> FilteredFurniture => HousingService.CurrentFurniture.Where(x => !x.Object.IsNull && x.Object.Value->NameString.Contains(search, StringComparison.InvariantCultureIgnoreCase));
+    
+    private IEnumerable<Furniture> FilteredFurniture => HousingService.CurrentFurniture.Where(x =>
+    {
+        unsafe
+        {
+            return !x.Object.IsNull && x.Object.Value->NameString.Contains(search, StringComparison.InvariantCultureIgnoreCase);
+        }
+    });
 
     public override void DrawConfig()
     {
@@ -86,7 +92,7 @@ public unsafe partial class FurnitureInfo
         ImGui.InputTextWithHint("###SearchBar", "Search for furniture...", ref search);
     }
 
-    private void DrawList()
+    private unsafe void DrawList()
     {
         if (Service.ObjectTable.LocalPlayer == null) return;
         var playerPos = Service.ObjectTable.LocalPlayer.Position;
@@ -128,7 +134,7 @@ public unsafe partial class FurnitureInfo
         }
     }
 
-    private void DrawSelected()
+    private unsafe void DrawSelected()
     {
         if (selectedFurniture is not { IsValid: true })
         {
@@ -329,7 +335,7 @@ public unsafe partial class FurnitureInfo
         drawList.AddSphere(pos, radius, 0x0C5CFF5C);
     }
 
-    private static void DrawCollision(ColliderMesh* coll)
+    private static unsafe void DrawCollision(ColliderMesh* coll)
     {
         using var drawList = PctService.Draw(ImGui.GetBackgroundDrawList(), new PctDrawHints
         {

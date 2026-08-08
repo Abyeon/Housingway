@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using Housingway.Tweaks.Base;
@@ -18,11 +19,14 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
     
     private PopRange[] ranges = [];
     
-    public override void Enable()
+    public override async Task Enable()
     {
         Plugin.Overlay.OnDraw += OnOverlay;
         HousingService.OnEnterHousingArea += OnEnterHousingArea;
-        ranges = GetPopRanges();
+        await Service.Framework.Run(() =>
+        {
+            ranges = GetPopRanges();
+        });
     }
 
     private void OnEnterHousingArea(bool indoors)
@@ -96,13 +100,12 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
         return ranges.ToArray();
     }
 
-    public override void Disable()
+    public override Task Disable()
     {
         Plugin.Overlay.OnDraw -= OnOverlay;
         HousingService.OnEnterHousingArea -= OnEnterHousingArea;
+        return Task.CompletedTask;
     }
-
-    public override void Dispose() { }
 }
 
 public readonly unsafe struct PopRange

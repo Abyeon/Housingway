@@ -56,7 +56,7 @@ public class TweakManager : IAsyncDisposable
         
         try
         {
-            await Service.Framework.Run(tweak.Enable);
+            await tweak.Enable();
             tweak.Enabled = true;
 
             if (updateConfig)
@@ -82,7 +82,7 @@ public class TweakManager : IAsyncDisposable
         
         try
         {
-            await Service.Framework.Run(tweak.Disable);
+            await tweak.Disable();
             tweak.Enabled = false;
 
             if (updateConfig)

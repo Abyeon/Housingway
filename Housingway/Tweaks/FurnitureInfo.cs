@@ -1,4 +1,5 @@
-﻿using Dalamud.Bindings.ImGui;
+﻿using System.Threading.Tasks;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Game.ClientState;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using Housingway.Tweaks.Base;
@@ -6,7 +7,7 @@ using Housingway.Utils;
 
 namespace Housingway.Tweaks;
 
-public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfig>
+public partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfig>
 {
     public override string Name { get; init; } = "Furniture Info";
     public override string Author { get; init; } = "Abyeon";
@@ -17,9 +18,11 @@ public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfi
         Flags |= ImGuiWindowFlags.NoScrollbar | ImGuiWindowFlags.NoScrollWithMouse;
     }
 
-    public override void Enable()
+    public override Task Enable()
     {
         Service.ClientState.ZoneInit += OnZoneInit;
+        
+        return Task.CompletedTask;
     }
 
     private void OnZoneInit(ZoneInitEventArgs obj)
@@ -27,18 +30,22 @@ public unsafe partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfi
         selectedFurniture = null;
     }
 
-    public override void Disable()
+    public override async Task Disable()
     {
         Service.ClientState.ZoneInit -= OnZoneInit;
-        
-        foreach (var furn in HousingService.CurrentFurniture)
-        {
-            if (!furn.IsValid) continue;
-            furn.Object.Value->Highlight(ObjectHighlightColor.None);
-        }
 
+        await Service.Framework.Run(() =>
+        {
+            unsafe
+            {
+                foreach (var furn in HousingService.CurrentFurniture)
+                {
+                    if (!furn.IsValid) continue;
+                    furn.Object.Value->Highlight(ObjectHighlightColor.None);
+                }
+            }
+        });
+        
         selectedFurniture = null;
     }
-
-    public override void Dispose() { }
 }

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Numerics;
+using System.Threading.Tasks;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
@@ -10,7 +11,7 @@ using Pictomancy;
 
 namespace Housingway.Tweaks;
 
-public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig>
+public partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig>
 {
     public override string Name { get; init; } = "Model Adjustments";
     public override string Author { get; init; } = "Abyeon";
@@ -18,14 +19,16 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
     public override string Description { get; init; } = "Some toggleable adjustments geared towards void builders. " +
                                                         "No more house shell or shame cube.";
     
-    public override void Enable()
+    public override async Task Enable()
     {
         HousingService.OnEnterHousingArea += OnEnterHousingArea;
+        
         FindModels();
-        ToggleModels();
+
+        await Service.Framework.Run(() => ToggleModels());
     }
 
-    private void OnOverlay(PctDrawList drawList)
+    private unsafe void OnOverlay(PctDrawList drawList)
     {
         if (!Config.ShowBuildLimit) return;
         if (!HousingService.IsInside) return;
@@ -81,7 +84,7 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         }
     }
 
-    private void FindModels()
+    private unsafe void FindModels()
     {
         var man = HousingManager.Instance();
         if (man == null || !man->IsInside()) return;
@@ -103,7 +106,7 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         }
     }
 
-    private void ToggleModels(bool enable = false)
+    private unsafe void ToggleModels(bool enable = false)
     {
         if (!HousingService.IsInside) return;
         
@@ -128,18 +131,17 @@ public unsafe partial class ModelAdjustments : ConfigurableTweak<ModelAdjustment
         
     }
 
-    public override void Disable()
+    public override async Task Disable()
     {
         HousingService.OnEnterHousingArea -= OnEnterHousingArea;
         Service.Framework.Update -= OnUpdate; // in case this gets disabled while we still haven't found objs
         Plugin.Overlay.OnDraw -= OnOverlay;
         
         FindModels();
-        ToggleModels(true);
+        
+        await Service.Framework.Run(() => ToggleModels(true));
         
         lightguard = null;
         shameCube = null;
     }
-
-    public override void Dispose() { }
 }

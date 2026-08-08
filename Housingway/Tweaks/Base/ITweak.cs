@@ -1,4 +1,6 @@
-﻿namespace Housingway.Tweaks.Base;
+﻿using System.Threading.Tasks;
+
+namespace Housingway.Tweaks.Base;
 
 public interface ITweak
 {
@@ -7,7 +9,6 @@ public interface ITweak
     string Description { get; init; }
     bool Enabled { get; set; }
 
-    void Enable();
-    void Disable();
-    void Dispose();
+    Task Enable();
+    Task Disable();
 }
