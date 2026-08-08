@@ -41,7 +41,7 @@ public partial class FurnitureInfo
 
     private string search = string.Empty;
     
-    private IEnumerable<Furniture> FilteredFurniture => HousingService.CurrentFurniture.Where(x =>
+    private IEnumerable<Furniture> FilteredFurniture => HousingService.CurrentFurniture.Values.Where(x =>
     {
         unsafe
         {
@@ -53,7 +53,7 @@ public partial class FurnitureInfo
     {
         float height = ImGui.GetContentRegionAvail().Y;
 
-        if (selectedFurniture.HasValue && !HousingService.CurrentFurniture.Contains(selectedFurniture.Value))
+        if (selectedFurniture.HasValue && !HousingService.CurrentFurniture.ContainsKey(selectedFurniture.Value.Id))
         {
             selectedFurniture = null;
         }

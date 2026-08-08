@@ -29,7 +29,7 @@ public partial class HighlightPhasedObjects : ConfigurableTweak<HighlightPhasedO
 
     private void OnUpdate(IFramework framework)
     {
-        foreach (Furniture furn in HousingService.CurrentFurniture)
+        foreach (Furniture furn in HousingService.CurrentFurniture.Values)
         {
             if (furn.Graphics.IsNull || furn.Collider.IsNull) continue;
             
@@ -59,7 +59,7 @@ public partial class HighlightPhasedObjects : ConfigurableTweak<HighlightPhasedO
 
         await Service.Framework.Run(() =>
         {
-            foreach (var furn in HousingService.CurrentFurniture.Where(x => highlightedObjects.Contains(x.Id)))
+            foreach ((ulong id, Furniture furn) in HousingService.CurrentFurniture.Where(x => highlightedObjects.Contains(x.Key)))
             {
                 var collider = furn.Collider;
                 if (collider == null) continue;

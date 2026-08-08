@@ -29,7 +29,7 @@ public partial class ToggleCameraCollision : BaseTweak
     {
         if (!HousingService.InHousingArea) return;
 
-        foreach (var furn in HousingService.CurrentFurniture)
+        foreach (var furn in HousingService.CurrentFurniture.Values)
         {
             DisableCameraCollision(furn.Collider, enabled);
         }

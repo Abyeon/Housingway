@@ -40,7 +40,7 @@ public class NoPositionalOrchestrion : BaseTweak
         orchestrionPosition = Vector3.Zero;
         
         Service.Log.Verbose($"Searching for orchestrion.");
-        foreach (var furn in HousingService.CurrentFurniture)
+        foreach (var furn in HousingService.CurrentFurniture.Values)
         {
             if (furn.Object.IsNull) continue;
             

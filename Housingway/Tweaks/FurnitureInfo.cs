@@ -38,7 +38,7 @@ public partial class FurnitureInfo : ConfigurableTweak<FurnitureInfoConfig>
         {
             unsafe
             {
-                foreach (var furn in HousingService.CurrentFurniture)
+                foreach (var furn in HousingService.CurrentFurniture.Values)
                 {
                     if (!furn.IsValid) continue;
                     furn.Object.Value->Highlight(ObjectHighlightColor.None);

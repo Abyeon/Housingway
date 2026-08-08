@@ -25,10 +25,27 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
     public readonly Pointer<Collider> Collider;
     public readonly Pointer<BgObject> Graphics;
     
-    public readonly List<Pointer<BgObject>> AllGraphics = [];
-    
-    public readonly HousingFurniture? FurnitureSheet;
-    public readonly HousingYardObject? YardSheet;
+    public List<Pointer<BgObject>> AllGraphics => GetAllGraphics();
+
+    public HousingFurniture? FurnitureSheet
+    {
+        get
+        {
+            if (HousingObjectId.Type != HousingObjectType.Furniture) return null;
+            var sheet = Service.DataManager.Excel.GetSheet<HousingFurniture>();
+            return sheet.GetRowOrDefault(Object.Value->HousingObjectId.Id);
+        }
+    }
+
+    public HousingYardObject? YardSheet
+    {
+        get
+        {
+            if (HousingObjectId.Type != HousingObjectType.YardObject) return null;
+            var sheet = Service.DataManager.Excel.GetSheet<HousingYardObject>();
+            return sheet.GetRowOrDefault(Object.Value->HousingObjectId.Id);
+        }
+    }
 
     public Furniture(Pointer<HousingFurnitureObj> ptr)
     {
@@ -44,42 +61,21 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         int index = ptr.Value->Index;
         if (index >= 0 && index < arr.Objects.Length && index < arr.ObjectCount)
         {
-            var obj = (HousingObject*)arr.Objects[index].Value;
-            Id = obj == null ? 0 : obj->GetGameObjectId().Id;
-            HousingObjectId = obj->HousingObjectId;
+            Object = (HousingObject*)arr.Objects[index].Value;
+            Id = Object.IsNull ? 0 : Object.Value->GetGameObjectId().Id;
+            HousingObjectId = Object.Value->HousingObjectId;
         }
         else
         {
             Id = 0;
         }
-
-        Object = GetObject();
-
+        
         if (Object.IsNull) return;
-
-        switch (HousingObjectId.Type)
-        {
-            case HousingObjectType.YardObject:
-            {
-                var sheet = Service.DataManager.Excel.GetSheet<HousingYardObject>();
-                YardSheet = sheet.GetRowOrDefault(Object.Value->HousingObjectId.Id);
-                break;
-            }
-            case HousingObjectType.Furniture:
-            {
-                var sheet = Service.DataManager.Excel.GetSheet<HousingFurniture>();
-                FurnitureSheet = sheet.GetRowOrDefault(Object.Value->HousingObjectId.Id);
-                break;
-            }
-            default:
-                throw new ArgumentOutOfRangeException($"New, mysterious Housing Object Type found! {HousingObjectId.Type}");
-        }
 
         Group = Object.Value->SharedGroupLayoutInstance;
 
         if (Group.IsNull) return;
         Collider = GetCollider();
-        AllGraphics = GetAllGraphics();
         Graphics = GetGraphics();
     }
 
@@ -101,15 +97,6 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
     }
 
-    private HousingObject* GetObject()
-    {
-        var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-        int index = HousingFurniture.Value->Index;
-        if (index < 0) return null;
-        if (index >= arr.Objects.Length || index >= arr.ObjectCount) return null;
-        return (HousingObject*)arr.Objects[HousingFurniture.Value->Index].Value;
-    }
-
     private Collider* GetCollider()
     {
         if (Group.IsNull) return null;
@@ -117,12 +104,11 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         Collider* foundCollider = null;
         foreach (Pointer<ChildNodeInstance> instance in Group.Value->Instances.Instances)
         {
-            var ptr = instance.Value;
-            if (ptr == null) continue;
+            if (instance.IsNull) continue;
 
-            if (ptr->Instance->GetCollider() == null) continue;
+            if (instance.Value->Instance->GetCollider() == null) continue;
 
-            var coll = ptr->Instance->GetCollider();
+            var coll = instance.Value->Instance->GetCollider();
 
             // Prefer mesh collision
             if (coll->GetColliderType() == ColliderType.Mesh) return coll;
@@ -140,10 +126,9 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
 
         foreach (Pointer<ChildNodeInstance> child in Group.Value->Instances.Instances)
         {
-            var ptr = child.Value;
-            if (ptr == null) continue;
+            if (child.IsNull) continue;
 
-            var instance = ptr->Instance;
+            var instance = child.Value->Instance;
             if (instance == null) continue;
 
             if (instance->Id.Type != InstanceType.BgPart) continue;
