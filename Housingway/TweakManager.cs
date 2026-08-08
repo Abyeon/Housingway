@@ -10,44 +10,45 @@ namespace Housingway;
 public class TweakManager : IAsyncDisposable
 {
     public List<ITweak> Tweaks { get; private set; } = [];
-
-    public TweakManager()
-    {
-        LoadTweaks();
-    }
     
-    public void LoadTweaks()
+    public async Task LoadTweaks()
     {
         Tweaks = GetTweaks();
         Tweaks.Sort((x, y) => string.Compare(x.Name, y.Name, StringComparison.Ordinal));
-        
-        foreach (var tweak in Tweaks)
+
+        List<Task> tasks = [];
+        foreach (ITweak tweak in Tweaks)
         {
             if (Plugin.Configuration.EnabledTweaks.Contains(tweak.GetType().Name))
             {
-                EnableTweak(tweak);
+                tasks.Add(Task.Run(() => EnableTweak(tweak, false)));
             }
         }
+        
+        await Task.WhenAll(tasks);
     }
 
-    public void ReloadTweaks()
+    public async Task ReloadTweaks()
     {
-        foreach (var tweak in Tweaks)
+        List<Task> tasks = [];
+        tasks.AddRange(Tweaks.Select(tweak => Task.Run(() => ReloadTweak(tweak))));
+        await Task.WhenAll(tasks);
+    }
+
+    private static async Task ReloadTweak(ITweak tweak)
+    {
+        if (tweak.Enabled)
         {
-            if (tweak.Enabled)
-            {
-                tweak.Disable();
-                tweak.Enabled = false;
-            }
+            await DisableTweak(tweak, false);
+        }
             
-            if (Plugin.Configuration.EnabledTweaks.Contains(tweak.GetType().Name))
-            {
-                EnableTweak(tweak);
-            }
+        if (Plugin.Configuration.EnabledTweaks.Contains(tweak.GetType().Name))
+        {
+            await EnableTweak(tweak, false);
         }
     }
     
-    public static void EnableTweak(ITweak tweak)
+    public static async Task EnableTweak(ITweak tweak, bool updateConfig = true)
     {
         if (tweak.Enabled) return;
         
@@ -55,10 +56,15 @@ public class TweakManager : IAsyncDisposable
         
         try
         {
-            tweak.Enable();
+            await Service.Framework.Run(tweak.Enable);
             tweak.Enabled = true;
-            Plugin.Configuration.EnabledTweaks.Add(tweak.GetType().Name);
-            Plugin.Configuration.Save();
+
+            if (updateConfig)
+            {
+                Plugin.Configuration.EnabledTweaks.Add(tweak.GetType().Name);
+                Plugin.Configuration.Save();
+            }
+            
             Service.Log.Verbose($"Enabled Tweak {tweak.Name}");
         }
         catch (Exception e)
@@ -68,7 +74,7 @@ public class TweakManager : IAsyncDisposable
         }
     }
 
-    public static void DisableTweak(ITweak tweak)
+    public static async Task DisableTweak(ITweak tweak, bool updateConfig = true)
     {
         if (!tweak.Enabled) return;
         
@@ -76,10 +82,15 @@ public class TweakManager : IAsyncDisposable
         
         try
         {
-            tweak.Disable();
+            await Service.Framework.Run(tweak.Disable);
             tweak.Enabled = false;
-            Plugin.Configuration.EnabledTweaks.Remove(tweak.GetType().Name);
-            Plugin.Configuration.Save();
+
+            if (updateConfig)
+            {
+                Plugin.Configuration.EnabledTweaks.Remove(tweak.GetType().Name);
+                Plugin.Configuration.Save();
+            }
+            
             Service.Log.Verbose($"Disabled Tweak {tweak.Name}");
         }
         catch (Exception e)
@@ -100,13 +111,9 @@ public class TweakManager : IAsyncDisposable
     
     public async ValueTask DisposeAsync()
     {
-        await Service.Framework.Run(() =>
-        {
-            foreach (var tweak in Tweaks)
-            {
-                if (tweak.Enabled) tweak.Disable();
-                tweak.Dispose();
-            }
-        });
+        List<Task> tasks = [];
+        tasks.AddRange(Tweaks.Select(tweak => Task.Run(() => DisableTweak(tweak, false))));
+
+        await Task.WhenAll(tasks);
     }
 }

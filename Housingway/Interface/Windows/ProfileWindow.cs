@@ -115,9 +115,12 @@ public class ProfileWindow : CustomWindow, IDisposable
         ImGui.SameLine();
         if (ImGuiComponents.IconButton(FontAwesomeIcon.ArrowsSpin))
         {
-            ProfileManager.LoadDefaults();
-            ProfileManager.AddressSettings.Profiles.Remove(currentAddress);
-            ProfileManager.AddressSettings.Save();
+            Task.Run(async () =>
+            {
+                await ProfileManager.LoadDefaults();
+                ProfileManager.AddressSettings.Profiles.Remove(currentAddress);
+                await ProfileManager.AddressSettings.SaveAsync();
+            });
         }
         
         if (ImGui.IsItemHovered())
@@ -158,13 +161,13 @@ public class ProfileWindow : CustomWindow, IDisposable
             
             if (Ui.AddConfirmationPopup("DeleteProfile", "Are you sure you want to delete this profile?"))
             {
-                if (currentlySelected)
-                {
-                    ProfileManager.LoadDefaults();
-                }
-                
                 Task.Run(async () =>
                 {
+                    if (currentlySelected)
+                    {
+                        await ProfileManager.LoadDefaults();
+                    }
+                    
                     await profile.DeleteAsync();
                     await BuildProfileList();
                 });
@@ -174,18 +177,21 @@ public class ProfileWindow : CustomWindow, IDisposable
             
             if (ImGui.Selectable(profile.Name, currentlySelected))
             {
-                if (currentlySelected)
+                Task.Run(async () =>
                 {
-                    ProfileManager.AddressSettings.Profiles.Remove(currentAddress);
-                    ProfileManager.AddressSettings.Save();
-                    ProfileManager.LoadDefaults();
-                }
-                else
-                {
-                    ProfileManager.AddressSettings.Profiles[currentAddress] = profile.Id;
-                    ProfileManager.AddressSettings.Save();
-                    ProfileManager.LoadProfile(profile);
-                }
+                    if (currentlySelected)
+                    {
+                        ProfileManager.AddressSettings.Profiles.Remove(currentAddress);
+                        await ProfileManager.AddressSettings.SaveAsync();
+                        await ProfileManager.LoadDefaults();
+                    }
+                    else
+                    {
+                        ProfileManager.AddressSettings.Profiles[currentAddress] = profile.Id;
+                        await ProfileManager.AddressSettings.SaveAsync();
+                        await ProfileManager.LoadProfile(profile);
+                    }
+                });
             }
         }
     }

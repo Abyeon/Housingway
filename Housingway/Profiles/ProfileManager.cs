@@ -44,7 +44,7 @@ public class ProfileManager : IAsyncDisposable
             {
                 var profile = await AddressSettings.GetProfile((Address)currAddress);
                 if (profile is not null)
-                    LoadProfile(profile);
+                    await LoadProfile(profile);
             }
         }
         
@@ -61,32 +61,32 @@ public class ProfileManager : IAsyncDisposable
                 {
                     var profile = await AddressSettings.GetProfile(currAddress);
                     if (profile is not null)
-                        LoadProfile(profile);
+                        await LoadProfile(profile);
                 });
 
                 return;
             }
         }
         
-        LoadDefaults();
+        Task.Run(async () => { await LoadDefaults(); });
     }
 
-    public static void LoadProfile(Profile profile)
+    public static async Task LoadProfile(Profile profile)
     {
         Plugin.Configuration.Save();
         
         Profile = profile;
-        Plugin.TweakManager.ReloadTweaks();
+        await Plugin.TweakManager.ReloadTweaks();
     }
 
-    public static void LoadDefaults()
+    public static async Task LoadDefaults()
     {
         if (Profile is null) return; // already using default config
         
         Plugin.Configuration.Save();
         
         Profile = null;
-        Plugin.TweakManager.ReloadTweaks();
+        await Plugin.TweakManager.ReloadTweaks();
     }
 
     public static async Task<Profile[]> GetAllProfiles()

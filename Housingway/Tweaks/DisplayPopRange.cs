@@ -21,11 +21,11 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
     public override void Enable()
     {
         Plugin.Overlay.OnDraw += OnOverlay;
-        Scene.OnZoneLoaded += OnZoneLoaded;
+        HousingService.OnEnterHousingArea += OnEnterHousingArea;
         ranges = GetPopRanges();
     }
-    
-    private void OnZoneLoaded()
+
+    private void OnEnterHousingArea(bool indoors)
     {
         ranges = GetPopRanges();
     }
@@ -80,17 +80,15 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
 
         List<PopRange> ranges = [];
         
-        foreach ((ushort _, var layerPtr) in active->Layers)
+        foreach ((ushort _, var layer) in active->Layers)
         {
-            var layer = layerPtr.Value;
-            if (layer == null) continue;
-            foreach ((uint _, var instancePtr) in layer->Instances)
+            if (layer.IsNull) continue;
+            foreach ((uint _, var instance) in layer.Value->Instances)
             {
-                var instance = instancePtr.Value;
-                if (instance == null) continue;
-                if (instance->Id.Type != InstanceType.PopRange) continue;
+                if (instance.IsNull) continue;
+                if (instance.Value->Id.Type != InstanceType.PopRange) continue;
 
-                var range = new PopRange((PopRangeLayoutInstance*)instance);
+                var range = new PopRange((PopRangeLayoutInstance*)instance.Value);
                 ranges.Add(range);
             }
         }
@@ -101,7 +99,7 @@ public partial class DisplayPopRange : ConfigurableTweak<DisplayPopRangeConfig>
     public override void Disable()
     {
         Plugin.Overlay.OnDraw -= OnOverlay;
-        Scene.OnZoneLoaded -= OnZoneLoaded;
+        HousingService.OnEnterHousingArea -= OnEnterHousingArea;
     }
 
     public override void Dispose() { }

@@ -180,8 +180,19 @@ public unsafe partial class FurnitureInfo
             string value = furn.Collider.GetMaterialFlag().ToString();
             ImGui.InputText("Material Value", ref value, flags: ImGuiInputTextFlags.ReadOnly);
 
-            string type = string.Join(", ", furn.Collider.GetMaterialTypes());
+            var types = furn.Collider.GetMaterialTypes();
+            string type = string.Join(", ", types);
             ImGui.InputText("Material Type", ref type, flags: ImGuiInputTextFlags.ReadOnly);
+
+            #if DEBUG
+            string[] materials = Enum.GetNames<MaterialType>();
+            int currType = (int)types.FirstOrDefault();
+            
+            if (ImGui.Combo("Set Type", ref currType, materials, materials.Length))
+            {
+                furn.Collider.SetMaterialType((MaterialType)currType);
+            }
+            #endif
         }
 
         string furnitureType = furn.Object.Value->HousingObjectId.Type.ToString();

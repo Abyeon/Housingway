@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Numerics;
 using System.Reflection;
+using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface;
 using Dalamud.Interface.Colors;
@@ -141,8 +142,11 @@ public class ConfigWindow : CustomWindow, IDisposable
             bool enabled = tweak.Enabled;
             if (ImGui.Checkbox($"###{nameof(tweak)}", ref enabled))
             {
-                if (enabled) TweakManager.EnableTweak(tweak);
-                else TweakManager.DisableTweak(tweak);
+                Task.Run(async () =>
+                {
+                    if (enabled) await TweakManager.EnableTweak(tweak);
+                    else await TweakManager.DisableTweak(tweak);
+                });
             }
 
             ImGui.SameLine();

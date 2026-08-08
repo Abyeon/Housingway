@@ -10,9 +10,9 @@ public enum MaterialFlag : ushort
 {
     None = 0,
     Unk4 = 1 << 4,
-    Unwalkable = 1 << 5,
-    Swimmable = 1 << 6,
-    Submergible = 1 << 7,
+    Unk5 = 1 << 5,
+    Unk6 = 1 << 6,
+    Unk7 = 1 << 7,
     Unk8 = 1 << 8,
     Unk9 = 1 << 9,
     Unk10 = 1 << 10,
@@ -37,8 +37,8 @@ public enum MaterialType : sbyte
     Powder = 0x09, // could be wrong
     Carpet = 0x0A,
     Snow = 0x0B,
-    Space = 0x0C, // could be wrong
-    Water = 0x0D,
+    Water1 = 0x0C, // only used on a few water related items... for some reason
+    Water2 = 0x0D,
     Mesh = 0x0E,
     Sticky = 0x0F
 }
@@ -59,24 +59,14 @@ public static unsafe class ColliderExtensions
                 if (!cast->MeshIsSimple && cast->Mesh != null)
                 {
                     var mesh = (MeshPCB*)cast->Mesh;
-                    value |= GetNodeMaterials(mesh->RootNode);
+                    RunForTree(mesh->RootNode, prim =>
+                    {
+                        value |= prim.Value->Material;
+                    });
                 }
             }
         
             return value;
-        
-            ulong GetNodeMaterials(MeshPCB.FileNode* mesh)
-            {
-                if (mesh == null) return 0;
-
-                ulong nodeMat = 0;
-                foreach (var prim in mesh->Primitives)
-                    nodeMat |= prim.Material;
-
-                nodeMat |= GetNodeMaterials(mesh->Child1);
-                nodeMat |= GetNodeMaterials(mesh->Child2);
-                return nodeMat;
-            }
         }
         
         public MaterialFlag GetMaterialFlag()
@@ -120,22 +110,56 @@ public static unsafe class ColliderExtensions
                 if (!cast->MeshIsSimple && cast->Mesh != null)
                 {
                     var mesh = (MeshPCB*)cast->Mesh;
-                    GetNodeMaterials(mesh->RootNode);
+                    RunForTree(mesh->RootNode, prim =>
+                    {
+                        types.Add((MaterialType)(prim.Value->Material & 0x7F));
+                    });
                 }
+            }
+            else
+            {
+                types = [(MaterialType)(collider.Value->ObjectMaterialValue & 0x7F)];
             }
         
             return types;
-        
-            void GetNodeMaterials(MeshPCB.FileNode* mesh)
-            {
-                if (mesh == null) return;
-                
-                foreach (var prim in mesh->Primitives)
-                    types.Add((MaterialType)(prim.Material & 0x7F));
+        }
 
-                GetNodeMaterials(mesh->Child1);
-                GetNodeMaterials(mesh->Child2);
+        public void SetMaterialType(MaterialType materialType)
+        {
+            if (collider.IsNull) return;
+            
+            if (collider.Value->GetColliderType() == ColliderType.Mesh)
+            {
+                var cast = (ColliderMesh*)collider.Value;
+                if (!cast->MeshIsSimple && cast->Mesh != null)
+                {
+                    var mesh = (MeshPCB*)cast->Mesh;
+                    RunForTree(mesh->RootNode, prim =>
+                    {
+                        prim.Value->Material = prim.Value->Material & ~0xFFU | (byte)materialType;
+                    });
+                }
             }
+            else
+            {
+                collider.Value->ObjectMaterialValue = collider.Value->ObjectMaterialValue & ~0xFFU | (byte)materialType;
+            }
+        }
+    }
+
+    private static void RunForTree(MeshPCB.FileNode* mesh, Action<Pointer<Mesh.Primitive>> action)
+    {
+        while (mesh != null)
+        {
+            Mesh.Primitive* ptr = mesh->PrimitivesPtr;
+            for (int i = 0; i < mesh->NumPrims; i++)
+            {
+                Mesh.Primitive* prim = ptr + i;
+                action(prim);
+            }
+
+            RunForTree(mesh->Child1, action);
+            mesh = mesh->Child2;
         }
     }
 }

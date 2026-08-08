@@ -66,9 +66,9 @@ public sealed class Plugin : IAsyncDalamudPlugin
         WindowSystem.AddWindow(Overlay);
         
         TweakManager = new TweakManager();
-        HousingService = new HousingService();
+        await TweakManager.LoadTweaks();
         
-        Overlay.IsOpen = HousingService.InHousingArea;
+        HousingService = new HousingService();
         
         ConfigWindow = new ConfigWindow();
         ProfileWindow = new ProfileWindow();
@@ -76,6 +76,7 @@ public sealed class Plugin : IAsyncDalamudPlugin
         WindowSystem.AddWindow(ProfileWindow);
         
         await ProfileManager.LoadAsync();
+        Overlay.IsOpen = HousingService.InHousingArea;
         
         Service.CommandManager.AddHandler(CommandName, new CommandInfo(OnCommand)
         {
