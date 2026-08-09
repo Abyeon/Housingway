@@ -16,8 +16,8 @@ public sealed class Plugin : IAsyncDalamudPlugin
 {
     [PluginService] internal static IDalamudPluginInterface PluginInterface { get; set; } = null!;
 
-    internal static Scene Scene { get; set; } = null!;
-    internal static HousingService HousingService { get; set; } = null!;
+    private static Scene Scene { get; set; } = null!;
+    private static HousingService HousingService { get; set; } = null!;
 
     public static Configuration Configuration
     {
@@ -29,11 +29,12 @@ public sealed class Plugin : IAsyncDalamudPlugin
             }
 
             return field;
-        } set;
+        }
+        private set;
     } = null!;
 
     public static TweakManager TweakManager { get; set; } = null!;
-    public static ProfileManager ProfileManager { get; set; } = null!;
+    private static ProfileManager ProfileManager { get; set; } = null!;
 
     private const string CommandName = "/housingway";
 
@@ -66,9 +67,9 @@ public sealed class Plugin : IAsyncDalamudPlugin
         WindowSystem.AddWindow(Overlay);
         
         TweakManager = new TweakManager();
-        await TweakManager.LoadTweaks();
-        
         HousingService = new HousingService();
+        
+        await TweakManager.LoadTweaks();
         
         ConfigWindow = new ConfigWindow();
         ProfileWindow = new ProfileWindow();

@@ -139,12 +139,16 @@ public partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig
         HousingService.OnEnterHousingArea -= OnEnterHousingArea;
         Service.Framework.Update -= OnUpdate; // in case this gets disabled while we still haven't found objs
         Plugin.Overlay.OnDraw -= OnOverlay;
-        
-        await Service.Framework.Run(() =>
+
+        // Only toggle models back on if the game is not shutting down
+        if (!Service.Framework.IsFrameworkUnloading)
         {
-            FindModels();
-            ToggleModels(true);
-        });
+            await Service.Framework.Run(() =>
+            {
+                FindModels();
+                ToggleModels(true);
+            });
+        }
         
         lightguard = null;
         shameCube = null;
