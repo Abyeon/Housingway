@@ -60,7 +60,7 @@ public partial class FurnitureInfo
         
         if (selectedFurniture is { IsValid: true })
         {
-            height -= InfoHeight;
+            height -= InfoHeight * ImGuiHelpers.GlobalScale;
         }
         
         Search();

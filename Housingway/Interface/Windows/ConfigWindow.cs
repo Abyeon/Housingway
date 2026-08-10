@@ -82,17 +82,16 @@ public class ConfigWindow : CustomWindow, IDisposable
             }
                 
             Tweak(selectedTweak);
-            if (selectedTweak is IConfigurableTweak tweak)
-            {
-                ImGui.PushStyleColor(ImGuiCol.ChildBg, white); // yes I know ImRaii exists, but I only want to apply this color to the child.
-                using var padding = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f) * ImGuiHelpers.GlobalScale);
-                using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f * ImGuiHelpers.GlobalScale);
-                using var config = ImRaii.Child($"TweakList", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding | ((IConfigurableTweak)selectedTweak!).Flags);
-                ImGui.PopStyleColor();
+            if (selectedTweak is not IConfigurableTweak tweak) return;
+            
+            ImGui.PushStyleColor(ImGuiCol.ChildBg, white); // yes I know ImRaii exists, but I only want to apply this color to the child.
+            using var padding = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f) * ImGuiHelpers.GlobalScale);
+            using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f * ImGuiHelpers.GlobalScale);
+            using var config = ImRaii.Child($"TweakList", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding | ((IConfigurableTweak)selectedTweak!).Flags);
+            ImGui.PopStyleColor();
                     
-                Tray(tweak);
-                TweakConfig(tweak);
-            };
+            Tray(tweak);
+            TweakConfig(tweak);
         }
     }
 
@@ -260,7 +259,7 @@ public class ConfigWindow : CustomWindow, IDisposable
         var group = new ImGuiHelpers.HorizontalButtonGroup
         {
             IsCentered = true,
-            Height = ImGui.GetFrameHeightWithSpacing()
+            Height = ImGui.GetFrameHeightWithSpacing() / ImGuiHelpers.GlobalScale
         };
         
         group.Add("Github", () => Util.OpenLink("https://github.com/Abyeon/Housingway"));
