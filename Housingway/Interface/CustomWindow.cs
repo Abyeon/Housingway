@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Numerics;
 using Dalamud.Bindings.ImGui;
+using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 
@@ -104,7 +105,9 @@ public abstract class CustomWindow : Window
                 var size = new Vector2
                 {
                     X = ImGui.GetWindowSize().X + 5f,
-                    Y = SizeConstraints.HasValue ? SizeConstraints.Value.MinimumSize.Y * GradientPercent : ImGui.GetWindowSize().Y * GradientPercent
+                    Y = (SizeConstraints.HasValue
+                        ? SizeConstraints.Value.MinimumSize.Y * GradientPercent
+                        : ImGui.GetWindowSize().Y * GradientPercent) * ImGuiHelpers.GlobalScale
                 };
 
                 bool noDeco = (Flags & ImGuiWindowFlags.NoDecoration) == ImGuiWindowFlags.NoDecoration;
