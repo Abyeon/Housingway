@@ -140,15 +140,14 @@ public partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig
         Service.Framework.Update -= OnUpdate; // in case this gets disabled while we still haven't found objs
         Plugin.Overlay.OnDraw -= OnOverlay;
 
-        // Only toggle models back on if the game is not shutting down
-        if (!Service.Framework.IsFrameworkUnloading)
+        await Service.Framework.Run(() =>
         {
-            await Service.Framework.Run(() =>
-            {
-                FindModels();
-                ToggleModels(true);
-            });
-        }
+            // Only toggle models back on if the game is not shutting down
+            if (Service.Framework.IsFrameworkUnloading) return;
+            
+            FindModels();
+            ToggleModels(true);
+        });
         
         lightguard = null;
         shameCube = null;

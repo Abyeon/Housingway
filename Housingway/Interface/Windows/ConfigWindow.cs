@@ -59,25 +59,19 @@ public class ConfigWindow : CustomWindow, IDisposable
         using var color = ImRaii.PushColor(ImGuiCol.FrameBg, white);
         
         using var _ = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f) * ImGuiHelpers.GlobalScale);
-        using (ImRaii.Child("LeftSide", new Vector2(220, ImGui.GetWindowHeight())))
+        using (ImRaii.Child("LeftSide", new Vector2(220 * ImGuiHelpers.GlobalScale, ImGui.GetWindowHeight())))
         {
             Search();
             
             using (ImRaii.PushColor(ImGuiCol.ChildBg, white))
             {
-                using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
+                using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f * ImGuiHelpers.GlobalScale);
                 using var list = ImRaii.Child($"TweakList", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding);
                 TweakList();
             }
         }
 
         ImGui.SameLine();
-        var flags = ImGuiWindowFlags.AlwaysUseWindowPadding;
-            
-        if (selectedTweak is IConfigurableTweak)
-        {
-            flags |= ((IConfigurableTweak)selectedTweak!).Flags;
-        }
         
         using (ImRaii.Child("TweakConfig", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.None))
         {
@@ -92,8 +86,8 @@ public class ConfigWindow : CustomWindow, IDisposable
             {
                 ImGui.PushStyleColor(ImGuiCol.ChildBg, white); // yes I know ImRaii exists, but I only want to apply this color to the child.
                 using var padding = ImRaii.PushStyle(ImGuiStyleVar.WindowPadding, new Vector2(5f, 5f) * ImGuiHelpers.GlobalScale);
-                using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
-                using var config = ImRaii.Child($"TweakList", ImGui.GetContentRegionAvail(), false, flags);
+                using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f * ImGuiHelpers.GlobalScale);
+                using var config = ImRaii.Child($"TweakList", ImGui.GetContentRegionAvail(), false, ImGuiWindowFlags.AlwaysUseWindowPadding | ((IConfigurableTweak)selectedTweak!).Flags);
                 ImGui.PopStyleColor();
                     
                 Tray(tweak);
@@ -106,7 +100,7 @@ public class ConfigWindow : CustomWindow, IDisposable
     private void Search()
     {
         using var frame = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(5f, 6f) * ImGuiHelpers.GlobalScale);
-        using var round = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 5f);
+        using var round = ImRaii.PushStyle(ImGuiStyleVar.FrameRounding, 5f * ImGuiHelpers.GlobalScale);
         using var button = ImRaii.PushColor(ImGuiCol.Button, 0);
         
         if (ImGuiComponents.IconButton(FontAwesomeIcon.Home))
@@ -189,8 +183,8 @@ public class ConfigWindow : CustomWindow, IDisposable
     {
         // -- Styling --
         using var childColor = ImRaii.PushColor(ImGuiCol.ChildBg, ImGuiColors.DalamudWhite with { W = 0.05f });
-        using var padding = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(5f, 0));
-        using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f);
+        using var padding = ImRaii.PushStyle(ImGuiStyleVar.FramePadding, new Vector2(5f, 0) * ImGuiHelpers.GlobalScale);
+        using var rounding = ImRaii.PushStyle(ImGuiStyleVar.ChildRounding, 5f * ImGuiHelpers.GlobalScale);
         
         using var _ = ImRaii.Child("Tray", new Vector2(0, ImGui.GetFrameHeight()), false);
         
@@ -260,10 +254,9 @@ public class ConfigWindow : CustomWindow, IDisposable
         ImGui.Text(version);
         ImGui.SameLine();
         ImGui.TextColored(ImGuiColors.DalamudGrey, author);
-        
-        // Links
         ImGui.Spacing();
         
+        // Links
         var group = new ImGuiHelpers.HorizontalButtonGroup
         {
             IsCentered = true,
