@@ -50,7 +50,7 @@ public unsafe class GameLight : IDisposable
 
     private void Init()
     {
-        Service.Log.Verbose($"Creating new {nameof(GameLight)}");
+        Service.Log.Verbose($"Creating new light");
         Service.Framework.Update += OnUpdate;
     }
 
@@ -72,7 +72,7 @@ public unsafe class GameLight : IDisposable
 
     public void Dispose()
     {
-        Service.Log.Verbose($"Cleaning up {nameof(GameLight)}");
+        Service.Log.Verbose($"Cleaning up light");
         Debug.Assert(Service.Framework.IsInFrameworkUpdateThread);
         
         Service.Framework.Update -= OnUpdate;
