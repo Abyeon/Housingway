@@ -23,7 +23,7 @@ public unsafe class GameLight : IDisposable
         if (instance.IsNull) return false;
         
         var scene = instance.Value->GraphicsObject;
-        var worldRenderLight = scene->RenderLight;
+        var render = scene->RenderLight;
 
         if (scene->LoadState != 3) return false;
 
@@ -32,29 +32,29 @@ public unsafe class GameLight : IDisposable
 
         fixed (byte* poolPtr = "Housingway.Light\0"u8)
         {
-            copy.Data = SceneLight.Create(worldRenderLight->LightShape, poolPtr, null);
+            copy.Data = SceneLight.Create(render->LightShape, poolPtr, null);
         }
 
         if (copy.Data is null) return false;
-        var renderLight = copy.Data->RenderLight;
+        var copyLight = copy.Data->RenderLight;
 
         copy.Data->Position = scene->Position;
         copy.Data->Rotation = scene->Rotation;
         copy.Data->Scale = scene->Scale;
-
-        renderLight->LightFlags = worldRenderLight->LightFlags;
-        renderLight->LightShape = worldRenderLight->LightShape;
-        renderLight->Color = worldRenderLight->Color;
-        renderLight->Intensity = worldRenderLight->Intensity;
-        renderLight->ShadowDepthNear = worldRenderLight->ShadowDepthNear;
-        renderLight->ShadowDepthFar = worldRenderLight->ShadowDepthFar;
-        renderLight->FalloffType = worldRenderLight->FalloffType;
-        renderLight->FalloffFactor = worldRenderLight->FalloffFactor;
-        renderLight->AngularFalloffDegrees = worldRenderLight->AngularFalloffDegrees;
-        renderLight->SpotLightAngleDegrees = worldRenderLight->SpotLightAngleDegrees;
-        renderLight->FlatLightSkewAngleDegrees = worldRenderLight->FlatLightSkewAngleDegrees;
-        renderLight->Range = worldRenderLight->Range;
-        renderLight->CharacterShadowRange = worldRenderLight->CharacterShadowRange;
+        
+        copyLight->LightFlags = render->LightFlags;
+        copyLight->LightShape = render->LightShape;
+        copyLight->Color = render->Color;
+        copyLight->Intensity = render->Intensity;
+        copyLight->ShadowDepthNear = render->ShadowDepthNear;
+        copyLight->ShadowDepthFar = render->ShadowDepthFar;
+        copyLight->FalloffType = render->FalloffType;
+        copyLight->FalloffFactor = render->FalloffFactor;
+        copyLight->AngularFalloffDegrees = render->AngularFalloffDegrees;
+        copyLight->SpotLightAngleDegrees = render->SpotLightAngleDegrees;
+        copyLight->FlatLightSkewAngleDegrees = render->FlatLightSkewAngleDegrees;
+        copyLight->Range = render->Range;
+        copyLight->CharacterShadowRange = render->CharacterShadowRange;
         copy.Init();
         
         return true;
