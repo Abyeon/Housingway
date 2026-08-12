@@ -42,19 +42,36 @@ public unsafe class GameLight : IDisposable
         copy.Data->Rotation = scene->Rotation;
         copy.Data->Scale = scene->Scale;
         
+        // need to add gobo stuff
+
+        copyLight->Transform = (Transform*)&copy.Data->Position;
+        
         copyLight->LightFlags = render->LightFlags;
         copyLight->LightShape = render->LightShape;
         copyLight->Color = render->Color;
         copyLight->Intensity = render->Intensity;
-        copyLight->ShadowDepthNear = render->ShadowDepthNear;
-        copyLight->ShadowDepthFar = render->ShadowDepthFar;
+        copyLight->MaxRange = render->MaxRange;
+        copyLight->ShadowPlaneNear = render->ShadowPlaneNear;
+        copyLight->ShadowPlaneFar = render->ShadowPlaneFar;
         copyLight->FalloffType = render->FalloffType;
-        copyLight->FalloffFactor = render->FalloffFactor;
-        copyLight->AngularFalloffDegrees = render->AngularFalloffDegrees;
-        copyLight->SpotLightAngleDegrees = render->SpotLightAngleDegrees;
         copyLight->FlatLightSkewAngleDegrees = render->FlatLightSkewAngleDegrees;
+        copyLight->FalloffFactor = render->FalloffFactor;
+        copyLight->SpotLightAngleDegrees = render->SpotLightAngleDegrees;
+        copyLight->AngularFalloffDegrees = render->AngularFalloffDegrees;
         copyLight->Range = render->Range;
         copyLight->CharacterShadowRange = render->CharacterShadowRange;
+        copyLight->CullingBounds = render->CullingBounds;
+        copyLight->RangeBounds = render->RangeBounds;
+        copyLight->EnableSSAOMaybe = render->EnableSSAOMaybe;
+        copyLight->ShadowBiasMaybe = render->ShadowBiasMaybe;
+        copyLight->ShadowDepthNear = render->ShadowDepthNear;
+        copyLight->ShadowDepthFar = render->ShadowDepthFar;
+        copyLight->ShadowStartDist = render->ShadowStartDist;
+        copyLight->ShadowEndDist = render->ShadowEndDist;
+        copyLight->LightFade = render->LightFade;
+        copyLight->LightFadeLength = render->LightFadeLength;
+        copyLight->LightSelect = render->LightSelect;
+        
         copy.Init();
         
         return true;

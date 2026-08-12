@@ -87,11 +87,16 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
 
     private async Task Update()
     {
-        await FindLights();
+        if (Config.ConfigFlags.HasFlag(LightConfigFlags.Object))
+            await FindLights();
+        
         await Service.Framework.Run(() =>
         {
-            SetLight(Config.Light);
-            ApplySettings();
+            if (Config.ConfigFlags.HasFlag(LightConfigFlags.Brightness))
+                SetLight(Config.Light);
+            
+            if (Config.ConfigFlags.HasFlag(LightConfigFlags.Object))
+                ApplySettings();
         }, cts.Token);
     }
     
@@ -125,6 +130,8 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
                 
                     Service.Log.Verbose($"Light found: {child.Value->Instance->Id.InstanceKey}");
                     var light = (LightLayoutInstance*)child.Value->Instance;
+                    if (light->LightType != LightType.Point) continue;
+                    
                     if (GameLight.TryMakeCopy(light, out GameLight copy))
                     {
                         gameLights.Add(copy);
@@ -161,7 +168,7 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
             
             renderLight->CullingBounds = new AxisAlignedBounds(Vector3.NegativeInfinity, Vector3.PositiveInfinity);
             sceneLight->UpdateCulling();
-            sceneLight->UpdateMaterials();
+            // sceneLight->UpdateMaterials();
         }
     }
     
