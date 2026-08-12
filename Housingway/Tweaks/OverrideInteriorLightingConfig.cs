@@ -43,7 +43,7 @@ public partial class OverrideInteriorLighting
         ImGui.Spacing();
         if (ImGui.Button("Restore"))
         {
-            IndoorLight = InitialValue;
+            SetLight(InitialValue);
             Config.Light = IndoorLight;
             Plugin.Configuration.Save();
         }

@@ -182,13 +182,13 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
     public override void ResetConfig()
     {
         base.ResetConfig();
-        Config.Light = InitialValue;
-        IndoorLight = InitialValue;
+        SetLight(InitialValue);
+        Config.Light = IndoorLight;
         ApplySettings();
     }
 
     private void SetLight(float value)
     {
-        IndoorLight = Config.Light;
+        IndoorLight = value;
     }
 }
