@@ -1,7 +1,9 @@
 ﻿using System.Threading.Tasks;
+using JetBrains.Annotations;
 
 namespace Housingway.Tweaks.Base;
 
+[UsedImplicitly(ImplicitUseTargetFlags.WithInheritors)]
 public abstract class BaseTweak : ITweak
 {
     public abstract string Name { get; init; }
