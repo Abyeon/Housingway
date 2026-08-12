@@ -23,6 +23,7 @@ public partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig
     {
         HousingService.OnEnterHousingArea += OnEnterHousingArea;
         
+        if (!HousingService.IsInside) return;
 
         await Service.Framework.Run(() =>
         {
@@ -115,13 +116,13 @@ public partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig
         
         try
         {
-            if (!lightguard.IsNull || shameCube.Value->LoadState != 7)
+            if (!lightguard.IsNull && shameCube.Value->LoadState == 7)
             {
                 lightguard.Value->IsVisible = !Config.DisableLightguard || enable;
                 lightguard.Value->UpdateRender();
             }
 
-            if (!shameCube.IsNull || shameCube.Value->LoadState != 7)
+            if (!shameCube.IsNull && shameCube.Value->LoadState == 7)
             {
                 shameCube.Value->IsVisible = !Config.DisableShameCube || enable;
                 shameCube.Value->UpdateRender();
@@ -140,6 +141,8 @@ public partial class ModelAdjustments : ConfigurableTweak<ModelAdjustmentsConfig
         Service.Framework.Update -= OnUpdate; // in case this gets disabled while we still haven't found objs
         Plugin.Overlay.OnDraw -= OnOverlay;
 
+        if (!HousingService.IsInside) return;
+        
         await Service.Framework.Run(() =>
         {
             // Only toggle models back on if the game is not shutting down

@@ -51,6 +51,8 @@ public unsafe class HousingService : IDisposable
 
     private void CheckForHousing()
     {
+        if (!Service.ClientState.IsLoggedIn) return;
+        
         IsInside = Manager != null && Manager->IsInside();
         IsOutside = Manager != null && Manager->IsOutside();
         

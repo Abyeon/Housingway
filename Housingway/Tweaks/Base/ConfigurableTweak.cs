@@ -17,8 +17,9 @@ public abstract class ConfigurableTweak<T> : BaseTweak, IConfigurableTweak
     
     public abstract void DrawConfig();
 
-    public void ResetConfig()
+    public virtual void ResetConfig()
     {
+        // TODO: Either turn ResetConfig into a task or add an event that fires after the config is reset
         Task.Run(() =>
         {
             Config = Activator.CreateInstance<T>();

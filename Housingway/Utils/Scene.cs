@@ -41,7 +41,7 @@ public unsafe class Scene : IDisposable
         var active = world->ActiveLayout;
         if (active == null) return;
 
-        if (active->InitState == 7)
+        if (active->InitState == 7 && GameMain.Instance()->TerritoryLoadState == 2)
         {
             Service.Framework.Update -= OnUpdate;
             OnZoneLoaded?.Invoke();

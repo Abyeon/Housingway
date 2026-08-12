@@ -81,7 +81,7 @@ public abstract class CustomWindow : Window
             
             using (var child = ImRaii.Child($"###{WindowName}RenderArea", childSize))
             {
-                if (child.Success)
+                if (child.Success && child.Alive)
                 {
                     try
                     {
