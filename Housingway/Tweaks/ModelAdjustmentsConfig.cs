@@ -47,6 +47,19 @@ public unsafe partial class ModelAdjustments
         string cube = shameCube.IsNull ? "Null" : shameCube.Value->ModelResourceHandle->FileName.ToString();
         
         ImGui.InputText("Lightguard", ref guard, flags: ImGuiInputTextFlags.ReadOnly);
+
+        if (!lightguard.IsNull)
+        {
+            byte state = lightguard.Value->ModelResourceHandle->LoadState;
+            ImGui.InputByte("Guard load state", ref state, flags: ImGuiInputTextFlags.ReadOnly);
+        }
+        
         ImGui.InputText("ShameCube", ref cube, flags: ImGuiInputTextFlags.ReadOnly);
+        
+        if (!shameCube.IsNull)
+        {
+            byte state = shameCube.Value->ModelResourceHandle->LoadState;
+            ImGui.InputByte("Cube load state", ref state, flags: ImGuiInputTextFlags.ReadOnly);
+        }
     }
 }
