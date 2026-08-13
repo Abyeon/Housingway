@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Dalamud.Game.ClientState;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
@@ -70,7 +71,7 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
         
         if (HousingService.IsInside)
         {
-            await Update();
+            await Service.Framework.Run(Update);
         }
     }
 
@@ -81,23 +82,20 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
 
     private void OnEnterHousingArea(bool indoors)
     {
-        ClearLights();
         if (indoors) Task.Run(Update);
     }
 
-    private async Task Update()
+    private void Update()
     {
-        if (Config.ConfigFlags.HasFlag(LightConfigFlags.Object))
-            await FindLights();
+        if (Config.ConfigFlags.HasFlag(LightConfigFlags.Brightness))
+            SetLight(Config.Light);
+
+        ClearLights();
+
+        if (!Config.ConfigFlags.HasFlag(LightConfigFlags.Object)) return;
         
-        await Service.Framework.Run(() =>
-        {
-            if (Config.ConfigFlags.HasFlag(LightConfigFlags.Brightness))
-                SetLight(Config.Light);
-            
-            if (Config.ConfigFlags.HasFlag(LightConfigFlags.Object))
-                ApplySettings();
-        }, cts.Token);
+        FindLights();
+        ApplySettings();
     }
     
     private void ClearLights()
@@ -107,7 +105,7 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
         gameLights.Clear();
     }
     
-    private unsafe Task FindLights()
+    private unsafe void FindLights()
     {
         Service.Log.Verbose("Searching for lights");
         
@@ -127,10 +125,11 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
                 {
                     if (child.IsNull) continue;
                     if (child.Value->Instance->Id.Type != InstanceType.Light) continue;
-                
-                    Service.Log.Verbose($"Light found: {child.Value->Instance->Id.InstanceKey}");
+                    
                     var light = (LightLayoutInstance*)child.Value->Instance;
                     if (light->LightType != LightType.Point) continue;
+
+                    Service.Log.Verbose($"Light found: {child.Value->Instance->Id.InstanceKey}");
                     
                     if (GameLight.TryMakeCopy(light, out GameLight copy))
                     {
@@ -139,36 +138,51 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
                 }
             }
         }
-
-        return Task.CompletedTask;
     }
     
     private unsafe void ApplySettings()
     {
-        // SetLight(Config.Light);
-        
-        foreach (var light in gameLights)
+        foreach (GameLight light in gameLights)
         {
             if (cts.IsCancellationRequested) return;
             if (!light.IsLoaded()) continue;
-            var sceneLight = light.Data;
-            var renderLight = sceneLight->RenderLight;
+            var renderLight = light.Data->RenderLight;
+            var original = light.Original->RenderLight;
 
             if (renderLight == null) continue;
             
-            // renderLight->LightFlags = Config.LightFlags;
-            // renderLight->
-            // renderLight->LightShape = Config.LightShape;
-            renderLight->Color = Config.Color;
-            renderLight->Intensity = Config.Intensity;
-            // renderLight->FalloffFactor = Config.FalloffFactor;
-            // renderLight->AngularFalloffDegrees = Config.AngularFalloffDegrees;
-            renderLight->Range = Config.Range;
-            // renderLight->CharacterShadowRange = Config.CharacterShadowRange;
+            if (Config.ConfigFlags.HasFlag(LightConfigFlags.Flags))
+            {
+                renderLight->LightFlags = Config.Flags;
+            }
+            else
+            {
+                renderLight->LightFlags = original->LightFlags;
+            }
+
+            if (Config.ConfigFlags.HasFlag(LightConfigFlags.Color))
+            {
+                renderLight->Color = Config.Color;
+                renderLight->Intensity = Config.Intensity;
+            }
+            else
+            {
+                renderLight->Color = original->Color;
+                renderLight->Intensity = original->Intensity;
+            }
+
+            if (Config.ConfigFlags.HasFlag(LightConfigFlags.Range))
+            {
+                renderLight->Range = Config.Range;
+                renderLight->CharacterShadowRange = Config.Range;
+            }
+            else
+            {
+                renderLight->Range = original->Range;
+                renderLight->CharacterShadowRange = original->CharacterShadowRange;
+            }
             
-            renderLight->CullingBounds = new AxisAlignedBounds(Vector3.NegativeInfinity, Vector3.PositiveInfinity);
-            sceneLight->UpdateCulling();
-            // sceneLight->UpdateMaterials();
+            Service.Log.Verbose($"Light range = {renderLight->Range} (apply)");
         }
     }
     

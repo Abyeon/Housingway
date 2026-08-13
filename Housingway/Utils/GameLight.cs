@@ -3,6 +3,7 @@ using System.Diagnostics;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
+using FFXIVClientStructs.FFXIV.Common.Math;
 using FFXIVClientStructs.Interop;
 using SceneLight = FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Light;
 
@@ -12,13 +13,13 @@ public unsafe class GameLight : IDisposable
 {
     public SceneLight* Data;
 
-    private bool isCopy;
-    private SceneLight* original;
+    public bool IsCopy;
+    public SceneLight* Original;
     
     public static bool TryMakeCopy(Pointer<LightLayoutInstance> instance, out GameLight copy)
     {
         copy = new GameLight();
-        copy.isCopy = true;
+        copy.IsCopy = true;
 
         if (instance.IsNull) return false;
         
@@ -28,7 +29,7 @@ public unsafe class GameLight : IDisposable
         if (scene->LoadState != 3) return false;
 
         copy.Data = null;
-        copy.original = scene;
+        copy.Original = scene;
 
         fixed (byte* poolPtr = "Housingway.Light\0"u8)
         {
@@ -72,6 +73,9 @@ public unsafe class GameLight : IDisposable
         copyLight->LightFadeLength = render->LightFadeLength;
         copyLight->LightSelect = render->LightSelect;
         
+        copyLight->CullingBounds = new AxisAlignedBounds(Vector3.NegativeInfinity, Vector3.PositiveInfinity);
+        copy.Data->UpdateCulling();
+        
         copy.Init();
         
         return true;
@@ -81,6 +85,7 @@ public unsafe class GameLight : IDisposable
     {
         Service.Log.Verbose($"Creating new light");
         Service.Framework.Update += OnUpdate;
+        Service.Log.Verbose($"Light range = {Data->RenderLight->Range} (init)");
     }
 
     public bool IsLoaded()
@@ -93,9 +98,9 @@ public unsafe class GameLight : IDisposable
 
     private void Update()
     {
-        if (!IsLoaded()) return;
+        if (Data is null) return;
         
-        if (isCopy) original->IsVisible = false;
+        if (IsCopy) Original->IsVisible = false;
         Data->UpdateMaterials();
     }
 
@@ -106,8 +111,8 @@ public unsafe class GameLight : IDisposable
         
         Service.Framework.Update -= OnUpdate;
 
-        if (isCopy && original is not null)
-            original->IsVisible = true;
+        if (IsCopy && Original is not null)
+            Original->IsVisible = true;
         
         Data->CleanupRender();
         Data->Dtor(1);
