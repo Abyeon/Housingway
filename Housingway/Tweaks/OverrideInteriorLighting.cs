@@ -2,14 +2,13 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Game.ClientState;
+using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
-using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Node;
-using FFXIVClientStructs.FFXIV.Common.Math;
 using FFXIVClientStructs.Interop;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
@@ -73,16 +72,21 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
         {
             await Service.Framework.Run(Update);
         }
+        
+        Service.Framework.Update += OnUpdate;
     }
 
-    private void OnZoneInit(ZoneInitEventArgs obj)
+    private void OnUpdate(IFramework framework)
     {
-        ClearLights();
+        if (gameLights.Count == 0 || !HousingService.IsInside) return;
+        ApplySettings();
     }
+
+    private void OnZoneInit(ZoneInitEventArgs obj) => ClearLights();
 
     private void OnEnterHousingArea(bool indoors)
     {
-        if (indoors) Task.Run(Update);
+        if (indoors) Update();
     }
 
     private void Update()
@@ -95,7 +99,6 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
         if (!Config.ConfigFlags.HasFlag(LightConfigFlags.Object)) return;
         
         FindLights();
-        ApplySettings();
     }
     
     private void ClearLights()
@@ -111,10 +114,10 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
         
         var active = LayoutWorld.Instance()->ActiveLayout;
         
-        foreach (var layer in active->Layers.Values)
+        foreach (Pointer<LayerManager> layer in active->Layers.Values)
         {
             if (layer.IsNull) continue;
-            foreach (var instance in layer.Value->Instances.Values)
+            foreach (Pointer<ILayoutInstance> instance in layer.Value->Instances.Values)
             {
                 if (instance.IsNull) continue;
                 if (instance.Value->Id.Type != InstanceType.SharedGroup) continue;
@@ -130,6 +133,7 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
                     if (light->LightType != LightType.Point) continue;
 
                     Service.Log.Verbose($"Light found: {child.Value->Instance->Id.InstanceKey}");
+                    Service.Log.Verbose($"Light range = {light->GraphicsObject->RenderLight->Range} (find)");
                     
                     if (GameLight.TryMakeCopy(light, out GameLight copy))
                     {
@@ -181,8 +185,6 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
                 renderLight->Range = original->Range;
                 renderLight->CharacterShadowRange = original->CharacterShadowRange;
             }
-            
-            Service.Log.Verbose($"Light range = {renderLight->Range} (apply)");
         }
     }
     
@@ -190,6 +192,7 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
     {
         HousingService.OnEnterHousingArea -= OnEnterHousingArea;
         Service.ClientState.ZoneInit -= OnZoneInit;
+        Service.Framework.Update -= OnUpdate;
 
         await cts.CancelAsync();
         
@@ -205,10 +208,9 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
         base.ResetConfig();
         SetLight(InitialValue);
         Config.Light = IndoorLight;
-        ApplySettings();
     }
 
-    private void SetLight(float value)
+    private static void SetLight(float value)
     {
         IndoorLight = value;
     }

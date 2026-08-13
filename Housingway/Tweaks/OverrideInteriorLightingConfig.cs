@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Numerics;
-using System.Threading.Tasks;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
@@ -68,7 +67,7 @@ public partial class OverrideInteriorLighting
         }
 
         // -- Light Object Editing --
-        if (ImGui.CheckboxFlags("Edit Light Object", ref flags, (uint)LightConfigFlags.Object))
+        if (ImGui.CheckboxFlags("Edit Light Objects", ref flags, (uint)LightConfigFlags.Object))
         {
             Config.ConfigFlags = (LightConfigFlags)flags;
             Update();

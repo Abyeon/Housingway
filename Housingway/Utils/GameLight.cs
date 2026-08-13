@@ -6,6 +6,7 @@ using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using FFXIVClientStructs.Interop;
 using SceneLight = FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Light;
+using RenderLight = FFXIVClientStructs.FFXIV.Client.Graphics.Render.Light;
 
 namespace Housingway.Utils;
 
@@ -37,48 +38,51 @@ public unsafe class GameLight : IDisposable
         }
 
         if (copy.Data is null) return false;
-        var copyLight = copy.Data->RenderLight;
-
+        
         copy.Data->Position = scene->Position;
         copy.Data->Rotation = scene->Rotation;
         copy.Data->Scale = scene->Scale;
         
         // need to add gobo stuff
 
-        copyLight->Transform = (Transform*)&copy.Data->Position;
+        copy.Data->RenderLight->Transform = (Transform*)&copy.Data->Position;
+        CopyTo(render, copy.Data->RenderLight);
         
-        copyLight->LightFlags = render->LightFlags;
-        copyLight->LightShape = render->LightShape;
-        copyLight->Color = render->Color;
-        copyLight->Intensity = render->Intensity;
-        copyLight->MaxRange = render->MaxRange;
-        copyLight->ShadowPlaneNear = render->ShadowPlaneNear;
-        copyLight->ShadowPlaneFar = render->ShadowPlaneFar;
-        copyLight->FalloffType = render->FalloffType;
-        copyLight->FlatLightSkewAngleDegrees = render->FlatLightSkewAngleDegrees;
-        copyLight->FalloffFactor = render->FalloffFactor;
-        copyLight->SpotLightAngleDegrees = render->SpotLightAngleDegrees;
-        copyLight->AngularFalloffDegrees = render->AngularFalloffDegrees;
-        copyLight->Range = render->Range;
-        copyLight->CharacterShadowRange = render->CharacterShadowRange;
-        copyLight->CullingBounds = render->CullingBounds;
-        copyLight->RangeBounds = render->RangeBounds;
-        copyLight->EnableSSAOMaybe = render->EnableSSAOMaybe;
-        copyLight->ShadowBiasMaybe = render->ShadowBiasMaybe;
-        copyLight->ShadowDepthNear = render->ShadowDepthNear;
-        copyLight->ShadowDepthFar = render->ShadowDepthFar;
-        copyLight->ShadowStartDist = render->ShadowStartDist;
-        copyLight->ShadowEndDist = render->ShadowEndDist;
-        copyLight->LightFade = render->LightFade;
-        copyLight->LightFadeLength = render->LightFadeLength;
-        copyLight->LightSelect = render->LightSelect;
-        
-        copyLight->CullingBounds = new AxisAlignedBounds(Vector3.NegativeInfinity, Vector3.PositiveInfinity);
+        copy.Data->RenderLight->CullingBounds = new AxisAlignedBounds(Vector3.NegativeInfinity, Vector3.PositiveInfinity);
         copy.Data->UpdateCulling();
         
         copy.Init();
         
         return true;
+    }
+
+    private static void CopyTo(RenderLight* source, RenderLight* target)
+    {
+        target->LightFlags = source->LightFlags;
+        target->LightShape = source->LightShape;
+        target->Color = source->Color;
+        target->Intensity = source->Intensity;
+        target->MaxRange = source->MaxRange;
+        target->ShadowPlaneNear = source->ShadowPlaneNear;
+        target->ShadowPlaneFar = source->ShadowPlaneFar;
+        target->FalloffType = source->FalloffType;
+        target->FlatLightSkewAngleDegrees = source->FlatLightSkewAngleDegrees;
+        target->FalloffFactor = source->FalloffFactor;
+        target->SpotLightAngleDegrees = source->SpotLightAngleDegrees;
+        target->AngularFalloffDegrees = source->AngularFalloffDegrees;
+        target->Range = source->Range;
+        target->CharacterShadowRange = source->CharacterShadowRange;
+        target->CullingBounds = source->CullingBounds;
+        target->RangeBounds = source->RangeBounds;
+        target->EnableSSAOMaybe = source->EnableSSAOMaybe;
+        target->ShadowBiasMaybe = source->ShadowBiasMaybe;
+        target->ShadowDepthNear = source->ShadowDepthNear;
+        target->ShadowDepthFar = source->ShadowDepthFar;
+        target->ShadowStartDist = source->ShadowStartDist;
+        target->ShadowEndDist = source->ShadowEndDist;
+        target->LightFade = source->LightFade;
+        target->LightFadeLength = source->LightFadeLength;
+        target->LightSelect = source->LightSelect;
     }
 
     private void Init()
