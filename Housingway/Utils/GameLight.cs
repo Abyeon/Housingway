@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Threading;
+using System.Threading.Tasks;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
@@ -10,22 +12,24 @@ using RenderLight = FFXIVClientStructs.FFXIV.Client.Graphics.Render.Light;
 
 namespace Housingway.Utils;
 
-public unsafe class GameLight : IDisposable
+public class GameLight : IDisposable
 {
-    public SceneLight* Data;
+    public Pointer<SceneLight> Data;
 
     public bool IsCopy;
-    public SceneLight* Original;
+    public Pointer<SceneLight> Original;
+
+    private readonly CancellationTokenSource cts = new();
     
-    public static bool TryMakeCopy(Pointer<LightLayoutInstance> instance, out GameLight copy)
+    public static unsafe bool TryMakeCopy(Pointer<LightLayoutInstance> instance, out GameLight copy)
     {
         copy = new GameLight();
         copy.IsCopy = true;
 
         if (instance.IsNull) return false;
         
-        var scene = instance.Value->GraphicsObject;
-        var render = scene->RenderLight;
+        SceneLight* scene = instance.Value->GraphicsObject;
+        RenderLight* render = scene->RenderLight;
 
         if (scene->LoadState != 3) return false;
 
@@ -37,23 +41,14 @@ public unsafe class GameLight : IDisposable
             copy.Data = SceneLight.Create(render->LightShape, poolPtr, null);
         }
 
-        if (copy.Data is null) return false;
+        if (copy.Data.Value is null) return false;
         
-        copy.Data->Position = scene->Position;
-        copy.Data->Rotation = scene->Rotation;
-        copy.Data->Scale = scene->Scale;
-        
-        // need to add gobo stuff
-
-        copy.Data->RenderLight->Transform = (Transform*)&copy.Data->Position;
-        CopyTo(render, copy.Data->RenderLight);
-        
-        copy.Init();
+        Task.Run(copy.Init);
         
         return true;
     }
 
-    private static void CopyTo(RenderLight* source, RenderLight* target)
+    private static unsafe void CopyTo(RenderLight* source, RenderLight* target)
     {
         target->LightFlags = source->LightFlags;
         target->LightShape = source->LightShape;
@@ -82,41 +77,96 @@ public unsafe class GameLight : IDisposable
         target->LightSelect = source->LightSelect;
     }
 
-    private void Init()
+    private bool isLoaded = false;
+    private Action<GameLight>? loadAction = null;
+    
+    private async Task Init()
     {
-        Service.Log.Verbose($"Creating new light");
-        Service.Framework.Update += OnUpdate;
-        Service.Log.Verbose($"Light range = {Data->RenderLight->Range} (init)");
-    }
+        Service.Log.Verbose("Creating new light");
+        
+        if (Data.IsNull) throw new InvalidOperationException("Data is null");
+        if (Original.IsNull) throw new InvalidOperationException("Original is null");
 
-    public bool IsLoaded()
+        bool loaded = false;
+        
+        while (!loaded)
+        {
+            if (cts.IsCancellationRequested) return;
+
+            unsafe
+            {
+                loaded = Data.Value->LoadState == 3;
+            }
+            
+            await Task.Delay(16);
+        }
+
+        await Service.Framework.Run(() =>
+        {
+            if (Data.IsNull) return;
+            if (IsCopy && !Original.IsNull)
+            {
+                unsafe
+                {
+                    Data.Value->Position = Original.Value->Position;
+                    Data.Value->Rotation = Original.Value->Rotation;
+                    Data.Value->Scale = Original.Value->Scale;
+
+                    // need to add gobo stuff
+
+                    Data.Value->RenderLight->Transform = (Transform*)&Data.Value->Position;
+                    CopyTo(Original.Value->RenderLight, Data.Value->RenderLight);
+
+                    Service.Log.Verbose($"Light range = {Data.Value->RenderLight->Range} (init)");
+                }
+            }
+
+            loadAction?.Invoke(this);
+            loadAction = null;
+
+            isLoaded = true;
+        });
+        
+        Service.Framework.Update += OnUpdate;
+    }
+    
+    public void RunOnLoad(Action<GameLight> action)
     {
-        if (Data is null) return false;
-        return Data->LoadState == 3;
+        Debug.Assert(Service.Framework.IsInFrameworkUpdateThread);
+        
+        if (isLoaded) action(this);
+        else
+        {
+            loadAction = action;
+        }
     }
 
     private void OnUpdate(IFramework framework) => Update();
 
-    private void Update()
+    private unsafe void Update()
     {
-        if (Data is null) return;
+        if (Data.IsNull) return;
         
-        if (IsCopy) Original->IsVisible = false;
-        Data->UpdateMaterials();
+        if (IsCopy) Original.Value->IsVisible = false;
+        Data.Value->UpdateMaterials();
     }
 
-    public void Dispose()
+    public unsafe void Dispose()
     {
-        Service.Log.Verbose($"Cleaning up light");
+        Service.Log.Verbose("Cleaning up light");
         Debug.Assert(Service.Framework.IsInFrameworkUpdateThread);
+        
+        cts.Cancel();
         
         Service.Framework.Update -= OnUpdate;
 
-        if (IsCopy && Original is not null)
-            Original->IsVisible = true;
+        if (IsCopy && !Original.IsNull)
+            Original.Value->IsVisible = true;
         
-        Data->CleanupRender();
-        Data->Dtor(1);
+        Data.Value->CleanupRender();
+        Data.Value->Dtor(1);
         Data = null;
+        
+        loadAction = null;
     }
 }
