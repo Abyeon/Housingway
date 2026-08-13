@@ -48,9 +48,6 @@ public unsafe class GameLight : IDisposable
         copy.Data->RenderLight->Transform = (Transform*)&copy.Data->Position;
         CopyTo(render, copy.Data->RenderLight);
         
-        copy.Data->RenderLight->CullingBounds = new AxisAlignedBounds(Vector3.NegativeInfinity, Vector3.PositiveInfinity);
-        copy.Data->UpdateCulling();
-        
         copy.Init();
         
         return true;

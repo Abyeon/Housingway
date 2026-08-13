@@ -9,6 +9,7 @@ using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Group;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Node;
+using FFXIVClientStructs.FFXIV.Common.Math;
 using FFXIVClientStructs.Interop;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
@@ -185,6 +186,9 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
                 renderLight->Range = original->Range;
                 renderLight->CharacterShadowRange = original->CharacterShadowRange;
             }
+            
+            renderLight->CullingBounds = new AxisAlignedBounds(Vector3.NegativeInfinity, Vector3.PositiveInfinity);
+            light.Data->UpdateCulling();
         }
     }
     
