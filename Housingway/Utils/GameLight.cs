@@ -1,14 +1,16 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Threading;
-using System.Threading.Tasks;
+using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Graphics;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
+using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using FFXIVClientStructs.Interop;
 using SceneLight = FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Light;
 using RenderLight = FFXIVClientStructs.FFXIV.Client.Graphics.Render.Light;
+using Task = System.Threading.Tasks.Task;
 
 namespace Housingway.Utils;
 
@@ -16,7 +18,11 @@ public class GameLight : IDisposable
 {
     public Pointer<SceneLight> Data;
 
-    public bool IsCopy;
+    public bool RaveMode;
+    public float Speed = 0.2f;
+    private float hue;
+    
+    public bool IsCopy { get; private set; }
     public Pointer<SceneLight> Original;
 
     private readonly CancellationTokenSource cts = new();
@@ -77,8 +83,8 @@ public class GameLight : IDisposable
         target->LightSelect = source->LightSelect;
     }
 
-    private bool isLoaded = false;
-    private Action<GameLight>? loadAction = null;
+    private bool isLoaded;
+    private Action<GameLight>? loadAction;
     
     private async Task Init()
     {
@@ -148,6 +154,18 @@ public class GameLight : IDisposable
         if (Data.IsNull) return;
         
         if (IsCopy) Original.Value->IsVisible = false;
+
+        if (RaveMode)
+        {
+            hue += Speed * Framework.Instance()->FrameDeltaTime;
+            if (hue > 1f) hue -= 1f;
+
+            Vector3 color = Vector3.One;
+            ImGui.ColorConvertHSVtoRGB(hue, 1, 1, ref color.X, ref color.Y, ref color.Z);
+            
+            Data.Value->RenderLight->Color = color;
+        }
+        
         Data.Value->UpdateMaterials();
     }
 

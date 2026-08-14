@@ -165,7 +165,18 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
 
                 if (Config.ConfigFlags.HasFlag(LightConfigFlags.Color))
                 {
-                    renderLight->Color = Config.Color;
+                    bool raveMode = Config.ConfigFlags.HasFlag(LightConfigFlags.Rave);
+                    light.RaveMode = raveMode;
+                    
+                    if (raveMode)
+                    {
+                        light.Speed = Config.RaveSpeed;
+                    }
+                    else
+                    {
+                        renderLight->Color = Config.Color;
+                    }
+                    
                     renderLight->Intensity = Config.Intensity;
                 }
                 else

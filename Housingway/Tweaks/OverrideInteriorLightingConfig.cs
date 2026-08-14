@@ -5,6 +5,7 @@ using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
 using Housingway.Interface;
 using Housingway.Utils;
+using Housingway.Utils.Extensions;
 
 namespace Housingway.Tweaks;
 
@@ -16,7 +17,8 @@ public enum LightConfigFlags
     Object = 1 << 1,
     Color = 1 << 2,
     Range = 1 << 3,
-    Flags = 1 << 4
+    Flags = 1 << 4,
+    Rave = 1 << 5
 }
 
 public class OverrideInteriorLightingConfig
@@ -34,6 +36,8 @@ public class OverrideInteriorLightingConfig
     public Vector3 Color = Vector3.One;
     public float Intensity = 5f;
     public float Range = 10f;
+
+    public float RaveSpeed = 0.2f;
 }
 
 public partial class OverrideInteriorLighting
@@ -53,6 +57,7 @@ public partial class OverrideInteriorLighting
 
         using (ImRaii.Disabled(!Config.ConfigFlags.HasFlag(LightConfigFlags.Brightness)))
         {
+            using var brightnessIndent = ImRaii.PushIndent();
             float light = Config.Light;
             if (Ui.SliderWithDefault("Brightness", ref light, 0, 1, InitialValue))
             {
@@ -75,6 +80,7 @@ public partial class OverrideInteriorLighting
         
         using (ImRaii.Disabled(!Config.ConfigFlags.HasFlag(LightConfigFlags.Object)))
         {
+            using var objectIndent = ImRaii.PushIndent();
             // -- Color / Intensity --
             if (ImGui.CheckboxFlags("Edit Color", ref flags, (uint)LightConfigFlags.Color))
             {
@@ -84,16 +90,35 @@ public partial class OverrideInteriorLighting
 
             using (ImRaii.Disabled(!Config.ConfigFlags.HasFlag(LightConfigFlags.Color)))
             {
-                if (ImGui.ColorEdit3("Color", ref Config.Color))
+                using var colorIndent = ImRaii.PushIndent();
+                if (ImGui.CheckboxFlags("Rave Mode", ref flags, (uint)LightConfigFlags.Rave))
                 {
+                    Config.ConfigFlags = (LightConfigFlags)flags;
                     ApplySettings();
                 }
-        
+                
+                bool raveMode = Config.ConfigFlags.HasFlag(LightConfigFlags.Rave);
+
+                if (!raveMode)
+                {
+                    if (ImGui.ColorEdit3("Color", ref Config.Color))
+                    {
+                        ApplySettings();
+                    }
+                }
+                else
+                {
+                    if (ImGui.SliderFloat("Speed", ref Config.RaveSpeed, 0, 1f))
+                    {
+                        ApplySettings();
+                    }
+                }
+
                 if (ImGui.IsItemDeactivatedAfterEdit())
                 {
                     Plugin.Configuration.Save();
                 }
-                
+
                 if (ImGui.DragFloat("Intensity", ref Config.Intensity))
                 {
                     ApplySettings();
@@ -114,6 +139,8 @@ public partial class OverrideInteriorLighting
 
             using (ImRaii.Disabled(!Config.ConfigFlags.HasFlag(LightConfigFlags.Range)))
             {
+                using var rangeIndent = ImRaii.PushIndent();
+                
                 if (ImGui.DragFloat("Range", ref Config.Range))
                 {
                     ApplySettings();
@@ -134,6 +161,8 @@ public partial class OverrideInteriorLighting
 
             using (ImRaii.Disabled(!Config.ConfigFlags.HasFlag(LightConfigFlags.Flags)))
             {
+                using var flagsIndent = ImRaii.PushIndent();
+                
                 using var combo = ImRaii.Combo("Flags", Config.Flags.ToString());
                 if (combo.Success)
                 {
