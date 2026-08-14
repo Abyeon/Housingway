@@ -171,15 +171,7 @@ public partial class OverrideInteriorLighting
                         bool selected = Config.Flags.HasFlag(flag);
                         if (ImGui.Selectable(flag.ToString(), selected, ImGuiSelectableFlags.DontClosePopups))
                         {
-                            if (selected)
-                            {
-                                Config.Flags &= ~flag;
-                            }
-                            else
-                            {
-                                Config.Flags |= flag;
-                            }
-                        
+                            Config.Flags.SetFlag(flag, !selected);
                             ApplySettings();
                         }
                     }
