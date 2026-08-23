@@ -3,7 +3,7 @@ using System.Numerics;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Interface.Utility.Raii;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
-using Housingway.Interface;
+using Housingway.Interface.Widgets;
 using Housingway.Utils;
 using Housingway.Utils.Extensions;
 
@@ -171,7 +171,7 @@ public partial class OverrideInteriorLighting
                         bool selected = Config.Flags.HasFlag(flag);
                         if (ImGui.Selectable(flag.ToString(), selected, ImGuiSelectableFlags.DontClosePopups))
                         {
-                            Config.Flags.SetFlag(flag, !selected);
+                            Config.Flags = Config.Flags.SetFlag(flag, !selected);
                             ApplySettings();
                         }
                     }

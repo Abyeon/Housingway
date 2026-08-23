@@ -11,6 +11,7 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Dalamud.Utility;
+using Housingway.Interface.Widgets;
 using Housingway.Profiles;
 using Housingway.Tweaks.Base;
 

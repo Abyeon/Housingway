@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Dalamud.Game.ClientState;
-using Dalamud.Plugin.Services;
 using Dalamud.Utility;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
@@ -130,7 +129,7 @@ public partial class OverrideInteriorLighting : ConfigurableTweak<OverrideInteri
                     Service.Log.Verbose($"Light found: {child.Value->Instance->Id.InstanceKey}");
                     Service.Log.Verbose($"Light range = {light->GraphicsObject->RenderLight->Range} (find)");
                     
-                    if (GameLight.TryMakeCopy(light, out GameLight copy))
+                    if (GameLight.TryMakeCopy(light->GraphicsObject, out GameLight? copy))
                     {
                         gameLights.Add(copy);
                     }

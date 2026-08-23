@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
@@ -43,7 +44,7 @@ public static class Serializer
     /// <param name="data">Output Data of type T</param>
     /// <typeparam name="T">Type to interpret clipboard data as</typeparam>
     /// <returns></returns>
-    public static bool TryDecompressFromClipboard<T>(out T data)
+    public static bool TryDecompressFromClipboard<T>([NotNullWhen(true)] out T? data)
     {
         try
         {
@@ -60,7 +61,7 @@ public static class Serializer
             // ignored
         }
 
-        data = default!;
+        data = default;
         return false;
     }
 

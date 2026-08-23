@@ -10,12 +10,12 @@ using Dalamud.Interface.Utility;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Utility;
 
-namespace Housingway.Interface;
+namespace Housingway.Interface.Widgets;
 
 /// <summary>
 /// Provides custom ImGui components
 /// </summary>
-public static class Ui
+public static partial class Ui
 {
     private static string Buf = "";
 

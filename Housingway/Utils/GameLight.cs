@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using Dalamud.Bindings.ImGui;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Graphics;
-using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Layer;
+using FFXIVClientStructs.FFXIV.Client.Graphics.Render;
 using FFXIVClientStructs.FFXIV.Client.System.Framework;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using FFXIVClientStructs.Interop;
@@ -22,36 +23,39 @@ public class GameLight : IDisposable
     public float Speed = 0.2f;
     private float hue;
     
-    public bool IsCopy { get; private set; }
+    public bool IsCopy { get; private init; }
     public Pointer<SceneLight> Original;
 
     private readonly CancellationTokenSource cts = new();
-    
-    public static unsafe bool TryMakeCopy(Pointer<LightLayoutInstance> instance, out GameLight copy)
+
+    public unsafe GameLight(LightShape shape = LightShape.PointLight)
     {
-        copy = new GameLight();
-        copy.IsCopy = true;
+        Data = SceneLight.Create(shape, "Housingway.Light");
 
-        if (instance.IsNull) return false;
-        
-        SceneLight* scene = instance.Value->GraphicsObject;
-        RenderLight* render = scene->RenderLight;
-
-        if (scene->LoadState != 3) return false;
-
-        copy.Data = null;
-        copy.Original = scene;
-
-        fixed (byte* poolPtr = "Housingway.Light\0"u8)
+        if (!Data.IsNull)
         {
-            copy.Data = SceneLight.Create(render->LightShape, poolPtr, null);
+            Task.Run(Init);
         }
+    }
 
-        if (copy.Data.Value is null) return false;
+    public bool TryMakeCopy([NotNullWhen(true)] out GameLight? copy) => TryMakeCopy(Data, out copy);
+
+    public static unsafe bool TryMakeCopy(Pointer<SceneLight> light, [NotNullWhen(true)] out GameLight? copy)
+    {
+        copy = null;
+        if (light.IsNull) return false;
         
-        Task.Run(copy.Init);
+        RenderLight* render = light.Value->RenderLight;
+
+        if (light.Value->LoadState != 3) return false;
         
-        return true;
+        copy = new GameLight(render->LightShape)
+        {
+            IsCopy = true,
+            Original = light
+        };
+        
+        return copy.Data.Value is not null;
     }
 
     private static unsafe void CopyTo(RenderLight* source, RenderLight* target)
@@ -103,8 +107,8 @@ public class GameLight : IDisposable
             {
                 loaded = Data.Value->LoadState == 3;
             }
-            
-            await Task.Delay(16);
+
+            await Task.Delay(16, cts.Token).ConfigureAwait(false);
         }
 
         await Service.Framework.Run(() =>
@@ -122,8 +126,6 @@ public class GameLight : IDisposable
 
                     Data.Value->RenderLight->Transform = (Transform*)&Data.Value->Position;
                     CopyTo(Original.Value->RenderLight, Data.Value->RenderLight);
-
-                    Service.Log.Verbose($"Light range = {Data.Value->RenderLight->Range} (init)");
                 }
             }
 

@@ -2,8 +2,10 @@
 using Dalamud.Game.ClientState;
 using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
+using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
+using FFXIVClientStructs.Interop;
 using Camera = FFXIVClientStructs.FFXIV.Client.Graphics.Scene.Camera;
 
 namespace Housingway.Utils;
@@ -36,28 +38,25 @@ public unsafe class Scene : IDisposable
 
     private static void CheckLayout()
     {
-        var world = LayoutWorld.Instance();
-        if (world == null) return;
-        var active = world->ActiveLayout;
+        LayoutManager* active = LayoutWorld.Instance()->ActiveLayout;
         if (active == null) return;
 
-        if (active->InitState == 7 && GameMain.Instance()->TerritoryLoadState == 2)
-        {
-            Service.Framework.Update -= OnUpdate;
-            OnZoneLoaded?.Invoke();
-        }
+        if (active->InitState != 7 || GameMain.Instance()->TerritoryLoadState != 2) return;
+        
+        Service.Framework.Update -= OnUpdate;
+        OnZoneLoaded?.Invoke();
     }
     
     public static void RedrawObjects()
     {
-        var man = HousingManager.Instance();
+        HousingManager* man = HousingManager.Instance();
         if (man == null || !man->IsInside()) return;
 
-        var furnitureMan = man->GetFurnitureManager();
+        HousingFurnitureManager* furnitureMan = man->GetFurnitureManager();
         
-        foreach (ref var ptr in furnitureMan->ObjectManager.ObjectArray.Objects)
+        foreach (ref Pointer<GameObject> ptr in furnitureMan->ObjectManager.ObjectArray.Objects)
         {
-            var gameObject = ptr.Value;
+            GameObject* gameObject = ptr.Value;
             if (gameObject == null) continue;
             
             gameObject->DisableDraw();

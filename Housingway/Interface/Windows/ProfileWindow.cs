@@ -10,6 +10,7 @@ using Dalamud.Interface.ImGuiFileDialog;
 using Dalamud.Interface.Utility.Raii;
 using Dalamud.Interface.Windowing;
 using Housingway.Config;
+using Housingway.Interface.Widgets;
 using Housingway.Profiles;
 using Housingway.Utils;
 

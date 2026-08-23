@@ -36,7 +36,7 @@ public abstract class ConfigurableTweak<T> : BaseTweak, IConfigurableTweak
     {
         Task.Run(() =>
         {
-            if (Serializer.TryDecompressFromClipboard(out T newConfig))
+            if (Serializer.TryDecompressFromClipboard(out T? newConfig))
             {
                 Config = newConfig;
                 Plugin.Configuration.Save();
