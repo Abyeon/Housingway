@@ -21,7 +21,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
     
     public readonly Pointer<HousingFurnitureObj> HousingFurniture;
     public readonly Pointer<HousingObject> Object;
-    public readonly Pointer<SharedGroupLayoutInstance> Group;
+    public Pointer<SharedGroupLayoutInstance> Group => Object.Value->SharedGroupLayoutInstance;
     public readonly Pointer<Collider> Collider;
     public readonly Pointer<BgObject> Graphics;
     
@@ -71,9 +71,6 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
         
         if (Object.IsNull) return;
-
-        Group = Object.Value->SharedGroupLayoutInstance;
-
         if (Group.IsNull) return;
         Collider = GetCollider();
         Graphics = GetGraphics();
