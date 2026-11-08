@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using FFXIVClientStructs.FFXIV.Client.Game;
 using FFXIVClientStructs.FFXIV.Client.Game.Object;
 using FFXIVClientStructs.FFXIV.Client.Graphics.Scene;
 using FFXIVClientStructs.FFXIV.Client.LayoutEngine;
@@ -8,8 +10,11 @@ using FFXIVClientStructs.FFXIV.Client.LayoutEngine.Node;
 using FFXIVClientStructs.FFXIV.Common.Component.BGCollision;
 using FFXIVClientStructs.FFXIV.Common.Math;
 using FFXIVClientStructs.Interop;
+using FFXIVClientStructs.STD;
 using Housingway.Structs;
+using Lumina.Excel;
 using Lumina.Excel.Sheets;
+using HousingFurniture = Lumina.Excel.Sheets.HousingFurniture;
 using HousingFurnitureObj = FFXIVClientStructs.FFXIV.Client.Game.HousingFurniture;
 
 namespace Housingway.Utils;
@@ -17,63 +22,70 @@ namespace Housingway.Utils;
 public readonly unsafe struct Furniture : IEquatable<Furniture>
 {
     public readonly ulong Id;
+    public readonly int Index;
     public readonly HousingObjectId HousingObjectId;
-    
-    public readonly Pointer<HousingFurnitureObj> HousingFurniture;
-    public readonly Pointer<HousingObject> Object;
-    public Pointer<SharedGroupLayoutInstance> Group => Object.Value->SharedGroupLayoutInstance;
-    public readonly Pointer<Collider> Collider;
-    public readonly Pointer<BgObject> Graphics;
-    
-    public List<Pointer<BgObject>> AllGraphics => GetAllGraphics();
 
-    public HousingFurniture? FurnitureSheet
+    private static ExcelSheet<HousingFurniture>? FurnitureSheet;
+    private static ExcelSheet<HousingYardObject>? YardSheet;
+
+    public HousingFurniture? FurnitureRow
     {
         get
         {
             if (HousingObjectId.Type != HousingObjectType.Furniture) return null;
-            var sheet = Service.DataManager.Excel.GetSheet<HousingFurniture>();
-            return sheet.GetRowOrDefault(Object.Value->HousingObjectId.Id);
+            FurnitureSheet ??= Service.DataManager.Excel.GetSheet<HousingFurniture>();
+            return FurnitureSheet.GetRowOrDefault(HousingObjectId.Id);
         }
     }
 
-    public HousingYardObject? YardSheet
+    public HousingYardObject? YardRow
     {
         get
         {
             if (HousingObjectId.Type != HousingObjectType.YardObject) return null;
-            var sheet = Service.DataManager.Excel.GetSheet<HousingYardObject>();
-            return sheet.GetRowOrDefault(Object.Value->HousingObjectId.Id);
+            YardSheet ??= Service.DataManager.Excel.GetSheet<HousingYardObject>();
+            return YardSheet.GetRowOrDefault(HousingObjectId.Id);
         }
     }
+    
+    public Pointer<HousingFurnitureObj> HousingFurniture => GetFurniture();
+    public Pointer<HousingObject> Object => GetObject();
+    public Pointer<SharedGroupLayoutInstance> Group => GetGroup();
+    public Pointer<Collider> Collider => GetCollider();
+    public Pointer<BgObject> Graphics => GetGraphics();
+    public List<Pointer<BgObject>> AllGraphics => GetAllGraphics();
 
-    public Furniture(Pointer<HousingFurnitureObj> ptr)
+    // public Furniture(Pointer<HousingFurnitureObj> ptr)
+    // {
+    //     Id = 0;
+    //     Index = -1;
+    //     HousingObjectId = default;
+    //
+    //     if (!HousingService.InHousingArea || ptr.IsNull) return;
+    //
+    //     HousingFurnitureManager* furnitureManager = HousingService.FurnitureManager;
+    //     if (furnitureManager is null) return;
+    //     
+    //     ref HousingObjectManager.HousingObjectArray arr = ref furnitureManager->ObjectManager.ObjectArray;
+    //     int index = ptr.Value->Index;
+    //     if ((uint)index >= (uint)arr.Objects.Length || index >= arr.ObjectCount) return; // can avoid lower bound check by casting to uint o-o
+    //     
+    //     var obj = (HousingObject*)arr.Objects[index].Value;
+    //     if (obj == null) return;
+    //         
+    //     ulong id = obj->GetGameObjectId().Id;
+    //     if (id == 0) return;
+    //             
+    //     Id = id;
+    //     Index = index;
+    //     HousingObjectId = obj->HousingObjectId;
+    // }
+
+    public Furniture(ulong id, int index, HousingObjectId housingObjectId)
     {
-        HousingFurniture = ptr;
-
-        if (!HousingService.InHousingArea)
-        {
-            Id = 0;
-            return;
-        }
-
-        var arr = HousingService.FurnitureManager->ObjectManager.ObjectArray;
-        int index = ptr.Value->Index;
-        if (index >= 0 && index < arr.Objects.Length && index < arr.ObjectCount)
-        {
-            Object = (HousingObject*)arr.Objects[index].Value;
-            Id = Object.IsNull ? 0 : Object.Value->GetGameObjectId().Id;
-            HousingObjectId = Object.Value->HousingObjectId;
-        }
-        else
-        {
-            Id = 0;
-        }
-        
-        if (Object.IsNull) return;
-        if (Group.IsNull) return;
-        Collider = GetCollider();
-        Graphics = GetGraphics();
+        Id = id;
+        Index = index;
+        HousingObjectId = housingObjectId;
     }
 
     public void SetTransparency(float transparency)
@@ -94,12 +106,53 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Pointer<HousingFurnitureObj> GetFurniture()
+    {
+        if (Id == 0 || Index < 0 || !HousingService.InHousingArea) return null;
+        
+        HousingFurnitureManager* furnitureManager = HousingService.FurnitureManager;
+        if (furnitureManager is null) return null;
+
+        foreach (Pointer<HousingFurnitureObj> furn in furnitureManager->FurnitureVector)
+        {
+            if (furn.IsNull || furn.Value->Index != Index) continue;
+            return furn;
+        }
+
+        return null;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private Pointer<HousingObject> GetObject()
+    {
+        if (Id == 0 || Index < 0 || !HousingService.InHousingArea) return null;
+        
+        HousingFurnitureManager* furnitureManager = HousingService.FurnitureManager;
+        if (furnitureManager is null) return null;
+        
+        ref HousingObjectManager.HousingObjectArray arr = ref furnitureManager->ObjectManager.ObjectArray;
+        var obj = (HousingObject*)arr.Objects[Index].Value;
+        if (obj is null || obj->GetGameObjectId().Id != Id) return null;
+
+        return obj;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private SharedGroupLayoutInstance* GetGroup()
+    {
+        Pointer<HousingObject> obj = Object;
+        return obj.IsNull ? null : obj.Value->SharedGroupLayoutInstance;
+    }
+
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Collider* GetCollider()
     {
-        if (Group.IsNull) return null;
+        Pointer<SharedGroupLayoutInstance> group = Group;
+        if (group.IsNull) return null;
 
         Collider* foundCollider = null;
-        foreach (Pointer<ChildNodeInstance> instance in Group.Value->Instances.Instances)
+        foreach (Pointer<ChildNodeInstance> instance in group.Value->Instances.Instances)
         {
             if (instance.IsNull) continue;
 
@@ -115,40 +168,57 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         return foundCollider;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private List<Pointer<BgObject>> GetAllGraphics()
     {
-        if (Group.IsNull || Group.Value->Instances.Instances.Count == 0) return [];
+        Pointer<SharedGroupLayoutInstance> group = Group;
+        if (group.IsNull) return [];
+        
+        ref StdVector<Pointer<ChildNodeInstance>> instances = ref group.Value->Instances.Instances;
+        if (instances.Count == 0) return [];
 
         List<Pointer<BgObject>> graphics = [];
 
-        foreach (Pointer<ChildNodeInstance> child in Group.Value->Instances.Instances)
+        foreach (Pointer<ChildNodeInstance> child in instances)
         {
             if (child.IsNull) continue;
 
-            var instance = child.Value->Instance;
+            ILayoutInstance* instance = child.Value->Instance;
             if (instance == null) continue;
 
             if (instance->Id.Type != InstanceType.BgPart) continue;
             var obj = (BgObject*)instance->GetGraphics();
 
-            if (obj != null || obj->LoadState == 7)
-            {
-                graphics.Add(obj);
-            }
+            if (obj == null || obj->LoadState != 3) continue;
+            graphics.Add(obj);
         }
 
         return graphics;
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private Pointer<BgObject> GetGraphics()
     {
-        var all = AllGraphics;
-
-        if (all.Count == 0) return null;
-
-        foreach (Pointer<BgObject> obj in all)
+        Pointer<SharedGroupLayoutInstance> group = Group;
+        if (group.IsNull) return null;
+        
+        var primary = (BgObject*)group.Value->GetGraphics();
+        if (primary != null && primary->LoadState == 3) return primary;
+        
+        ref StdVector<Pointer<ChildNodeInstance>> instances = ref group.Value->Instances.Instances;
+        if (instances.Count == 0) return null;
+        
+        foreach (Pointer<ChildNodeInstance> child in instances)
         {
-            if (obj.IsNull || obj.Value->LoadState == 7) continue;
+            if (child.IsNull) continue;
+
+            ILayoutInstance* instance = child.Value->Instance;
+            if (instance == null) continue;
+
+            if (instance->Id.Type != InstanceType.BgPart) continue;
+            var obj = (BgObject*)instance->GetGraphics();
+
+            if (obj == null || obj->LoadState != 3) continue;
             return obj;
         }
 
@@ -190,7 +260,7 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
         }
 
         // Object is a wall item
-        if (FurnitureSheet?.HousingItemCategory == 15)
+        if (FurnitureRow?.HousingItemCategory == 15)
         {
             return GetTargetMarkerOffset();
         }
@@ -241,19 +311,12 @@ public readonly unsafe struct Furniture : IEquatable<Furniture>
     }
 
 
-    public bool IsValid => !HousingFurniture.IsNull && !Object.IsNull && !Group.IsNull && !Graphics.IsNull;
+    public bool IsValid => !Graphics.IsNull;
 
     public bool Equals(Furniture other) => Id == other.Id;
     public override bool Equals(object? obj) => obj is Furniture other && Equals(other);
     public override int GetHashCode() => Id.GetHashCode();
 
-    public static bool operator ==(Furniture left, Furniture right)
-    {
-        return left.Equals(right);
-    }
-
-    public static bool operator !=(Furniture left, Furniture right)
-    {
-        return !(left == right);
-    }
+    public static bool operator ==(Furniture left, Furniture right) => left.Equals(right);
+    public static bool operator !=(Furniture left, Furniture right) => !(left == right);
 }

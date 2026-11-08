@@ -4,6 +4,7 @@ using Dalamud.Plugin.Services;
 using FFXIVClientStructs.FFXIV.Client.Game;
 using Housingway.Tweaks.Base;
 using Housingway.Utils;
+using HousingFurniture = Lumina.Excel.Sheets.HousingFurniture;
 using Vector4 = FFXIVClientStructs.FFXIV.Common.Math.Vector4;
 
 namespace Housingway.Tweaks;
@@ -44,10 +45,10 @@ public class NoPositionalOrchestrion : BaseTweak
         {
             if (furn.Object.IsNull) continue;
             
-            var sheet = furn.FurnitureSheet;
-            if (!sheet.HasValue) continue;
+            HousingFurniture? row = furn.FurnitureRow;
+            if (!row.HasValue) continue;
             
-            if (sheet.Value.CustomTalk.TryGetValue(out var customTalk))
+            if (row.Value.CustomTalk.TryGetValue(out var customTalk))
             {
                 if (customTalk.Name.Equals("HouFurOrchestrion_00330"))
                 {

@@ -149,10 +149,10 @@ public partial class FurnitureInfo
             switch (furn.HousingObjectId.Type)
             {
                 case HousingObjectType.YardObject:
-                    Util.OpenLink($"https://exd.camora.dev/sheet/HousingYardObject#R{furn.YardSheet!.Value.RowId}");
+                    Util.OpenLink($"https://exd.camora.dev/sheet/HousingYardObject#R{furn.YardRow!.Value.RowId}");
                     break;
                 case HousingObjectType.Furniture:
-                    Util.OpenLink($"https://exd.camora.dev/sheet/HousingFurniture#R{furn.FurnitureSheet!.Value.RowId}");
+                    Util.OpenLink($"https://exd.camora.dev/sheet/HousingFurniture#R{furn.FurnitureRow!.Value.RowId}");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

@@ -11,8 +11,8 @@ namespace Housingway.Utils;
 
 public unsafe class HousingService : IDisposable
 {
-    public static HousingManager*   Manager  => HousingManager.Instance();
-    public static HousingFurnitureManager* FurnitureManager => Manager->GetFurnitureManager();
+    public static HousingManager* Manager  => HousingManager.Instance();
+    public static HousingFurnitureManager* FurnitureManager => Manager == null ? null : Manager->GetFurnitureManager();
 
     internal static bool IsInside;
     internal static bool IsOutside;
@@ -51,31 +51,26 @@ public unsafe class HousingService : IDisposable
 
     private void CheckForHousing()
     {
-        if (!Service.ClientState.IsLoggedIn) return;
+        Service.Framework.Update -= OnUpdate;
         
-        IsInside = Manager != null && Manager->IsInside();
-        IsOutside = Manager != null && Manager->IsOutside();
+        if (!Service.ClientState.IsLoggedIn) return;
+
+        HousingManager* manager = Manager;
+        IsInside = manager != null && manager->IsInside();
+        IsOutside = manager != null && manager->IsOutside();
         
         if (InHousingArea)
         {
             UpdateFurniture();
             Service.Framework.Update += OnUpdate;
-            
-            if (Address.TryGetAddress(out var address))
-            {
-                CurrentAddress = address;
-            }
-            else
-            {
-                CurrentAddress = null;
-            }
-            
+
+            CurrentAddress = Address.TryGetAddress(out var address) ? address : null;
             OnEnterHousingArea?.Invoke(IsInside);
         }
         else
         {
             CurrentAddress = null;
-            Service.Framework.Update -= OnUpdate;
+            CurrentFurniture.Clear();
         }
     }
 
@@ -84,33 +79,44 @@ public unsafe class HousingService : IDisposable
     private void UpdateFurniture()
     {
         touched.Clear();
-        if (FurnitureManager == null) return;
         
-        var arr = FurnitureManager->ObjectManager.ObjectArray;
+        var furnitureManager = FurnitureManager;
+        if (furnitureManager == null)
+        {
+            if (!CurrentFurniture.IsEmpty) CurrentFurniture.Clear();
+            return;
+        }
         
-        foreach (Pointer<HousingFurniture> furn in FurnitureManager->FurnitureVector)
+        ref HousingObjectManager.HousingObjectArray arr = ref furnitureManager->ObjectManager.ObjectArray;
+        int max = Math.Min(arr.Objects.Length, arr.ObjectCount);
+        
+        foreach (Pointer<HousingFurniture> furn in furnitureManager->FurnitureVector)
         {
             if (furn.IsNull) continue;
             
             int index = furn.Value->Index;
-            ulong id = 0;
+            if ((uint)index >= (uint)max) continue;
             
-            if (index >= 0 && index < arr.Objects.Length && index < arr.ObjectCount)
+            var obj = (HousingObject*)arr.Objects[index].Value;
+            if (obj == null) continue;
+            
+            ulong id = obj->GetGameObjectId().Id;
+
+            if (CurrentFurniture.TryGetValue(id, out var existing))
             {
-                var obj = (HousingObject*)arr.Objects[index].Value;
-                if (obj != null) id = obj->GetGameObjectId().Id;
+                if (existing.Index != index)
+                {
+                    CurrentFurniture[id] = new Furniture(id, index, obj->HousingObjectId);
+                }
+
+                touched.Add(id);
+                continue;
             }
 
-            if (id == 0) continue;
+            Furniture furniture = new Furniture(id, index, obj->HousingObjectId);
+            if (!furniture.IsValid) continue;
 
             touched.Add(id);
-            
-            if (CurrentFurniture.ContainsKey(id)) continue;
-
-            Furniture furniture = new Furniture(furn);
-            
-            if (!furniture.IsValid) continue;
-            
             CurrentFurniture[id] = furniture;
             OnFurnitureAdded?.Invoke(furniture);
         }
